@@ -27,6 +27,18 @@ pub enum Property {
 
 #[derive(Debug, Clone)]
 pub struct Layout {
-    // Layout properties can be added later
+    pub items: Vec<LayoutItem>,
+}
+
+#[derive(Debug, Clone)]
+pub struct LayoutItem {
+    pub name: String,
+    pub properties: Vec<LayoutProperty>,
+}
+
+#[derive(Debug, Clone)]
+pub enum LayoutProperty {
+    Pos(i32, i32),      // (x, y)
+    Size(i32, i32),     // (width, height)
 }
 

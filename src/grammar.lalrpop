@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, Box, Property, Layout};
+use crate::ast::{Document, Diagram, Box, Property, Layout, LayoutItem, LayoutProperty};
 
 grammar;
 
@@ -24,15 +24,18 @@ DiagramBlock: Diagram = {
 };
 
 LayoutBlock: Layout = {
-    "layout" "{" <items:LayoutItem*> "}" => Layout {},
+    "layout" "{" <items:LayoutItem*> "}" => Layout { items },
 };
 
-LayoutItem: () = {
-    <id:Ident> "{" <props:LayoutProperty*> "}" => (),
+LayoutItem: LayoutItem = {
+    <name:Ident> "{" <props:LayoutProperty*> "}" => {
+        LayoutItem { name, properties: props }
+    },
 };
 
-LayoutProperty: () = {
-    <id:Ident> ":" "(" <n1:Num> "," <n2:Num> ")" => (),
+LayoutProperty: LayoutProperty = {
+    "pos" ":" "(" <x:Num> "," <y:Num> ")" => LayoutProperty::Pos(x, y),
+    "size" ":" "(" <w:Num> "," <h:Num> ")" => LayoutProperty::Size(w, h),
 };
 
 Box: Box = {

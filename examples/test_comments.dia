@@ -20,5 +20,22 @@ diagram {
 
 // Layout section
 layout {
+    // Main container box
+    main {
+        pos: (50, 50) // (x, y)
+        size: (400, 300) // (width, height)
+    }
+
+    // First child box
+    child1 {
+        pos: (70, 100) // (x, y)
+        size: (150, 80) // (width, height)
+    }
+
+    // Second child box
+    child2 {
+        pos: (250, 100) // (x, y)
+        size: (150, 80) // (width, height)
+    }
 }
 
