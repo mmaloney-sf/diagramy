@@ -60,6 +60,47 @@ fn map_color(color_name: &str) -> &str {
     }
 }
 
+// Calculate a high-contrast text color based on background color
+// Uses relative luminance to determine if background is light or dark
+// Returns eye-friendly colors instead of pure black/white
+fn get_contrast_text_color(hex_color: &str) -> &str {
+    // Parse hex color (supports both #RGB and #RRGGBB formats)
+    let hex = hex_color.trim_start_matches('#');
+
+    let (r, g, b) = if hex.len() == 6 {
+        // Full hex format: #RRGGBB
+        let r = u8::from_str_radix(&hex[0..2], 16).unwrap_or(128);
+        let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(128);
+        let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(128);
+        (r, g, b)
+    } else if hex.len() == 3 {
+        // Short hex format: #RGB
+        let r = u8::from_str_radix(&hex[0..1], 16).unwrap_or(8) * 17;
+        let g = u8::from_str_radix(&hex[1..2], 16).unwrap_or(8) * 17;
+        let b = u8::from_str_radix(&hex[2..3], 16).unwrap_or(8) * 17;
+        (r, g, b)
+    } else {
+        // Invalid format, default to medium gray
+        (128, 128, 128)
+    };
+
+    // Calculate relative luminance using sRGB formula
+    // https://www.w3.org/TR/WCAG20/#relativeluminancedef
+    let r_linear = (r as f32 / 255.0).powf(2.2);
+    let g_linear = (g as f32 / 255.0).powf(2.2);
+    let b_linear = (b as f32 / 255.0).powf(2.2);
+
+    let luminance = 0.2126 * r_linear + 0.7152 * g_linear + 0.0722 * b_linear;
+
+    // Use eye-friendly colors instead of pure black/white
+    // Dark backgrounds get a soft white, light backgrounds get a dark gray
+    if luminance > 0.5 {
+        "#2C3E50" // Dark blue-gray for light backgrounds
+    } else {
+        "#F8F9FA" // Soft white for dark backgrounds
+    }
+}
+
 // Render the diagram AST as an SVG
 fn render_diagram_to_svg(doc: &Document, filename: &str) {
     // Get canvas size from layout or use defaults
@@ -117,6 +158,9 @@ fn render_box_with_layout(
         .unwrap_or_else(|| "gray".to_string());
     let svg_color = map_color(&color_name);
 
+    // Calculate contrasting text color based on background
+    let text_color = get_contrast_text_color(svg_color);
+
     // Render parent box first (so it appears behind children)
     if let Some(ref id) = box_item.id {
         if let Some(&(x, y, width, height)) = layout_map.get(id) {
@@ -133,13 +177,14 @@ fn render_box_with_layout(
             doc = doc.add(rect);
 
             // Draw title text centered in the box (only if title is provided)
+            // Use contrasting color for readability
             if let Some(title_text) = title {
                 let text = Text::new(&title_text)
                     .set("x", x + width / 2)
                     .set("y", y + height / 2 + 5)
                     .set("text-anchor", "middle")
                     .set("font-size", 14)
-                    .set("fill", "white");
+                    .set("fill", text_color);
                 doc = doc.add(text);
             }
         } else {
