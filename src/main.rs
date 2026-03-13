@@ -33,6 +33,33 @@ fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
     layout_map
 }
 
+// Map .dia color names to SVG hex color codes
+fn map_color(color_name: &str) -> &str {
+    match color_name {
+        "red" => "#E74C3C",
+        "blue" => "#3498DB",
+        "green" => "#2ECC71",
+        "yellow" => "#F1C40F",
+        "orange" => "#E67E22",
+        "purple" => "#9B59B6",
+        "pink" => "#FF69B4",
+        "cyan" => "#1ABC9C",
+        "magenta" => "#E91E63",
+        "lime" => "#8BC34A",
+        "teal" => "#009688",
+        "indigo" => "#3F51B5",
+        "brown" => "#795548",
+        "gray" => "#95A5A6",
+        "grey" => "#95A5A6",
+        "black" => "#2C3E50",
+        "white" => "#ECF0F1",
+        "navy" => "#34495E",
+        "maroon" => "#8E44AD",
+        "olive" => "#7F8C8D",
+        _ => "#95A5A6", // Default to gray for unknown colors
+    }
+}
+
 // Render the diagram AST as an SVG
 fn render_diagram_to_svg(doc: &Document, filename: &str) {
     // Get canvas size from layout or use defaults
@@ -85,10 +112,11 @@ fn render_box_with_layout(
         .find_map(|p| if let Property::Title(t) = p { Some(t.clone()) } else { None })
         .unwrap_or_else(|| "Untitled".to_string());
 
-    // Get color from properties
-    let color = box_item.properties.iter()
+    // Get color from properties and map to SVG hex color
+    let color_name = box_item.properties.iter()
         .find_map(|p| if let Property::Color(c) = p { Some(c.clone()) } else { None })
         .unwrap_or_else(|| "gray".to_string());
+    let svg_color = map_color(&color_name);
 
     // Render parent box first (so it appears behind children)
     if let Some(ref id) = box_item.id {
@@ -99,7 +127,7 @@ fn render_box_with_layout(
                 .set("y", y)
                 .set("width", width)
                 .set("height", height)
-                .set("fill", color.as_str())
+                .set("fill", svg_color)
                 .set("stroke", "#333")
                 .set("stroke-width", 2)
                 .set("rx", 5);
