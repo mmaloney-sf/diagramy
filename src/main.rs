@@ -107,10 +107,9 @@ fn render_box_with_layout(
     layout_map: &HashMap<String, (i32, i32, i32, i32)>,
     mut doc: SvgDocument,
 ) -> SvgDocument {
-    // Get title from properties
+    // Get title from properties (optional)
     let title = box_item.properties.iter()
-        .find_map(|p| if let Property::Title(t) = p { Some(t.clone()) } else { None })
-        .unwrap_or_else(|| "Untitled".to_string());
+        .find_map(|p| if let Property::Title(t) = p { Some(t.clone()) } else { None });
 
     // Get color from properties and map to SVG hex color
     let color_name = box_item.properties.iter()
@@ -133,21 +132,24 @@ fn render_box_with_layout(
                 .set("rx", 5);
             doc = doc.add(rect);
 
-            // Draw title text centered in the box
-            let text = Text::new(&title)
-                .set("x", x + width / 2)
-                .set("y", y + height / 2 + 5)
-                .set("text-anchor", "middle")
-                .set("font-size", 14)
-                .set("fill", "white");
-            doc = doc.add(text);
+            // Draw title text centered in the box (only if title is provided)
+            if let Some(title_text) = title {
+                let text = Text::new(&title_text)
+                    .set("x", x + width / 2)
+                    .set("y", y + height / 2 + 5)
+                    .set("text-anchor", "middle")
+                    .set("font-size", 14)
+                    .set("fill", "white");
+                doc = doc.add(text);
+            }
         } else {
             // No layout found for this identifier
             println!("Warning: No layout found for box with id '{}'", id);
         }
     } else {
         // Box has no identifier
-        println!("Warning: Box '{}' has no identifier, skipping layout", title);
+        let title_str = title.as_deref().unwrap_or("(no title)");
+        println!("Warning: Box '{}' has no identifier, skipping layout", title_str);
     }
 
     // Render children AFTER parent (so they appear in front with higher z-index)
