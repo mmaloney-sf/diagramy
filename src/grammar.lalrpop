@@ -3,6 +3,18 @@ use crate::ast::{Document, Diagram, Box, Property, Layout};
 
 grammar;
 
+// Skip whitespace and comments
+match {
+    // Skip whitespace
+    r"\s*" => { },
+    // Skip C++ style line comments
+    r"//[^\n\r]*[\n\r]*" => { },
+    // Skip C style block comments
+    r"/\*[^*]*\*+(?:[^/*][^*]*\*+)*/" => { },
+} else {
+    _
+}
+
 pub Document: Document = {
     <d:DiagramBlock> <l:LayoutBlock> => Document { diagram: d, layout: l },
 };
@@ -12,11 +24,19 @@ DiagramBlock: Diagram = {
 };
 
 LayoutBlock: Layout = {
-    "layout" "{" "}" => Layout {},
+    "layout" "{" <items:LayoutItem*> "}" => Layout {},
+};
+
+LayoutItem: () = {
+    <id:Ident> "{" <props:LayoutProperty*> "}" => (),
+};
+
+LayoutProperty: () = {
+    <id:Ident> ":" "(" <n1:Num> "," <n2:Num> ")" => (),
 };
 
 Box: Box = {
-    "box" "{" <props:Property*> <children:Box*> "}" => {
+    "box" <id:Ident?> "{" <props:Property*> <children:Box*> "}" => {
         Box { properties: props, children }
     },
 };

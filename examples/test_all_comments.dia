@@ -1,0 +1,35 @@
+/* 
+ * Multi-line comment at the start
+ * Testing all comment styles
+ */
+
+// Single line comment before diagram
+diagram {
+    // Comment inside diagram block
+    box main { /* inline block comment */
+        title: "Main" // inline comment after property
+        
+        /* 
+         * Multi-line comment
+         * before a child box
+         */
+        box child1 {
+            title: "Child 1"
+            color: blue // color comment
+        } // comment after closing brace
+        
+        // Another child
+        box child2 {
+            title: "Child 2"
+            color: red
+        }
+    }
+}
+
+// Comment before layout
+layout {
+    // Empty layout for now
+}
+
+/* Final comment */
+

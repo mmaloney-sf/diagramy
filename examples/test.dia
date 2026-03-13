@@ -1,44 +1,84 @@
 diagram {
-    box {
-        box {
+    box top {
+        box entropy {
             title: "Entropy"
-            box {
+            box trngDb {
                 title: "TRNG-DB"
                 color: blue
             }
         }
 
-        box {
+        box trace {
             title: "Trace"
-            box {
+            box traceFunnel {
                 title: "Trace Funnel"
                 color: blue
                 stack: 3
             }
 
-            box {
+            box traceSink {
                 title: "Trace Sink"
                 color: red
             }
         }
-        box {
+        box debug {
             title: "Debug"
-            box {
+            box innerDebug {
                 title: "Inner Debug"
                 color: yellow
             }
 
-            box {
+            box debug2 {
                 title: "Debug"
                 color: pink
             }
         }
     }
 
-    box {
+    box cdc {
         title: "CDC" vertical
     }
 }
 
 layout {
+    top {
+        pos: (10, 10) // (x, y)  
+        size: (570, 570) // (width, height)
+    }
+    entropy {
+        pos: (, )
+        size: (, )
+    }
+    trngDb {
+        pos: (, )
+        size: (, )
+    }
+    trace {
+        pos: (, )
+        size: (, )
+    }
+    traceFunnel {
+        pos: (, )
+        size: (, )
+    }
+    traceSink {
+        pos: (, )
+        size: (, )
+    }
+    debug {
+        pos: (, )
+        size: (, )
+    }
+    innerDebug {
+        pos: (, )
+        size: (, )
+    }
+    debug2 {
+        pos: (, )
+        size: (, )
+    }
+    cdc {
+        pos: (, )
+        size: (, )
+    }
 }

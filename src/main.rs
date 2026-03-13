@@ -94,8 +94,9 @@ fn main() {
     let parser = grammar::DocumentParser::new();
 
     // Read the example file
-    let input = fs::read_to_string("examples/test.dia")
-        .expect("Failed to read examples/test.dia");
+    let test_file = std::env::args().nth(1).unwrap_or_else(|| "examples/test.dia".to_string());
+    let input = fs::read_to_string(&test_file)
+        .expect(&format!("Failed to read {}", test_file));
 
     println!("Diagram Parser\n");
     println!("==============\n");

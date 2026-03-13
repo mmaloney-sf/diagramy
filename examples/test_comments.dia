@@ -1,0 +1,24 @@
+// This is a test diagram with comments
+diagram {
+    /* This is a block comment
+       spanning multiple lines */
+    box {
+        title: "Main Box" // inline comment
+        
+        box {
+            title: "Child 1"
+            color: blue // This is blue
+        }
+        
+        /* Another block comment */
+        box {
+            title: "Child 2"
+            color: red
+        }
+    }
+}
+
+// Layout section
+layout {
+}
+
