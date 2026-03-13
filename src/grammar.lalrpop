@@ -1,26 +1,49 @@
 use std::str::FromStr;
-use crate::ast::{Expr, Opcode};
+use crate::ast::{Document, Diagram, Box, Property, Layout};
 
 grammar;
 
-pub Expr: Box<Expr> = {
-    <l:Expr> "+" <r:Factor> => Box::new(Expr::Op(l, Opcode::Add, r)),
-    <l:Expr> "-" <r:Factor> => Box::new(Expr::Op(l, Opcode::Sub, r)),
-    Factor,
+pub Document: Document = {
+    <d:DiagramBlock> <l:LayoutBlock> => Document { diagram: d, layout: l },
 };
 
-Factor: Box<Expr> = {
-    <l:Factor> "*" <r:Term> => Box::new(Expr::Op(l, Opcode::Mul, r)),
-    <l:Factor> "/" <r:Term> => Box::new(Expr::Op(l, Opcode::Div, r)),
-    Term,
+DiagramBlock: Diagram = {
+    "diagram" "{" <boxes:Box*> "}" => Diagram { boxes },
 };
 
-Term: Box<Expr> = {
-    Num,
-    "(" <Expr> ")",
+LayoutBlock: Layout = {
+    "layout" "{" "}" => Layout {},
 };
 
-Num: Box<Expr> = {
-    r"[0-9]+" => Box::new(Expr::Number(i32::from_str(<>).unwrap())),
+Box: Box = {
+    "box" "{" <props:Property*> <children:Box*> "}" => {
+        Box { properties: props, children }
+    },
+};
+
+Property: Property = {
+    "title" ":" <s:String> => Property::Title(s),
+    "title" ":" <s:String> "vertical" => {
+        // For now, we'll just capture the title and ignore vertical
+        // A better approach would be to return multiple properties
+        Property::Title(s)
+    },
+    "color" ":" <c:Ident> => Property::Color(c),
+    "stack" ":" <n:Num> => Property::Stack(n),
+};
+
+String: String = {
+    r#""[^"]*""# => {
+        let s = <>;
+        s[1..s.len()-1].to_string()
+    },
+};
+
+Ident: String = {
+    r"[a-zA-Z_][a-zA-Z0-9_]*" => <>.to_string(),
+};
+
+Num: i32 = {
+    r"[0-9]+" => i32::from_str(<>).unwrap(),
 };
 
