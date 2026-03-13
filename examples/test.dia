@@ -1,0 +1,44 @@
+diagram {
+    box {
+        box {
+            title: "Entropy"
+            box {
+                title: "TRNG-DB"
+                color: blue
+            }
+        }
+
+        box {
+            title: "Trace"
+            box {
+                title: "Trace Funnel"
+                color: blue
+                stack: 3
+            }
+
+            box {
+                title: "Trace Sink"
+                color: red
+            }
+        }
+        box {
+            title: "Debug"
+            box {
+                title: "Inner Debug"
+                color: yellow
+            }
+
+            box {
+                title: "Debug"
+                color: pink
+            }
+        }
+    }
+
+    box {
+        title: "CDC" vertical
+    }
+}
+
+layout {
+}
