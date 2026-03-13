@@ -1,3 +1,5 @@
+version = 0.1.0
+
 // This is a test diagram with comments
 diagram {
     /* This is a block comment

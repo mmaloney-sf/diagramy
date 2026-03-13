@@ -16,7 +16,19 @@ match {
 }
 
 pub Document: Document = {
-    <d:DiagramBlock> <l:LayoutBlock> => Document { diagram: d, layout: l },
+    <v:Version> <d:DiagramBlock> <l:LayoutBlock> => {
+        // Assert version is 0.1.0
+        assert_eq!(v, "0.1.0", "Unsupported version: {}. Expected version 0.1.0", v);
+        Document { diagram: d, layout: l }
+    },
+};
+
+Version: String = {
+    "version" "=" <v:VersionNumber> => v,
+};
+
+VersionNumber: String = {
+    r"[0-9]+\.[0-9]+\.[0-9]+" => <>.to_string(),
 };
 
 DiagramBlock: Diagram = {
