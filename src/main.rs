@@ -107,10 +107,15 @@ fn render_diagram_to_svg(doc: &Document, filename: &str) {
     // Get canvas size from layout or use defaults
     let (width, height) = doc.layout.canvas_size.unwrap_or((800, 600));
 
+    // Scale down the rendered size by 4x while keeping coordinates at original scale
+    let scale_factor = 0.55;
+    let display_width = (width as f64 * scale_factor) as i32;
+    let display_height = (height as f64 * scale_factor) as i32;
+
     let mut svg_doc = SvgDocument::new()
-        .set("viewBox", (0, 0, width, height))
-        .set("width", width)
-        .set("height", height);
+        .set("viewBox", (0, 0, width, height))  // Keep original coordinate space
+        .set("width", display_width)             // Scale down display size
+        .set("height", display_height);
 
     // No background - transparent canvas
     // (All boxes will have opaque fills)
