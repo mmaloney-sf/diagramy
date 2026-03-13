@@ -20,6 +20,8 @@ diagram {
 
 // Layout section
 layout {
+    size: (500, 400) // Canvas size (width, height)
+
     // Main container box
     mainbox {
         pos: (50, 50) // (x, y)

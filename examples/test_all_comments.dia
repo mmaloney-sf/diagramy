@@ -28,6 +28,7 @@ diagram {
 
 // Comment before layout
 layout {
+    size: (800, 600) // Canvas dimensions
     // Empty layout for now
 }
 

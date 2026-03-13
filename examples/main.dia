@@ -15,16 +15,18 @@ diagram {
 }
 
 layout {
+    size: (800, 600)
+
     top {
-        pos: (0, 0)
-        size: (800, 600)
+        pos: (50, 50)
+        size: (700, 500)
     }
     foo {
-        pos: (25, 25)
+        pos: (75, 75)
         size: (100, 200)
     }
     bar {
-        pos: (200, 25)
+        pos: (250, 75)
         size: (100, 200)
     }
 }

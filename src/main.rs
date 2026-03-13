@@ -35,9 +35,8 @@ fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
 
 // Render the diagram AST as an SVG
 fn render_diagram_to_svg(doc: &Document, filename: &str) {
-    // Calculate canvas size based on layout or use defaults
-    let width = 800;
-    let height = 600;
+    // Get canvas size from layout or use defaults
+    let (width, height) = doc.layout.canvas_size.unwrap_or((800, 600));
 
     let mut svg_doc = SvgDocument::new()
         .set("viewBox", (0, 0, width, height))

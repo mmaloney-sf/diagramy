@@ -24,7 +24,11 @@ DiagramBlock: Diagram = {
 };
 
 LayoutBlock: Layout = {
-    "layout" "{" <items:LayoutItem*> "}" => Layout { items },
+    "layout" "{" <size:CanvasSize?> <items:LayoutItem*> "}" => Layout { canvas_size: size, items },
+};
+
+CanvasSize: (i32, i32) = {
+    "size" ":" "(" <w:Num> "," <h:Num> ")" => (w, h),
 };
 
 LayoutItem: LayoutItem = {
