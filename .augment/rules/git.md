@@ -6,6 +6,7 @@ description: Version control and git operation rules
 # Version Control Rules
 
 ## Git Operations
+- **NEVER** `git add` a new file. EVER.
 - Whenever you run `git commit`, commit **ONLY** the staged changes.
 - Whenever you run `git commit`, never add untracked files or changes.
 - Whenever you run `git commit`, if there is an important untracked file, tell me, but commit without adding it.
