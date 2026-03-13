@@ -34,29 +34,30 @@ fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
 }
 
 // Map .dia color names to SVG hex color codes
+// Colors chosen to match reference.png - muted, professional palette
 fn map_color(color_name: &str) -> &str {
     match color_name {
-        "red" => "#E74C3C",
-        "blue" => "#3498DB",
-        "green" => "#2ECC71",
-        "yellow" => "#F1C40F",
-        "orange" => "#E67E22",
-        "purple" => "#9B59B6",
-        "pink" => "#FF69B4",
-        "cyan" => "#1ABC9C",
-        "magenta" => "#E91E63",
-        "lime" => "#8BC34A",
-        "teal" => "#009688",
-        "indigo" => "#3F51B5",
-        "brown" => "#795548",
-        "gray" => "#95A5A6",
-        "grey" => "#95A5A6",
-        "black" => "#2C3E50",
-        "white" => "#ECF0F1",
-        "navy" => "#34495E",
-        "maroon" => "#8E44AD",
-        "olive" => "#7F8C8D",
-        _ => "#95A5A6", // Default to gray for unknown colors
+        "red" => "#D98880",        // Soft coral red
+        "blue" => "#85C1E2",       // Soft sky blue
+        "green" => "#82E0AA",      // Soft mint green
+        "yellow" => "#F9E79F",     // Soft pale yellow
+        "orange" => "#F5B041",     // Soft orange
+        "purple" => "#BB8FCE",     // Soft lavender purple
+        "pink" => "#F5B7B1",       // Soft pastel pink
+        "cyan" => "#7FB3D5",       // Soft cyan blue
+        "magenta" => "#D7BDE2",    // Soft magenta/lilac
+        "lime" => "#ABEBC6",       // Soft lime green
+        "teal" => "#76D7C4",       // Soft teal
+        "indigo" => "#A9CCE3",     // Soft indigo blue
+        "brown" => "#C39BD3",      // Soft mauve
+        "gray" => "#D5DBDB",       // Soft light gray
+        "grey" => "#D5DBDB",       // Soft light gray
+        "black" => "#566573",      // Soft dark gray
+        "white" => "#F8F9F9",      // Soft white
+        "navy" => "#5D6D7E",       // Soft navy gray
+        "maroon" => "#C39BD3",     // Soft purple
+        "olive" => "#A9DFBF",      // Soft olive green
+        _ => "#D5DBDB",            // Default to soft gray for unknown colors
     }
 }
 
@@ -111,12 +112,8 @@ fn render_diagram_to_svg(doc: &Document, filename: &str) {
         .set("width", width)
         .set("height", height);
 
-    // Add background
-    let background = Rectangle::new()
-        .set("width", "100%")
-        .set("height", "100%")
-        .set("fill", "#f8f9fa");
-    svg_doc = svg_doc.add(background);
+    // No background - transparent canvas
+    // (All boxes will have opaque fills)
 
     // Build layout map
     let layout_map = build_layout_map(doc);
