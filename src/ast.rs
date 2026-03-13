@@ -13,6 +13,7 @@ pub struct Diagram {
 
 #[derive(Debug, Clone)]
 pub struct Box {
+    pub id: Option<String>,  // Optional identifier after "box"
     pub properties: Vec<Property>,
     pub children: Vec<Box>,
 }

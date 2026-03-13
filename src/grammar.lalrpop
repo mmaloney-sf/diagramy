@@ -40,7 +40,7 @@ LayoutProperty: LayoutProperty = {
 
 Box: Box = {
     "box" <id:Ident?> "{" <props:Property*> <children:Box*> "}" => {
-        Box { properties: props, children }
+        Box { id, properties: props, children }
     },
 };
 

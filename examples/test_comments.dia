@@ -2,16 +2,16 @@
 diagram {
     /* This is a block comment
        spanning multiple lines */
-    box {
+    box mainbox {
         title: "Main Box" // inline comment
-        
-        box {
+
+        box child1 {
             title: "Child 1"
             color: blue // This is blue
         }
-        
+
         /* Another block comment */
-        box {
+        box child2 {
             title: "Child 2"
             color: red
         }
@@ -21,7 +21,7 @@ diagram {
 // Layout section
 layout {
     // Main container box
-    main {
+    mainbox {
         pos: (50, 50) // (x, y)
         size: (400, 300) // (width, height)
     }

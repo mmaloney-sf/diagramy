@@ -42,43 +42,43 @@ diagram {
 
 layout {
     top {
-        pos: (10, 10) // (x, y)  
+        pos: (10, 10) // (x, y)
         size: (570, 570) // (width, height)
     }
     entropy {
-        pos: (0, 0)
-        size: (0, 0)
+        pos: (20, 10)
+        size: (10, 10)
     }
     trngDb {
-        pos: (0, 0)
-        size: (0, 0)
+        pos: (40, 10)
+        size: (10, 10)
     }
     trace {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
     traceFunnel {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
     traceSink {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
     debug {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
     innerDebug {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
     debug2 {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
     cdc {
         pos: (0, 0)
-        size: (0, 0)
+        size: (10, 10)
     }
 }

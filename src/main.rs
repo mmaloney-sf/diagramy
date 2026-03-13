@@ -6,12 +6,36 @@ use svg::node::element::{Text, Rectangle};
 use std::fs;
 
 mod ast;
-use ast::{Document, Box, Property};
+use ast::{Document, Box, Property, LayoutProperty};
+use std::collections::HashMap;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
+// Build a layout map from the layout section
+fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
+    let mut layout_map = HashMap::new();
+
+    for item in &doc.layout.items {
+        let mut pos = (0, 0);
+        let mut size = (100, 50); // default size
+
+        for prop in &item.properties {
+            match prop {
+                LayoutProperty::Pos(x, y) => pos = (*x, *y),
+                LayoutProperty::Size(w, h) => size = (*w, *h),
+            }
+        }
+
+        // Store as (x, y, width, height)
+        layout_map.insert(item.name.clone(), (pos.0, pos.1, size.0, size.1));
+    }
+
+    layout_map
+}
+
 // Render the diagram AST as an SVG
 fn render_diagram_to_svg(doc: &Document, filename: &str) {
+    // Calculate canvas size based on layout or use defaults
     let width = 800;
     let height = 600;
 
@@ -27,24 +51,36 @@ fn render_diagram_to_svg(doc: &Document, filename: &str) {
         .set("fill", "#f8f9fa");
     svg_doc = svg_doc.add(background);
 
-    // For now, just render a simple tree structure
-    // This is a placeholder - we'll improve the layout later
-    let mut y_pos = 50.0;
+    // Build layout map
+    let layout_map = build_layout_map(doc);
 
-    for box_item in &doc.diagram.boxes {
-        svg_doc = render_box(box_item, 50.0, y_pos, 0, svg_doc);
-        y_pos += 150.0;
-    }
+    // Render all boxes using layout information
+    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc);
 
     // Save to file
     svg::save(filename, &svg_doc).unwrap();
     println!("Saved diagram to: {}", filename);
 }
 
-fn render_box(box_item: &Box, x: f32, y: f32, depth: usize, mut doc: SvgDocument) -> SvgDocument {
-    let indent = depth as f32 * 30.0;
-    let box_x = x + indent;
+// Recursively render boxes with layout information
+fn render_boxes_with_layout(
+    boxes: &[Box],
+    layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+    mut doc: SvgDocument,
+) -> SvgDocument {
+    for box_item in boxes {
+        doc = render_box_with_layout(box_item, layout_map, doc);
+    }
+    doc
+}
 
+// Render a single box using layout information
+// Children are rendered AFTER parents to ensure they appear in front (higher z-index in SVG)
+fn render_box_with_layout(
+    box_item: &Box,
+    layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+    mut doc: SvgDocument,
+) -> SvgDocument {
     // Get title from properties
     let title = box_item.properties.iter()
         .find_map(|p| if let Property::Title(t) = p { Some(t.clone()) } else { None })
@@ -55,33 +91,40 @@ fn render_box(box_item: &Box, x: f32, y: f32, depth: usize, mut doc: SvgDocument
         .find_map(|p| if let Property::Color(c) = p { Some(c.clone()) } else { None })
         .unwrap_or_else(|| "gray".to_string());
 
-    // Draw rectangle
-    let rect = Rectangle::new()
-        .set("x", box_x)
-        .set("y", y)
-        .set("width", 150)
-        .set("height", 40)
-        .set("fill", color)
-        .set("stroke", "#333")
-        .set("stroke-width", 2)
-        .set("rx", 5);
-    doc = doc.add(rect);
+    // Render parent box first (so it appears behind children)
+    if let Some(ref id) = box_item.id {
+        if let Some(&(x, y, width, height)) = layout_map.get(id) {
+            // Draw rectangle for this box
+            let rect = Rectangle::new()
+                .set("x", x)
+                .set("y", y)
+                .set("width", width)
+                .set("height", height)
+                .set("fill", color.as_str())
+                .set("stroke", "#333")
+                .set("stroke-width", 2)
+                .set("rx", 5);
+            doc = doc.add(rect);
 
-    // Draw title text
-    let text = Text::new(title)
-        .set("x", box_x + 75.0)
-        .set("y", y + 25.0)
-        .set("text-anchor", "middle")
-        .set("font-size", 14)
-        .set("fill", "white");
-    doc = doc.add(text);
-
-    // Render children
-    let mut child_y = y + 60.0;
-    for child in &box_item.children {
-        doc = render_box(child, x, child_y, depth + 1, doc);
-        child_y += 60.0;
+            // Draw title text centered in the box
+            let text = Text::new(&title)
+                .set("x", x + width / 2)
+                .set("y", y + height / 2 + 5)
+                .set("text-anchor", "middle")
+                .set("font-size", 14)
+                .set("fill", "white");
+            doc = doc.add(text);
+        } else {
+            // No layout found for this identifier
+            println!("Warning: No layout found for box with id '{}'", id);
+        }
+    } else {
+        // Box has no identifier
+        println!("Warning: Box '{}' has no identifier, skipping layout", title);
     }
+
+    // Render children AFTER parent (so they appear in front with higher z-index)
+    doc = render_boxes_with_layout(&box_item.children, layout_map, doc);
 
     doc
 }

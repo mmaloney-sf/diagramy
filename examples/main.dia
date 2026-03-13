@@ -1,0 +1,30 @@
+diagram {
+    box top {
+        title: "Top"
+
+        box foo {
+            title: "Foo"
+            color: red
+        }
+
+        box bar {
+            title: "Bar"
+            color: blue
+        }
+    }
+}
+
+layout {
+    top {
+        pos: (0, 0)
+        size: (800, 600)
+    }
+    foo {
+        pos: (25, 25)
+        size: (100, 200)
+    }
+    bar {
+        pos: (200, 25)
+        size: (100, 200)
+    }
+}
