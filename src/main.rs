@@ -7,7 +7,7 @@ use svg::node::element::{Circle, Line, Text, Rectangle};
 mod ast;
 use ast::{Expr, Opcode};
 
-lalrpop_mod!(pub calculator); // synthesized by LALRPOP
+lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
 // Evaluate the AST to get the result
 fn eval(expr: &Expr) -> i32 {
@@ -163,17 +163,20 @@ fn render_ast_to_svg(expr: &Expr, filename: &str) {
 }
 
 fn main() {
+    // Create build directory if it doesn't exist
+    std::fs::create_dir_all("build").expect("Failed to create build directory");
+
     // Create a parser instance
-    let parser = calculator::ExprParser::new();
+    let parser = grammar::ExprParser::new();
 
     // Test some expressions
     let test_cases = vec![
-        ("22", "ast_simple.svg"),
-        ("22 + 33", "ast_addition.svg"),
-        ("22 * 44 + 66", "ast_precedence.svg"),
-        ("1 + 2 * 3", "ast_multiply_first.svg"),
-        ("(1 + 2) * 3", "ast_parentheses.svg"),
-        ("10 / 2 - 3", "ast_division.svg"),
+        ("22", "build/ast_simple.svg"),
+        ("22 + 33", "build/ast_addition.svg"),
+        ("22 * 44 + 66", "build/ast_precedence.svg"),
+        ("1 + 2 * 3", "build/ast_multiply_first.svg"),
+        ("(1 + 2) * 3", "build/ast_parentheses.svg"),
+        ("10 / 2 - 3", "build/ast_division.svg"),
     ];
 
     println!("Basic LALRPOP Calculator with AST Rendering\n");
@@ -190,5 +193,5 @@ fn main() {
         }
     }
 
-    println!("\nAll AST diagrams have been generated!");
+    println!("\nAll AST diagrams have been generated in build/!");
 }
