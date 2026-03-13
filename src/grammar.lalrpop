@@ -43,20 +43,21 @@ LayoutProperty: LayoutProperty = {
 };
 
 Box: Box = {
-    "box" <id:Ident?> "{" <props:Property*> <children:Box*> "}" => {
+    "box" <id:Ident?> "{" <props:PropertyList> <children:Box*> "}" => {
         Box { id, properties: props, children }
     },
 };
 
-Property: Property = {
-    "title" ":" <s:String> => Property::Title(s),
-    "title" ":" <s:String> "vertical" => {
-        // For now, we'll just capture the title and ignore vertical
-        // A better approach would be to return multiple properties
-        Property::Title(s)
-    },
-    "color" ":" <c:Ident> => Property::Color(c),
-    "stack" ":" <n:Num> => Property::Stack(n),
+// PropertyList handles flattening of properties (including vertical titles)
+PropertyList: Vec<Property> = {
+    <props:PropertyItem*> => props.into_iter().flatten().collect(),
+};
+
+PropertyItem: Vec<Property> = {
+    "title" ":" <s:String> "vertical" => vec![Property::Title(s), Property::Vertical],
+    "title" ":" <s:String> => vec![Property::Title(s)],
+    "color" ":" <c:Ident> => vec![Property::Color(c)],
+    "stack" ":" <n:Num> => vec![Property::Stack(n)],
 };
 
 String: String = {

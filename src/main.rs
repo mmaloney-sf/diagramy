@@ -121,8 +121,16 @@ fn render_diagram_to_svg(doc: &Document, filename: &str) {
     // Build layout map
     let layout_map = build_layout_map(doc);
 
-    // Render all boxes using layout information
-    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc);
+    // Collect text elements while rendering boxes
+    let mut text_elements = Vec::new();
+
+    // Render all boxes (rectangles only) using layout information
+    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements);
+
+    // Render all text elements on top (so text is always in front)
+    for text_element in text_elements {
+        svg_doc = svg_doc.add(text_element);
+    }
 
     // Save to file
     svg::save(filename, &svg_doc).unwrap();
@@ -134,23 +142,30 @@ fn render_boxes_with_layout(
     boxes: &[Box],
     layout_map: &HashMap<String, (i32, i32, i32, i32)>,
     mut doc: SvgDocument,
+    text_elements: &mut Vec<svg::node::element::Text>,
 ) -> SvgDocument {
     for box_item in boxes {
-        doc = render_box_with_layout(box_item, layout_map, doc);
+        doc = render_box_with_layout(box_item, layout_map, doc, text_elements);
     }
     doc
 }
 
 // Render a single box using layout information
 // Children are rendered AFTER parents to ensure they appear in front (higher z-index in SVG)
+// Text elements are collected and rendered later on top of all boxes
 fn render_box_with_layout(
     box_item: &Box,
     layout_map: &HashMap<String, (i32, i32, i32, i32)>,
     mut doc: SvgDocument,
+    text_elements: &mut Vec<svg::node::element::Text>,
 ) -> SvgDocument {
     // Get title from properties (optional)
     let title = box_item.properties.iter()
         .find_map(|p| if let Property::Title(t) = p { Some(t.clone()) } else { None });
+
+    // Check if title should be rendered vertically
+    let is_vertical = box_item.properties.iter()
+        .any(|p| matches!(p, Property::Vertical));
 
     // Get color from properties and map to SVG hex color
     let color_name = box_item.properties.iter()
@@ -176,16 +191,71 @@ fn render_box_with_layout(
                 .set("rx", 5);
             doc = doc.add(rect);
 
-            // Draw title text centered in the box (only if title is provided)
+            // Collect title text element (to be rendered later on top of all boxes)
             // Use contrasting color for readability
             if let Some(title_text) = title {
-                let text = Text::new(&title_text)
-                    .set("x", x + width / 2)
-                    .set("y", y + height / 2 + 5)
-                    .set("text-anchor", "middle")
-                    .set("font-size", 14)
-                    .set("fill", text_color);
-                doc = doc.add(text);
+                let padding = 8; // Padding from edges
+                let font_size = 14;
+
+                if is_vertical {
+                    // Vertical text: rotated 90 degrees counter-clockwise
+                    // For vertical text in upper left corner:
+                    // 1. Start at upper left corner (x + padding, y + padding)
+                    // 2. Rotate -90 degrees makes horizontal text go downward
+                    // 3. After rotation, coordinate system is rotated, so:
+                    //    - To move DOWN on screen (positive Y), we translate in negative X (after rotation)
+                    //    - We need to shift down by font_size to account for baseline
+                    let text_x = x + padding;
+                    let text_y = y + padding;
+
+                    // Use transform with translate and rotate
+                    // Translate to upper left, then rotate around origin, then translate DOWN on screen
+                    // After -90 rotation, moving down on screen means translating in negative X
+                    let transform = format!("translate({} {}) rotate(-90) translate({} 0)",
+                                          text_x, text_y, -font_size);
+
+                    // Add shadow text (rendered first, behind the main text)
+                    let shadow = Text::new(&title_text)
+                        .set("x", 1)
+                        .set("y", 1)
+                        .set("text-anchor", "start")
+                        .set("font-size", font_size)
+                        .set("fill", "rgba(0, 0, 0, 0.3)")
+                        .set("opacity", "0.5")
+                        .set("transform", transform.clone());
+                    text_elements.push(shadow);
+
+                    // Add main text
+                    let text = Text::new(&title_text)
+                        .set("x", 0)
+                        .set("y", 0)
+                        .set("text-anchor", "start")
+                        .set("font-size", font_size)
+                        .set("fill", text_color)
+                        .set("transform", transform);
+                    text_elements.push(text);
+                } else {
+                    // Horizontal text: positioned in upper left
+
+                    // Add shadow text (rendered first, behind the main text)
+                    let shadow = Text::new(&title_text)
+                        .set("x", x + padding + 1)
+                        .set("y", y + padding + font_size + 1)
+                        .set("text-anchor", "start")
+                        .set("font-size", font_size)
+                        .set("fill", "rgba(0, 0, 0, 0.3)")
+                        .set("opacity", "0.5");
+                    text_elements.push(shadow);
+
+                    // Add main text
+                    let text = Text::new(&title_text)
+                        .set("x", x + padding)
+                        .set("y", y + padding + font_size) // Add font size for baseline
+                        .set("text-anchor", "start")
+                        .set("font-size", font_size)
+                        .set("fill", text_color);
+                    text_elements.push(text);
+                }
             }
         } else {
             // No layout found for this identifier
@@ -198,7 +268,7 @@ fn render_box_with_layout(
     }
 
     // Render children AFTER parent (so they appear in front with higher z-index)
-    doc = render_boxes_with_layout(&box_item.children, layout_map, doc);
+    doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements);
 
     doc
 }
