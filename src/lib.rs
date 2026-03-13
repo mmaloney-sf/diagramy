@@ -102,22 +102,27 @@ fn get_contrast_text_color(hex_color: &str) -> &str {
 }
 
 // Render the diagram AST as an SVG
-pub fn render_diagram_to_svg(doc: &Document, filename: &str) {
+pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool) {
     // Get canvas size from layout or use defaults
     let (width, height) = doc.layout.canvas_size.unwrap_or((800, 600));
 
-    // Scale down the rendered size by 4x while keeping coordinates at original scale
-    let scale_factor = 0.55;
+    // Scale the rendered size while keeping coordinates at original scale
     let display_width = (width as f64 * scale_factor) as i32;
     let display_height = (height as f64 * scale_factor) as i32;
 
     let mut svg_doc = SvgDocument::new()
         .set("viewBox", (0, 0, width, height))  // Keep original coordinate space
-        .set("width", display_width)             // Scale down display size
+        .set("width", display_width)             // Scale display size
         .set("height", display_height);
 
-    // No background - transparent canvas
-    // (All boxes will have opaque fills)
+    // Add background if not transparent
+    if !transparent {
+        let background = Rectangle::new()
+            .set("width", "100%")
+            .set("height", "100%")
+            .set("fill", "#FFFFFF");
+        svg_doc = svg_doc.add(background);
+    }
 
     // Build layout map
     let layout_map = build_layout_map(doc);
