@@ -37,6 +37,7 @@ diagram {
 
     box cdc {
         title: "CDC" vertical
+        color: blue
     }
 }
 
