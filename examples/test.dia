@@ -27,6 +27,12 @@ diagram {
             box traceSink {
                 title: "Trace Sink"
                 color: red
+                port outerTraceClock {
+                    side: right
+                }
+                port atbPib {
+                    side: right
+                }
             }
         }
 
@@ -72,6 +78,14 @@ diagram {
         title: "CDC Sink"
     }
 
+    port traceClockSource {
+        title: "Trace Clock Source"
+    }
+
+    port atbPibSink {
+        title: "ATB PIB Sink"
+    }
+
     arrow {
         from: pinstrapsSource
         to: pinstrapsIn
@@ -90,6 +104,16 @@ diagram {
     arrow {
         from: cdcOut
         to: cdcSink
+    }
+
+    arrow {
+        from: traceClockSource
+        to: outerTraceClock
+    }
+
+    arrow {
+        from: atbPib
+        to: atbPibSink
     }
 }
 
@@ -160,5 +184,17 @@ layout {
     }
     cdcOut {
         interp: 50%
+    }
+    outerTraceClock {
+        interp: 25%
+    }
+    atbPib {
+        interp: 75%
+    }
+    traceClockSource {
+        pos: (2200, 856)
+    }
+    atbPibSink {
+        pos: (2200, 1009)
     }
 }
