@@ -54,6 +54,9 @@ diagram {
             box debug2 {
                 title: "Debug"
                 color: pink
+                port debugIn2 {
+                    side: right
+                }
             }
         }
 
@@ -86,6 +89,10 @@ diagram {
         title: "ATB PIB Sink"
     }
 
+    port debugSink2 {
+        title: "Debug Sink 2"
+    }
+
     arrow {
         from: pinstrapsSource
         to: pinstrapsIn
@@ -114,6 +121,11 @@ diagram {
     arrow {
         from: atbPib
         to: atbPibSink
+    }
+
+    arrow {
+        from: debugIn2
+        to: debugSink2
     }
 }
 
@@ -196,5 +208,11 @@ layout {
     }
     atbPibSink {
         pos: (2200, 1009)
+    }
+    debugIn2 {
+        interp: 50%
+    }
+    debugSink2 {
+        pos: (2200, 1260)
     }
 }
