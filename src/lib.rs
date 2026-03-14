@@ -173,6 +173,11 @@ fn render_box_with_layout(
     let is_vertical = box_item.properties.iter()
         .any(|p| matches!(p, Property::Vertical));
 
+    // Get stacked count from properties
+    let stacked_count = box_item.properties.iter()
+        .find_map(|p| if let Property::Stacked(n) = p { Some(*n) } else { None })
+        .unwrap_or(0);
+
     // Get color from properties and map to SVG hex color
     let color_name = box_item.properties.iter()
         .find_map(|p| if let Property::Color(c) = p { Some(c.clone()) } else { None })
@@ -185,7 +190,30 @@ fn render_box_with_layout(
     // Render parent box first (so it appears behind children)
     if let Some(ref id) = box_item.id {
         if let Some(&(x, y, width, height)) = layout_map.get(id) {
-            // Draw rectangle for this box
+            // Draw stacked rectangles behind the main box (if stacked > 0)
+            // Each rectangle is offset up and to the left from the previous one
+            if stacked_count > 0 {
+                let stack_stagger = 12; // Offset amount in pixels for each stacked box
+
+                // Draw from back to front (furthest offset first)
+                for i in (1..=stacked_count).rev() {
+                    let offset_x = -(i * stack_stagger);
+                    let offset_y = -(i * stack_stagger);
+
+                    let stacked_rect = Rectangle::new()
+                        .set("x", x + offset_x)
+                        .set("y", y + offset_y)
+                        .set("width", width)
+                        .set("height", height)
+                        .set("fill", svg_color)
+                        .set("stroke", "#333")
+                        .set("stroke-width", 2)
+                        .set("rx", 5);
+                    doc = doc.add(stacked_rect);
+                }
+            }
+
+            // Draw main rectangle for this box (on top of stacked rectangles)
             let rect = Rectangle::new()
                 .set("x", x)
                 .set("y", y)
