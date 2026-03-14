@@ -346,11 +346,14 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     // Build port position map
     let port_map = build_port_map(doc, &layout_map);
 
+    // Build port connections map (which ports connect to which)
+    let port_connections = build_port_connections(&doc.diagram.arrows, &port_map);
+
     // Render arrows
     svg_doc = render_arrows(&doc.diagram.arrows, &port_map, svg_doc);
 
     // Render ports
-    svg_doc = render_ports(&doc.diagram.ports, &doc.diagram.boxes, &port_map, svg_doc, &mut text_elements);
+    svg_doc = render_ports(&doc.diagram.ports, &doc.diagram.boxes, &port_map, &port_connections, svg_doc, &mut text_elements);
 
     // Render all text elements on top (so text is always in front)
     for text_element in text_elements {
@@ -565,6 +568,32 @@ fn render_box_with_layout(
     doc
 }
 
+// Build a map of port connections from arrows
+// Returns HashMap<port_id, Vec<(connected_port_id, direction)>>
+// Direction is (dx, dy) indicating the direction TO the connected port
+fn build_port_connections(arrows: &[Arrow], port_map: &HashMap<String, (i32, i32)>) -> HashMap<String, Vec<(String, i32, i32)>> {
+    let mut connections: HashMap<String, Vec<(String, i32, i32)>> = HashMap::new();
+
+    for arrow in arrows {
+        if let (Some(&(x1, y1)), Some(&(x2, y2))) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
+            let dx = x2 - x1;
+            let dy = y2 - y1;
+
+            // Add connection from 'from' port
+            connections.entry(arrow.from.clone())
+                .or_insert_with(Vec::new)
+                .push((arrow.to.clone(), dx, dy));
+
+            // Add connection to 'to' port (reverse direction)
+            connections.entry(arrow.to.clone())
+                .or_insert_with(Vec::new)
+                .push((arrow.from.clone(), -dx, -dy));
+        }
+    }
+
+    connections
+}
+
 // Build a map of port positions
 // Returns HashMap<port_id, (x, y)>
 fn build_port_map(doc: &Document, layout_map: &HashMap<String, (i32, i32, i32, i32)>) -> HashMap<String, (i32, i32)> {
@@ -664,6 +693,7 @@ fn render_ports(
     ports: &[Port],
     boxes: &[Box],
     port_map: &HashMap<String, (i32, i32)>,
+    port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<Text>,
 ) -> SvgDocument {
@@ -671,14 +701,14 @@ fn render_ports(
     for port in ports {
         if let Some(ref id) = port.id {
             if let Some(&(x, y)) = port_map.get(id) {
-                doc = render_single_port(port, x, y, doc, text_elements);
+                doc = render_single_port(port, id, x, y, port_connections, doc, text_elements);
             }
         }
     }
 
     // Render ports in boxes
     for box_item in boxes {
-        doc = render_box_ports(box_item, port_map, doc, text_elements);
+        doc = render_box_ports(box_item, port_map, port_connections, doc, text_elements);
     }
 
     doc
@@ -688,19 +718,20 @@ fn render_ports(
 fn render_box_ports(
     box_item: &Box,
     port_map: &HashMap<String, (i32, i32)>,
+    port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<Text>,
 ) -> SvgDocument {
     for port in &box_item.ports {
         if let Some(ref id) = port.id {
             if let Some(&(x, y)) = port_map.get(id) {
-                doc = render_single_port(port, x, y, doc, text_elements);
+                doc = render_single_port(port, id, x, y, port_connections, doc, text_elements);
             }
         }
     }
 
     for child in &box_item.children {
-        doc = render_box_ports(child, port_map, doc, text_elements);
+        doc = render_box_ports(child, port_map, port_connections, doc, text_elements);
     }
 
     doc
@@ -709,8 +740,10 @@ fn render_box_ports(
 // Render a single port as a circle with an X through it
 fn render_single_port(
     port: &Port,
+    port_id: &str,
     x: i32,
     y: i32,
+    port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<Text>,
 ) -> SvgDocument {
@@ -748,9 +781,14 @@ fn render_single_port(
     // Add label if present
     if let Some(title) = port.properties.iter()
         .find_map(|p| if let PortProperty::Title(t) = p { Some(t) } else { None }) {
+
+        // Calculate label position based on arrow direction
+        let (label_x, label_y, anchor) = calculate_label_position(x, y, port_id, port_connections, radius);
+
         let text = Text::new(title)
-            .set("x", x + radius + 5)
-            .set("y", y + 4)
+            .set("x", label_x)
+            .set("y", label_y)
+            .set("text-anchor", anchor)
             .set("font-family", "Arial, sans-serif")
             .set("font-size", 14)
             .set("fill", "#333");
@@ -758,6 +796,57 @@ fn render_single_port(
     }
 
     doc
+}
+
+// Calculate label position based on arrow connections
+// Returns (x, y, text-anchor)
+fn calculate_label_position(
+    port_x: i32,
+    port_y: i32,
+    port_id: &str,
+    port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
+    radius: i32,
+) -> (i32, i32, &'static str) {
+    // Get connections for this port
+    if let Some(connections) = port_connections.get(port_id) {
+        if !connections.is_empty() {
+            // Calculate average direction of all connections
+            let mut total_dx = 0;
+            let mut total_dy = 0;
+
+            for (_, dx, dy) in connections {
+                total_dx += dx;
+                total_dy += dy;
+            }
+
+            let avg_dx = total_dx as f64 / connections.len() as f64;
+            let avg_dy = total_dy as f64 / connections.len() as f64;
+
+            // Determine primary direction
+            if avg_dx.abs() > avg_dy.abs() {
+                // Predominantly horizontal - place label opposite to arrow direction
+                if avg_dx > 0.0 {
+                    // Arrow goes right, place label on left
+                    return (port_x - radius - 5, port_y + 4, "end");
+                } else {
+                    // Arrow goes left, place label on right
+                    return (port_x + radius + 5, port_y + 4, "start");
+                }
+            } else {
+                // Predominantly vertical - place label opposite to arrow direction
+                if avg_dy > 0.0 {
+                    // Arrow goes down, place label above
+                    return (port_x, port_y - radius - 5, "middle");
+                } else {
+                    // Arrow goes up, place label below
+                    return (port_x, port_y + radius + 15, "middle");
+                }
+            }
+        }
+    }
+
+    // Default: place label to the right
+    (port_x + radius + 5, port_y + 4, "start")
 }
 
 // Render all arrows as orthogonal (Manhattan-style) paths

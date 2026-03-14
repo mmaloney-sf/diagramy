@@ -33,6 +33,9 @@ diagram {
         box cdc {
             title: "CDC" vertical
             color: blue
+            port cdcOut {
+                side: left
+            }
         }
 
         box debug {
@@ -65,6 +68,10 @@ diagram {
          // no title: attribute is required
     }
 
+    port cdcSink {
+        title: "CDC Sink"
+    }
+
     arrow {
         from: pinstrapsSource
         to: pinstrapsIn
@@ -78,6 +85,11 @@ diagram {
     arrow {
         from: entropyOut
         to: entropySink
+    }
+
+    arrow {
+        from: cdcOut
+        to: cdcSink
     }
 }
 
@@ -126,21 +138,27 @@ layout {
         size: (115, 315)
     }
     pinstrapsSource {
-        pos: (2200, 300)
+        pos: (2200, 335)
     }
     pinstrapsIn {
         interp: 10%
     }
     oscSource {
-        pos: (2200, 500)
+        pos: (2200, 550)
     }
     trngOscIn {
         interp: 50%
     }
     entropySink {
-        pos: (100, 300)
+        pos: (100, 470)
     }
     entropyOut {
         interp: 10%
+    }
+    cdcSink {
+        pos: (500, 907)
+    }
+    cdcOut {
+        interp: 50%
     }
 }
