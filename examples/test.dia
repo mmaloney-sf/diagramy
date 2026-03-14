@@ -132,6 +132,7 @@ diagram {
 layout {
     size: (3000, 1600)
     scale: 35%
+    fontsize: 40
 
     top {
         pos: (600, 200) // (x, y)
@@ -150,23 +151,23 @@ layout {
         size: (950, 400)
     }
     traceFunnel {
-        pos: (40, 30)
-        size: (360, 306)
+        pos: (40, 80)
+        size: (360, 256)
     }
     traceSink {
-        pos: (480, 30)
-        size: (387, 306)
+        pos: (480, 80)
+        size: (387, 256)
     }
     debug {
         pos: (300, 1000)
-        size: (950, 130)
+        size: (950, 180)
     }
     innerDebug {
-        pos: (40, 20)
+        pos: (40, 70)
         size: (400, 80)
     }
     debug2 {
-        pos: (480, 20)
+        pos: (480, 70)
         size: (430, 80)
     }
     cdc {
@@ -204,15 +205,15 @@ layout {
         interp: 75%
     }
     traceClockSource {
-        pos: (2200, 856)
+        pos: (2200, 894)
     }
     atbPibSink {
-        pos: (2200, 1009)
+        pos: (2200, 1022)
     }
     debugIn2 {
         interp: 50%
     }
     debugSink2 {
-        pos: (2200, 1260)
+        pos: (2200, 1310)
     }
 }

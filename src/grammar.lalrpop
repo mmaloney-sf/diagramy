@@ -59,23 +59,26 @@ LayoutBlock: Layout = {
     "layout" "{" <entries:LayoutEntry*> "}" => {
         let mut canvas_size = None;
         let mut scale = None;
+        let mut fontsize = None;
         let mut items = Vec::new();
 
         for entry in entries {
             match entry {
                 LayoutEntry::CanvasSize(w, h) => canvas_size = Some((w, h)),
                 LayoutEntry::Scale(s) => scale = Some(s),
+                LayoutEntry::FontSize(f) => fontsize = Some(f),
                 LayoutEntry::BoxLayout(item) => items.push(item),
             }
         }
 
-        Layout { canvas_size, scale, items }
+        Layout { canvas_size, scale, fontsize, items }
     },
 };
 
 LayoutEntry: LayoutEntry = {
     "size" ":" "(" <w:Num> "," <h:Num> ")" => LayoutEntry::CanvasSize(w, h),
     "scale" ":" <n:Num> "%" => LayoutEntry::Scale((n as f64) / 100.0),
+    "fontsize" ":" <n:Num> => LayoutEntry::FontSize(n),
     <item:LayoutItem> => LayoutEntry::BoxLayout(item),
 };
 

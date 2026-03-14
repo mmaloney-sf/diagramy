@@ -24,6 +24,10 @@ struct Args {
     /// Background color (e.g., red, blue, #FFFFFF). If not set, uses transparent or white (with --no-transparent)
     #[arg(long)]
     background: Option<String>,
+
+    /// Font size for text labels (default: 18)
+    #[arg(long, default_value = "18")]
+    font_size: i32,
 }
 
 // Helper function to convert byte offset to line and column
@@ -128,7 +132,10 @@ fn main() {
                     .or(doc.layout.scale)
                     .unwrap_or(1.0);
 
-                render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent, args.background.as_deref());
+                // Use layout fontsize if provided, otherwise use CLI font_size
+                let font_size = doc.layout.fontsize.unwrap_or(args.font_size);
+
+                render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent, args.background.as_deref(), font_size);
             }
             Err(e) => {
                 print_parse_error(&input_file, &input, &e);

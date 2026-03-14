@@ -270,20 +270,31 @@ fn check_canvas_bounds(
 }
 
 // Add arrowhead marker definition to SVG
-fn add_arrowhead_marker(doc: SvgDocument) -> SvgDocument {
+fn add_arrowhead_marker(doc: SvgDocument, font_size: i32) -> SvgDocument {
     use svg::node::element::{Marker, Polygon, Definitions};
+
+    // Scale arrowhead with font size (base size for font_size=18), then reduce to 70%
+    let scale = (font_size as f64 / 18.0) * 0.6;
+    let width = (10.0 * scale) as i32;
+    let height = (10.0 * scale) as i32;
+    let ref_x = (9.0 * scale) as i32;
+    let ref_y = (3.0 * scale) as i32;
+    let points = format!("0,0 0,{} {},{}",
+        (6.0 * scale) as i32,
+        (9.0 * scale) as i32,
+        (3.0 * scale) as i32);
 
     let marker = Marker::new()
         .set("id", "arrowhead")
-        .set("markerWidth", 10)
-        .set("markerHeight", 10)
-        .set("refX", 9)
-        .set("refY", 3)
+        .set("markerWidth", width)
+        .set("markerHeight", height)
+        .set("refX", ref_x)
+        .set("refY", ref_y)
         .set("orient", "auto")
         .set("markerUnits", "strokeWidth")
         .add(
             Polygon::new()
-                .set("points", "0,0 0,6 9,3")
+                .set("points", points)
                 .set("fill", "#333")
         );
 
@@ -292,7 +303,7 @@ fn add_arrowhead_marker(doc: SvgDocument) -> SvgDocument {
 }
 
 // Render the diagram AST as an SVG
-pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>) {
+pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>, font_size: i32) {
     // Get canvas size from layout or use defaults
     let (width, height) = doc.layout.canvas_size.unwrap_or((800, 600));
 
@@ -325,7 +336,7 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     // Otherwise, leave transparent (no background)
 
     // Add arrowhead marker definition
-    svg_doc = add_arrowhead_marker(svg_doc);
+    svg_doc = add_arrowhead_marker(svg_doc, font_size);
 
     // Build layout map
     let layout_map = build_layout_map(doc);
@@ -341,7 +352,7 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
 
     // Render all boxes (rectangles only) using layout information
     // Start with zero parent offset (no parent)
-    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements, 0, 0);
+    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements, 0, 0, font_size);
 
     // Build port position map
     let port_map = build_port_map(doc, &layout_map);
@@ -350,10 +361,10 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     let port_connections = build_port_connections(&doc.diagram.arrows, &port_map);
 
     // Render arrows
-    svg_doc = render_arrows(&doc.diagram.arrows, &port_map, svg_doc);
+    svg_doc = render_arrows(&doc.diagram.arrows, &port_map, svg_doc, font_size);
 
     // Render ports
-    svg_doc = render_ports(&doc.diagram.ports, &doc.diagram.boxes, &port_map, &port_connections, svg_doc, &mut text_elements);
+    svg_doc = render_ports(&doc.diagram.ports, &doc.diagram.boxes, &port_map, &port_connections, svg_doc, &mut text_elements, font_size);
 
     // Render all text elements on top (so text is always in front)
     for text_element in text_elements {
@@ -374,9 +385,10 @@ fn render_boxes_with_layout(
     text_elements: &mut Vec<svg::node::element::Text>,
     parent_offset_x: i32,
     parent_offset_y: i32,
+    font_size: i32,
 ) -> SvgDocument {
     for box_item in boxes {
-        doc = render_box_with_layout(box_item, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
+        doc = render_box_with_layout(box_item, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size);
     }
     doc
 }
@@ -392,6 +404,7 @@ fn render_box_with_layout(
     text_elements: &mut Vec<svg::node::element::Text>,
     parent_offset_x: i32,
     parent_offset_y: i32,
+    font_size: i32,
 ) -> SvgDocument {
     // Get title from properties (optional)
     let title = box_item.properties.iter()
@@ -465,7 +478,6 @@ fn render_box_with_layout(
             // Text is positioned on the main box (which may be offset if stacked)
             if let Some(title_text) = title {
                 let padding = 8; // Padding from edges
-                let font_size = 14;
 
                 // Text goes on the main box, which is offset if stacked
                 let text_base_x = x + main_offset;
@@ -548,13 +560,13 @@ fn render_box_with_layout(
 
             // Render children AFTER parent (so they appear in front with higher z-index)
             // Pass the cumulative offset to children
-            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, child_offset_x, child_offset_y);
+            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, child_offset_x, child_offset_y, font_size);
         } else {
             // No layout found for this identifier
             println!("Warning: No layout found for box with id '{}'", id);
 
             // Still render children with current parent offset
-            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
+            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size);
         }
     } else {
         // Box has no identifier
@@ -562,7 +574,7 @@ fn render_box_with_layout(
         println!("Warning: Box '{}' has no identifier, skipping layout", title_str);
 
         // Still render children with current parent offset
-        doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
+        doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size);
     }
 
     doc
@@ -696,19 +708,20 @@ fn render_ports(
     port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<Text>,
+    font_size: i32,
 ) -> SvgDocument {
     // Render top-level ports
     for port in ports {
         if let Some(ref id) = port.id {
             if let Some(&(x, y)) = port_map.get(id) {
-                doc = render_single_port(port, id, x, y, port_connections, doc, text_elements);
+                doc = render_single_port(port, id, x, y, port_connections, doc, text_elements, font_size);
             }
         }
     }
 
     // Render ports in boxes
     for box_item in boxes {
-        doc = render_box_ports(box_item, port_map, port_connections, doc, text_elements);
+        doc = render_box_ports(box_item, port_map, port_connections, doc, text_elements, font_size);
     }
 
     doc
@@ -721,17 +734,18 @@ fn render_box_ports(
     port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<Text>,
+    font_size: i32,
 ) -> SvgDocument {
     for port in &box_item.ports {
         if let Some(ref id) = port.id {
             if let Some(&(x, y)) = port_map.get(id) {
-                doc = render_single_port(port, id, x, y, port_connections, doc, text_elements);
+                doc = render_single_port(port, id, x, y, port_connections, doc, text_elements, font_size);
             }
         }
     }
 
     for child in &box_item.children {
-        doc = render_box_ports(child, port_map, port_connections, doc, text_elements);
+        doc = render_box_ports(child, port_map, port_connections, doc, text_elements, font_size);
     }
 
     doc
@@ -746,8 +760,12 @@ fn render_single_port(
     port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<Text>,
+    font_size: i32,
 ) -> SvgDocument {
-    let radius = 8;
+    // Scale port circle with font size (base size for font_size=18)
+    let scale = font_size as f64 / 18.0;
+    let radius = (8.0 * scale) as i32;
+    let stroke_width = (2.0 * scale) as i32;
 
     // Draw circle
     let circle = Circle::new()
@@ -756,7 +774,7 @@ fn render_single_port(
         .set("r", radius)
         .set("fill", "white")
         .set("stroke", "#333")
-        .set("stroke-width", 2);
+        .set("stroke-width", stroke_width);
     doc = doc.add(circle);
 
     // Draw X through it
@@ -766,7 +784,7 @@ fn render_single_port(
         .set("x2", x + radius / 2)
         .set("y2", y + radius / 2)
         .set("stroke", "#333")
-        .set("stroke-width", 2);
+        .set("stroke-width", stroke_width);
     doc = doc.add(line1);
 
     let line2 = Line::new()
@@ -775,7 +793,7 @@ fn render_single_port(
         .set("x2", x + radius / 2)
         .set("y2", y - radius / 2)
         .set("stroke", "#333")
-        .set("stroke-width", 2);
+        .set("stroke-width", stroke_width);
     doc = doc.add(line2);
 
     // Add label if present
@@ -783,14 +801,14 @@ fn render_single_port(
         .find_map(|p| if let PortProperty::Title(t) = p { Some(t) } else { None }) {
 
         // Calculate label position based on arrow direction
-        let (label_x, label_y, anchor) = calculate_label_position(x, y, port_id, port_connections, radius);
+        let (label_x, label_y, anchor) = calculate_label_position(x, y, port_id, port_connections, radius, font_size);
 
         let text = Text::new(title)
             .set("x", label_x)
             .set("y", label_y)
             .set("text-anchor", anchor)
             .set("font-family", "Arial, sans-serif")
-            .set("font-size", 14)
+            .set("font-size", font_size)
             .set("fill", "#333");
         text_elements.push(text);
     }
@@ -806,7 +824,11 @@ fn calculate_label_position(
     port_id: &str,
     port_connections: &HashMap<String, Vec<(String, i32, i32)>>,
     radius: i32,
+    font_size: i32,
 ) -> (i32, i32, &'static str) {
+    // Calculate vertical offset for text alignment (approximately 1/3 of font size for baseline alignment)
+    let text_v_offset = font_size / 3;
+
     // Get connections for this port
     if let Some(connections) = port_connections.get(port_id) {
         if !connections.is_empty() {
@@ -827,10 +849,10 @@ fn calculate_label_position(
                 // Predominantly horizontal - place label opposite to arrow direction
                 if avg_dx > 0.0 {
                     // Arrow goes right, place label on left
-                    return (port_x - radius - 5, port_y + 4, "end");
+                    return (port_x - radius - 5, port_y + text_v_offset, "end");
                 } else {
                     // Arrow goes left, place label on right
-                    return (port_x + radius + 5, port_y + 4, "start");
+                    return (port_x + radius + 5, port_y + text_v_offset, "start");
                 }
             } else {
                 // Predominantly vertical - place label opposite to arrow direction
@@ -846,7 +868,7 @@ fn calculate_label_position(
     }
 
     // Default: place label to the right
-    (port_x + radius + 5, port_y + 4, "start")
+    (port_x + radius + 5, port_y + text_v_offset, "start")
 }
 
 // Render all arrows as orthogonal (Manhattan-style) paths
@@ -854,16 +876,21 @@ fn render_arrows(
     arrows: &[Arrow],
     port_map: &HashMap<String, (i32, i32)>,
     mut doc: SvgDocument,
+    font_size: i32,
 ) -> SvgDocument {
+    // Scale stroke width with font size (base size for font_size=18)
+    let scale = font_size as f64 / 18.0;
+    let stroke_width = (2.0 * scale) as i32;
+
     for arrow in arrows {
         if let (Some(&(x1, y1)), Some(&(x2, y2))) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
-            // Create orthogonal path
-            let path_data = create_orthogonal_path(x1, y1, x2, y2);
+            // Create orthogonal path, shortened to avoid overlapping with port circle
+            let path_data = create_orthogonal_path(x1, y1, x2, y2, font_size);
 
             let path = Path::new()
                 .set("d", path_data)
                 .set("stroke", "#333")
-                .set("stroke-width", 2)
+                .set("stroke-width", stroke_width)
                 .set("fill", "none")
                 .set("marker-end", "url(#arrowhead)");
             doc = doc.add(path);
@@ -875,11 +902,28 @@ fn render_arrows(
 
 // Create an orthogonal path from (x1, y1) to (x2, y2)
 // The path goes horizontally first, then vertically, then horizontally again
-fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32) -> Data {
+// The path is shortened at the end to avoid overlapping with the port circle
+fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32, font_size: i32) -> Data {
     let mut data = Data::new().move_to((x1, y1));
+
+    // Calculate how much to shorten the arrow (port radius + small gap)
+    let scale = font_size as f64 / 18.0;
+    let port_radius = (8.0 * scale) as i32;
+    let gap = (3.0 * scale) as i32;
+    let shorten = port_radius + gap;
 
     // Calculate midpoint for the vertical segment
     let mid_x = (x1 + x2) / 2;
+
+    // Determine the direction of the final segment to shorten appropriately
+    let dx = x2 - mid_x;
+    let shortened_x2 = if dx > 0 {
+        x2 - shorten
+    } else if dx < 0 {
+        x2 + shorten
+    } else {
+        x2
+    };
 
     // Go horizontally to midpoint
     data = data.line_to((mid_x, y1));
@@ -887,8 +931,8 @@ fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32) -> Data {
     // Go vertically to destination y
     data = data.line_to((mid_x, y2));
 
-    // Go horizontally to destination
-    data = data.line_to((x2, y2));
+    // Go horizontally to destination (shortened)
+    data = data.line_to((shortened_x2, y2));
 
     data
 }
