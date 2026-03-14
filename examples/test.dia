@@ -153,8 +153,8 @@ layout {
         size: (900, 300)
     }
     trngDb {
-        pos: (100, 50)
-        size: (340, 200)
+        pos: (100, 75)
+        size: (340, 175)
     }
     trace {
         pos: (300, 550)
@@ -182,7 +182,7 @@ layout {
     }
     cdc {
         pos: (150, 550)
-        size: (115, 315)
+        size: (115, 400)
     }
     pinstrapsSource {
         pos: (2200, 335)
@@ -191,19 +191,19 @@ layout {
         interp: 10%
     }
     oscSource {
-        pos: (2200, 550)
+        pos: (2200, 562)
     }
     trngOscIn {
         interp: 50%
     }
     entropySink {
-        pos: (100, 550)
+        pos: (100, 562)
     }
     entropyOut {
         interp: 50%
     }
     cdcSink {
-        pos: (500, 907)
+        pos: (500, 950)
     }
     cdcOut {
         interp: 50%
