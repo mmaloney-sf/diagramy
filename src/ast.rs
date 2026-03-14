@@ -1,5 +1,20 @@
 // AST node types for the diagram language
 
+// Helper enum for parsing diagram items
+#[derive(Debug, Clone)]
+pub enum BoxOrPortOrArrow {
+    B(Box),
+    P(Port),
+    A(Arrow),
+}
+
+// Helper enum for parsing box children
+#[derive(Debug, Clone)]
+pub enum BoxChild {
+    B(Box),
+    P(Port),
+}
+
 #[derive(Debug, Clone)]
 pub struct Document {
     pub diagram: Diagram,
@@ -9,6 +24,8 @@ pub struct Document {
 #[derive(Debug, Clone)]
 pub struct Diagram {
     pub boxes: Vec<Box>,
+    pub ports: Vec<Port>,
+    pub arrows: Vec<Arrow>,
 }
 
 #[derive(Debug, Clone)]
@@ -16,6 +33,7 @@ pub struct Box {
     pub id: Option<String>,  // Optional identifier after "box"
     pub properties: Vec<Property>,
     pub children: Vec<Box>,
+    pub ports: Vec<Port>,
 }
 
 #[derive(Debug, Clone)]
@@ -50,5 +68,23 @@ pub struct LayoutItem {
 pub enum LayoutProperty {
     Pos(i32, i32),      // (x, y)
     Size(i32, i32),     // (width, height)
+    Interp(i32),        // Interpolation percentage along a side
 }
 
+#[derive(Debug, Clone)]
+pub struct Port {
+    pub id: Option<String>,
+    pub properties: Vec<PortProperty>,
+}
+
+#[derive(Debug, Clone)]
+pub enum PortProperty {
+    Title(String),
+    Side(String),  // left, right, top, bottom
+}
+
+#[derive(Debug, Clone)]
+pub struct Arrow {
+    pub from: String,
+    pub to: String,
+}

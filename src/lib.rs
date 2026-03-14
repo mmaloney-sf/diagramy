@@ -2,11 +2,11 @@
 #[macro_use] extern crate lalrpop_util;
 
 use svg::Document as SvgDocument;
-use svg::node::element::{Text, Rectangle};
+use svg::node::element::{Text, Rectangle, Circle, Line};
 use std::collections::HashMap;
 
 pub mod ast;
-use ast::{Document, Box, Property, LayoutProperty};
+use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
@@ -24,6 +24,7 @@ fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
             match prop {
                 LayoutProperty::Pos(x, y) => pos = (*x, *y),
                 LayoutProperty::Size(w, h) => size = (*w, *h),
+                LayoutProperty::Interp(_) => {}, // Handled separately for ports
             }
         }
 
@@ -267,6 +268,28 @@ fn check_canvas_bounds(
     Ok(())
 }
 
+// Add arrowhead marker definition to SVG
+fn add_arrowhead_marker(doc: SvgDocument) -> SvgDocument {
+    use svg::node::element::{Marker, Polygon, Definitions};
+
+    let marker = Marker::new()
+        .set("id", "arrowhead")
+        .set("markerWidth", 10)
+        .set("markerHeight", 10)
+        .set("refX", 9)
+        .set("refY", 3)
+        .set("orient", "auto")
+        .set("markerUnits", "strokeWidth")
+        .add(
+            Polygon::new()
+                .set("points", "0,0 0,6 9,3")
+                .set("fill", "#333")
+        );
+
+    let defs = Definitions::new().add(marker);
+    doc.add(defs)
+}
+
 // Render the diagram AST as an SVG
 pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>) {
     // Get canvas size from layout or use defaults
@@ -300,6 +323,9 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     }
     // Otherwise, leave transparent (no background)
 
+    // Add arrowhead marker definition
+    svg_doc = add_arrowhead_marker(svg_doc);
+
     // Build layout map
     let layout_map = build_layout_map(doc);
 
@@ -315,6 +341,15 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     // Render all boxes (rectangles only) using layout information
     // Start with zero parent offset (no parent)
     svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements, 0, 0);
+
+    // Build port position map
+    let port_map = build_port_map(doc, &layout_map);
+
+    // Render arrows
+    svg_doc = render_arrows(&doc.diagram.arrows, &port_map, svg_doc);
+
+    // Render ports
+    svg_doc = render_ports(&doc.diagram.ports, &doc.diagram.boxes, &port_map, svg_doc, &mut text_elements);
 
     // Render all text elements on top (so text is always in front)
     for text_element in text_elements {
@@ -524,6 +559,225 @@ fn render_box_with_layout(
 
         // Still render children with current parent offset
         doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
+    }
+
+    doc
+}
+
+// Build a map of port positions
+// Returns HashMap<port_id, (x, y)>
+fn build_port_map(doc: &Document, layout_map: &HashMap<String, (i32, i32, i32, i32)>) -> HashMap<String, (i32, i32)> {
+    let mut port_map = HashMap::new();
+
+    // Process top-level ports
+    for port in &doc.diagram.ports {
+        if let Some(ref id) = port.id {
+            let pos = calculate_port_position(port, id, &doc.layout.items, None, layout_map);
+            if let Some((x, y)) = pos {
+                port_map.insert(id.clone(), (x, y));
+            }
+        }
+    }
+
+    // Process ports inside boxes
+    for box_item in &doc.diagram.boxes {
+        collect_box_ports(box_item, &doc.layout.items, layout_map, &mut port_map);
+    }
+
+    port_map
+}
+
+// Recursively collect ports from boxes
+fn collect_box_ports(
+    box_item: &Box,
+    layout_items: &[ast::LayoutItem],
+    layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+    port_map: &mut HashMap<String, (i32, i32)>,
+) {
+    let parent_bounds = if let Some(ref box_id) = box_item.id {
+        layout_map.get(box_id).copied()
+    } else {
+        None
+    };
+
+    for port in &box_item.ports {
+        if let Some(ref id) = port.id {
+            let pos = calculate_port_position(port, id, layout_items, parent_bounds, layout_map);
+            if let Some((x, y)) = pos {
+                port_map.insert(id.clone(), (x, y));
+            }
+        }
+    }
+
+    // Recurse into children
+    for child in &box_item.children {
+        collect_box_ports(child, layout_items, layout_map, port_map);
+    }
+}
+
+// Calculate port position based on layout properties
+fn calculate_port_position(
+    port: &Port,
+    port_id: &str,
+    layout_items: &[ast::LayoutItem],
+    parent_bounds: Option<(i32, i32, i32, i32)>,
+    _layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+) -> Option<(i32, i32)> {
+    // Find layout for this port
+    let layout = layout_items.iter().find(|item| item.name == port_id)?;
+
+    // Check if it has a pos property (absolute position)
+    for prop in &layout.properties {
+        if let LayoutProperty::Pos(x, y) = prop {
+            return Some((*x, *y));
+        }
+    }
+
+    // Check if it has an interp property (interpolated on parent side)
+    for prop in &layout.properties {
+        if let LayoutProperty::Interp(percentage) = prop {
+            // Find which side from port properties
+            let side = port.properties.iter()
+                .find_map(|p| if let PortProperty::Side(s) = p { Some(s.as_str()) } else { None })
+                .unwrap_or("right");
+
+            if let Some((px, py, pw, ph)) = parent_bounds {
+                let interp_factor = (*percentage as f64) / 100.0;
+
+                return Some(match side {
+                    "left" => (px, py + (ph as f64 * interp_factor) as i32),
+                    "right" => (px + pw, py + (ph as f64 * interp_factor) as i32),
+                    "top" => (px + (pw as f64 * interp_factor) as i32, py),
+                    "bottom" => (px + (pw as f64 * interp_factor) as i32, py + ph),
+                    _ => (px + pw, py + (ph as f64 * interp_factor) as i32), // default to right
+                });
+            }
+        }
+    }
+
+    None
+}
+
+// Render all ports
+fn render_ports(
+    ports: &[Port],
+    boxes: &[Box],
+    port_map: &HashMap<String, (i32, i32)>,
+    mut doc: SvgDocument,
+    text_elements: &mut Vec<Text>,
+) -> SvgDocument {
+    // Render top-level ports
+    for port in ports {
+        if let Some(ref id) = port.id {
+            if let Some(&(x, y)) = port_map.get(id) {
+                doc = render_single_port(port, x, y, doc, text_elements);
+            }
+        }
+    }
+
+    // Render ports in boxes
+    for box_item in boxes {
+        doc = render_box_ports(box_item, port_map, doc, text_elements);
+    }
+
+    doc
+}
+
+// Recursively render ports in boxes
+fn render_box_ports(
+    box_item: &Box,
+    port_map: &HashMap<String, (i32, i32)>,
+    mut doc: SvgDocument,
+    text_elements: &mut Vec<Text>,
+) -> SvgDocument {
+    for port in &box_item.ports {
+        if let Some(ref id) = port.id {
+            if let Some(&(x, y)) = port_map.get(id) {
+                doc = render_single_port(port, x, y, doc, text_elements);
+            }
+        }
+    }
+
+    for child in &box_item.children {
+        doc = render_box_ports(child, port_map, doc, text_elements);
+    }
+
+    doc
+}
+
+// Render a single port as a circle with an X through it
+fn render_single_port(
+    port: &Port,
+    x: i32,
+    y: i32,
+    mut doc: SvgDocument,
+    text_elements: &mut Vec<Text>,
+) -> SvgDocument {
+    let radius = 8;
+
+    // Draw circle
+    let circle = Circle::new()
+        .set("cx", x)
+        .set("cy", y)
+        .set("r", radius)
+        .set("fill", "white")
+        .set("stroke", "#333")
+        .set("stroke-width", 2);
+    doc = doc.add(circle);
+
+    // Draw X through it
+    let line1 = Line::new()
+        .set("x1", x - radius / 2)
+        .set("y1", y - radius / 2)
+        .set("x2", x + radius / 2)
+        .set("y2", y + radius / 2)
+        .set("stroke", "#333")
+        .set("stroke-width", 2);
+    doc = doc.add(line1);
+
+    let line2 = Line::new()
+        .set("x1", x - radius / 2)
+        .set("y1", y + radius / 2)
+        .set("x2", x + radius / 2)
+        .set("y2", y - radius / 2)
+        .set("stroke", "#333")
+        .set("stroke-width", 2);
+    doc = doc.add(line2);
+
+    // Add label if present
+    if let Some(title) = port.properties.iter()
+        .find_map(|p| if let PortProperty::Title(t) = p { Some(t) } else { None }) {
+        let text = Text::new(title)
+            .set("x", x + radius + 5)
+            .set("y", y + 4)
+            .set("font-family", "Arial, sans-serif")
+            .set("font-size", 14)
+            .set("fill", "#333");
+        text_elements.push(text);
+    }
+
+    doc
+}
+
+// Render all arrows
+fn render_arrows(
+    arrows: &[Arrow],
+    port_map: &HashMap<String, (i32, i32)>,
+    mut doc: SvgDocument,
+) -> SvgDocument {
+    for arrow in arrows {
+        if let (Some(&(x1, y1)), Some(&(x2, y2))) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
+            // Draw line
+            let line = Line::new()
+                .set("x1", x1)
+                .set("y1", y1)
+                .set("x2", x2)
+                .set("y2", y2)
+                .set("stroke", "#333")
+                .set("stroke-width", 2)
+                .set("marker-end", "url(#arrowhead)");
+            doc = doc.add(line);
+        }
     }
 
     doc

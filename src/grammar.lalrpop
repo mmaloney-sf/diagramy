@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, Box, Property, Layout, LayoutEntry, LayoutItem, LayoutProperty};
+use crate::ast::{Document, Diagram, Box, Property, Layout, LayoutEntry, LayoutItem, LayoutProperty, Port, PortProperty, Arrow, BoxOrPortOrArrow, BoxChild};
 
 grammar;
 
@@ -32,7 +32,27 @@ VersionNumber: String = {
 };
 
 DiagramBlock: Diagram = {
-    "diagram" "{" <boxes:Box*> "}" => Diagram { boxes },
+    "diagram" "{" <boxes:BoxOrPortOrArrow*> "}" => {
+        let mut box_list = Vec::new();
+        let mut port_list = Vec::new();
+        let mut arrow_list = Vec::new();
+
+        for item in boxes {
+            match item {
+                BoxOrPortOrArrow::B(b) => box_list.push(b),
+                BoxOrPortOrArrow::P(p) => port_list.push(p),
+                BoxOrPortOrArrow::A(a) => arrow_list.push(a),
+            }
+        }
+
+        Diagram { boxes: box_list, ports: port_list, arrows: arrow_list }
+    },
+};
+
+BoxOrPortOrArrow: BoxOrPortOrArrow = {
+    <b:Box> => BoxOrPortOrArrow::B(b),
+    <p:Port> => BoxOrPortOrArrow::P(p),
+    <a:Arrow> => BoxOrPortOrArrow::A(a),
 };
 
 LayoutBlock: Layout = {
@@ -68,12 +88,28 @@ LayoutItem: LayoutItem = {
 LayoutProperty: LayoutProperty = {
     "pos" ":" "(" <x:Num> "," <y:Num> ")" => LayoutProperty::Pos(x, y),
     "size" ":" "(" <w:Num> "," <h:Num> ")" => LayoutProperty::Size(w, h),
+    "interp" ":" <n:Num> "%" => LayoutProperty::Interp(n),
 };
 
 Box: Box = {
-    "box" <id:Ident?> "{" <props:PropertyList> <children:Box*> "}" => {
-        Box { id, properties: props, children }
+    "box" <id:Ident?> "{" <props:PropertyList> <items:BoxChild*> "}" => {
+        let mut children = Vec::new();
+        let mut ports = Vec::new();
+
+        for item in items {
+            match item {
+                BoxChild::B(b) => children.push(b),
+                BoxChild::P(p) => ports.push(p),
+            }
+        }
+
+        Box { id, properties: props, children, ports }
     },
+};
+
+BoxChild: BoxChild = {
+    <b:Box> => BoxChild::B(b),
+    <p:Port> => BoxChild::P(p),
 };
 
 // PropertyList handles flattening of properties (including vertical titles)
@@ -103,3 +139,23 @@ Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap(),
 };
 
+Port: Port = {
+    "port" <id:Ident?> "{" <props:PortPropertyList> "}" => {
+        Port { id, properties: props }
+    },
+};
+
+PortPropertyList: Vec<PortProperty> = {
+    <props:PortPropertyItem*> => props,
+};
+
+PortPropertyItem: PortProperty = {
+    "title" ":" <s:String> => PortProperty::Title(s),
+    "side" ":" <side:Ident> => PortProperty::Side(side),
+};
+
+Arrow: Arrow = {
+    "arrow" "{" "from" ":" <from:Ident> "to" ":" <to:Ident> "}" => {
+        Arrow { from, to }
+    },
+};
