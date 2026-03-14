@@ -29,7 +29,15 @@ pub enum Property {
 #[derive(Debug, Clone)]
 pub struct Layout {
     pub canvas_size: Option<(i32, i32)>,  // Optional canvas size (width, height)
+    pub scale: Option<f64>,                // Optional scale factor (0.0 to 1.0, from percentage)
     pub items: Vec<LayoutItem>,
+}
+
+#[derive(Debug, Clone)]
+pub enum LayoutEntry {
+    CanvasSize(i32, i32),
+    Scale(f64),
+    BoxLayout(LayoutItem),
 }
 
 #[derive(Debug, Clone)]

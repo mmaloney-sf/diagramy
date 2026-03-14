@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, Box, Property, Layout, LayoutItem, LayoutProperty};
+use crate::ast::{Document, Diagram, Box, Property, Layout, LayoutEntry, LayoutItem, LayoutProperty};
 
 grammar;
 
@@ -36,11 +36,27 @@ DiagramBlock: Diagram = {
 };
 
 LayoutBlock: Layout = {
-    "layout" "{" <size:CanvasSize?> <items:LayoutItem*> "}" => Layout { canvas_size: size, items },
+    "layout" "{" <entries:LayoutEntry*> "}" => {
+        let mut canvas_size = None;
+        let mut scale = None;
+        let mut items = Vec::new();
+
+        for entry in entries {
+            match entry {
+                LayoutEntry::CanvasSize(w, h) => canvas_size = Some((w, h)),
+                LayoutEntry::Scale(s) => scale = Some(s),
+                LayoutEntry::BoxLayout(item) => items.push(item),
+            }
+        }
+
+        Layout { canvas_size, scale, items }
+    },
 };
 
-CanvasSize: (i32, i32) = {
-    "size" ":" "(" <w:Num> "," <h:Num> ")" => (w, h),
+LayoutEntry: LayoutEntry = {
+    "size" ":" "(" <w:Num> "," <h:Num> ")" => LayoutEntry::CanvasSize(w, h),
+    "scale" ":" <n:Num> "%" => LayoutEntry::Scale((n as f64) / 100.0),
+    <item:LayoutItem> => LayoutEntry::BoxLayout(item),
 };
 
 LayoutItem: LayoutItem = {

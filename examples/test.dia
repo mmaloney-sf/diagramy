@@ -45,6 +45,7 @@ diagram {
 
 layout {
     size: (1533, 788)
+    scale: 50%
 
     top {
         pos: (40, 30) // (x, y)

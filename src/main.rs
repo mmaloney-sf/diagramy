@@ -12,9 +12,9 @@ struct Args {
     #[arg(required = true)]
     files: Vec<String>,
 
-    /// Scale factor for output (default: 1.0)
-    #[arg(short, long, default_value_t = 1.0)]
-    scale: f64,
+    /// Scale factor for output (default: from layout or 1.0)
+    #[arg(short, long)]
+    scale: Option<f64>,
 
     /// Use white background instead of transparent
     #[arg(long)]
@@ -56,7 +56,13 @@ fn main() {
         match parser.parse(&input) {
             Ok(doc) => {
                 println!("Successfully parsed diagram!");
-                render_diagram_to_svg(&doc, &output_file, args.scale, !args.no_transparent);
+
+                // Use CLI scale if provided, otherwise use layout scale, otherwise default to 1.0
+                let scale_factor = args.scale
+                    .or(doc.layout.scale)
+                    .unwrap_or(1.0);
+
+                render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent);
             }
             Err(e) => {
                 eprintln!("Error parsing {}: {:?}", input_file, e);
