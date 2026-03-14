@@ -1,9 +1,0 @@
-version = 0.1.0
-
-// Example: UnrecognizedEof error
-// This file is incomplete - missing closing braces
-diagram {
-    box test {
-        title: "Test"
-        color: blue
-
