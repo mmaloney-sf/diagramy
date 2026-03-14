@@ -1,0 +1,121 @@
+<svg height="1600" viewBox="0 0 3000 1600" width="3000" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#D5DBDB" height="100%" width="100%"/>
+<defs>
+<marker id="arrowhead" markerHeight="13" markerUnits="strokeWidth" markerWidth="13" orient="auto" refX="12" refY="4">
+<polygon fill="#333" points="0,0 0,8 12,4"/>
+</marker>
+</defs>
+<rect fill="#F8F9F9" height="1350" rx="22" stroke="#333" stroke-width="2" width="1300" x="600" y="200"/>
+<rect fill="#F8F9F9" height="300" rx="22" stroke="#333" stroke-width="2" width="900" x="900" y="400"/>
+<rect fill="#DEE8ED" height="175" rx="22" stroke="#333" stroke-width="2" width="340" x="1000" y="475"/>
+<rect fill="#F8F9F9" height="400" rx="22" stroke="#333" stroke-width="2" width="950" x="900" y="750"/>
+<rect fill="#DEE8ED" height="256" rx="22" stroke="#333" stroke-width="2" width="360" x="940" y="830"/>
+<rect fill="#DEE8ED" height="256" rx="22" stroke="#333" stroke-width="2" width="360" x="952" y="842"/>
+<rect fill="#DEE8ED" height="256" rx="22" stroke="#333" stroke-width="2" width="360" x="964" y="854"/>
+<rect fill="#DEE8ED" height="256" rx="22" stroke="#333" stroke-width="2" width="360" x="976" y="866"/>
+<rect fill="#E8DEDD" height="256" rx="22" stroke="#333" stroke-width="2" width="387" x="1380" y="830"/>
+<rect fill="#DEE8ED" height="400" rx="22" stroke="#333" stroke-width="2" width="115" x="750" y="750"/>
+<rect fill="#F8F9F9" height="180" rx="22" stroke="#333" stroke-width="2" width="950" x="900" y="1200"/>
+<rect fill="#E8E8DE" height="80" rx="22" stroke="#333" stroke-width="2" width="400" x="940" y="1270"/>
+<rect fill="#E8DEE3" height="80" rx="22" stroke="#333" stroke-width="2" width="430" x="1380" y="1270"/>
+<path d="M2200,335 L2050,335 L2050,335 L1900,335" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<path d="M2200,562 L1770,562 L1770,562 L1340,562" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<path d="M1000,562 L550,562 L550,562 L123,562" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<path d="M750,950 L625,950 L625,950 L523,950" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<path d="M2200,894 L1983,894 L1983,894 L1767,894" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<path d="M1767,1022 L1983,1022 L1983,1022 L2177,1022" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<path d="M1810,1310 L2005,1310 L2005,1310 L2177,1310" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="4"/>
+<circle cx="2200" cy="335" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="327" y2="343"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="343" y2="327"/>
+<circle cx="2200" cy="562" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="554" y2="570"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="570" y2="554"/>
+<circle cx="100" cy="562" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="92" x2="108" y1="554" y2="570"/>
+<line stroke="#333" stroke-width="4" x1="92" x2="108" y1="570" y2="554"/>
+<circle cx="500" cy="950" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="492" x2="508" y1="942" y2="958"/>
+<line stroke="#333" stroke-width="4" x1="492" x2="508" y1="958" y2="942"/>
+<circle cx="2200" cy="894" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="886" y2="902"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="902" y2="886"/>
+<circle cx="2200" cy="1022" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="1014" y2="1030"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="1030" y2="1014"/>
+<circle cx="2200" cy="1310" fill="white" r="17" stroke="#333" stroke-width="4"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="1302" y2="1318"/>
+<line stroke="#333" stroke-width="4" x1="2192" x2="2208" y1="1318" y2="1302"/>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="923" y="463">
+Entropy
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="922" y="462">
+Entropy
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="1023" y="538">
+TKNK-DB
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="1022" y="537">
+TKNK-DB
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="923" y="813">
+Trace
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="922" y="812">
+Trace
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="999" y="929">
+Funnel
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="998" y="928">
+Funnel
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="1403" y="893">
+Tracer Unit
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="1402" y="892">
+Tracer Unit
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" transform="rotate(-90 772 888)" x="773" y="929">
+CEC
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" transform="rotate(-90 772 888)" x="772" y="928">
+CEC
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="923" y="1263">
+Debug
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="922" y="1262">
+Debug
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="963" y="1333">
+Inner Debug
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="962" y="1332">
+Inner Debug
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="40" opacity="0.5" text-anchor="start" x="1403" y="1333">
+Debug
+</text>
+<text fill="#2C3E50" font-size="40" text-anchor="start" x="1402" y="1332">
+Debug
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="40" text-anchor="start" x="2222" y="348">
+Pinstraps
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="40" text-anchor="start" x="2222" y="575">
+OCCS
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="40" text-anchor="end" x="478" y="963">
+CEC Sink
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="40" text-anchor="start" x="2222" y="907">
+Trace Clock Source
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="40" text-anchor="start" x="2222" y="1035">
+ABB PBB
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="40" text-anchor="start" x="2222" y="1323">
+Debug Sink
+</text>
+</svg>

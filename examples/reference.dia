@@ -8,7 +8,7 @@ diagram {
         box entropy {
             title: "Entropy"
             box trngDb {
-                title: "TRNG-DB"
+                title: "TKNK-DB"
                 color: blue
                 port trngOscIn {
                     side: right
@@ -22,13 +22,13 @@ diagram {
         box trace {
             title: "Trace"
             box traceFunnel {
-                title: "Trace Funnel"
+                title: "Funnel"
                 color: blue
                 stacked: 3
             }
 
             box traceSink {
-                title: "Trace Sink"
+                title: "Tracer Unit"
                 color: red
                 port outerTraceClock {
                     side: right
@@ -40,7 +40,7 @@ diagram {
         }
 
         box cdc {
-            title: "CDC" vertical
+            title: "CEC" vertical
             color: blue
             port cdcOut {
                 side: left
@@ -69,12 +69,12 @@ diagram {
     }
 
     port pinstrapsSource {
-        title: "pinstraps WGPort, secure tieoffs"
+        title: "Pinstraps"
         style: tieoff
     }
 
     port oscSource {
-        title: "OSC"
+        title: "OCCS"
         style: tieoff
     }
 
@@ -84,7 +84,7 @@ diagram {
     }
 
     port cdcSink {
-        title: "CDC Sink"
+        title: "CEC Sink"
         style: tieoff
     }
 
@@ -94,12 +94,12 @@ diagram {
     }
 
     port atbPibSink {
-        title: "ATB PIB Sink"
+        title: "ABB PBB"
         style: tieoff
     }
 
     port debugSink2 {
-        title: "Debug Sink 2"
+        title: "Debug Sink"
         style: tieoff
     }
 
@@ -141,7 +141,7 @@ diagram {
 
 layout {
     size: (3000, 1600)
-    scale: 35%
+    scale: 100%
     fontsize: 40
 
     top {

@@ -1,0 +1,63 @@
+version = 0.1.0
+
+diagram {
+    color: white
+
+    box system {
+        title: "System"
+        color: grey
+
+        box processor {
+            title: "Processor"
+            color: red
+        }
+
+        box memory {
+            title: "Memory"
+            color: blue
+        }
+
+        port clockIn {
+            side: left
+        }
+    }
+
+    port clockSource {
+        title: "System Clock"
+        style: tieoff
+    }
+
+    arrow {
+        from: clockSource
+        to: clockIn
+    }
+}
+
+layout {
+    size: (800, 600)
+    fontsize: 18
+
+    system {
+        pos: (300, 150)
+        size: (400, 300)
+    }
+
+    processor {
+        pos: (50, 50)
+        size: (150, 100)
+    }
+
+    memory {
+        pos: (50, 180)
+        size: (150, 100)
+    }
+
+    clockSource {
+        pos: (200, 300)
+    }
+
+    clockIn {
+        interp: 50%
+    }
+}
+

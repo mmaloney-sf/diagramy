@@ -1,0 +1,36 @@
+<svg height="600" viewBox="0 0 800 600" width="800" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#F8F9F9" height="100%" width="100%"/>
+<defs>
+<marker id="arrowhead" markerHeight="6" markerUnits="strokeWidth" markerWidth="6" orient="auto" refX="5" refY="1">
+<polygon fill="#333" points="0,0 0,3 5,1"/>
+</marker>
+</defs>
+<rect fill="#D5DBDB" height="300" rx="10" stroke="#333" stroke-width="2" width="400" x="300" y="150"/>
+<rect fill="#E8DEDD" height="100" rx="10" stroke="#333" stroke-width="2" width="150" x="350" y="200"/>
+<rect fill="#DEE8ED" height="100" rx="10" stroke="#333" stroke-width="2" width="150" x="350" y="330"/>
+<path d="M200,300 L250,300 L250,300 L300,300" fill="none" marker-end="url(#arrowhead)" stroke="#333" stroke-width="2"/>
+<circle cx="200" cy="300" fill="white" r="8" stroke="#333" stroke-width="2"/>
+<line stroke="#333" stroke-width="2" x1="196" x2="204" y1="296" y2="304"/>
+<line stroke="#333" stroke-width="2" x1="196" x2="204" y1="304" y2="296"/>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="18" opacity="0.5" text-anchor="start" x="311" y="179">
+System
+</text>
+<text fill="#2C3E50" font-size="18" text-anchor="start" x="310" y="178">
+System
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="18" opacity="0.5" text-anchor="start" x="361" y="229">
+Processor
+</text>
+<text fill="#2C3E50" font-size="18" text-anchor="start" x="360" y="228">
+Processor
+</text>
+<text fill="rgba(0, 0, 0, 0.3)" font-size="18" opacity="0.5" text-anchor="start" x="361" y="359">
+Memory
+</text>
+<text fill="#2C3E50" font-size="18" text-anchor="start" x="360" y="358">
+Memory
+</text>
+<text fill="#333" font-family="Arial, sans-serif" font-size="18" text-anchor="end" x="187" y="306">
+System Clock
+</text>
+</svg>
