@@ -1,0 +1,30 @@
+version = 0.1.0
+
+// Example: Overlapping boxes error
+// Two sibling boxes that overlap
+diagram {
+    box box1 {
+        title: "Box 1"
+        color: blue
+    }
+    
+    box box2 {
+        title: "Box 2"
+        color: red
+    }
+}
+
+layout {
+    size: (400, 300)
+    
+    box1 {
+        pos: (50, 50)
+        size: (150, 100)
+    }
+    
+    box2 {
+        pos: (100, 75)  // Overlaps with box1
+        size: (150, 100)
+    }
+}
+

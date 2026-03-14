@@ -134,6 +134,100 @@ fn get_contrast_text_color(hex_color: &str) -> &str {
     }
 }
 
+// Validate the diagram layout
+fn validate_layout(doc: &Document, layout_map: &HashMap<String, (i32, i32, i32, i32)>) -> Result<(), String> {
+    // Validate each top-level box and its children
+    for box_item in &doc.diagram.boxes {
+        validate_box(box_item, layout_map, None)?;
+    }
+
+    // Check for overlaps between sibling boxes at each level
+    check_sibling_overlaps(&doc.diagram.boxes, layout_map, None)?;
+
+    Ok(())
+}
+
+// Validate a single box and its children
+fn validate_box(
+    box_item: &Box,
+    layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+    parent_bounds: Option<(i32, i32, i32, i32)>, // (x, y, width, height)
+) -> Result<(), String> {
+    if let Some(ref id) = box_item.id {
+        if let Some(&(x, y, width, height)) = layout_map.get(id) {
+            // Check if this box is completely contained within its parent
+            if let Some((px, py, pw, ph)) = parent_bounds {
+                if x < px || y < py || x + width > px + pw || y + height > py + ph {
+                    return Err(format!(
+                        "Box '{}' at ({}, {}) with size ({}, {}) is not completely contained within its parent at ({}, {}) with size ({}, {})",
+                        id, x, y, width, height, px, py, pw, ph
+                    ));
+                }
+            }
+
+            // Recursively validate children
+            for child in &box_item.children {
+                validate_box(child, layout_map, Some((x, y, width, height)))?;
+            }
+
+            // Check for overlaps between children
+            check_sibling_overlaps(&box_item.children, layout_map, Some((x, y, width, height)))?;
+        }
+    }
+
+    Ok(())
+}
+
+// Check if two boxes overlap
+fn boxes_overlap(
+    box1: (i32, i32, i32, i32), // (x1, y1, w1, h1)
+    box2: (i32, i32, i32, i32), // (x2, y2, w2, h2)
+) -> bool {
+    let (x1, y1, w1, h1) = box1;
+    let (x2, y2, w2, h2) = box2;
+
+    // Two rectangles overlap if they overlap in both x and y dimensions
+    let x_overlap = x1 < x2 + w2 && x1 + w1 > x2;
+    let y_overlap = y1 < y2 + h2 && y1 + h1 > y2;
+
+    x_overlap && y_overlap
+}
+
+// Check for overlaps between sibling boxes
+fn check_sibling_overlaps(
+    boxes: &[Box],
+    layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+    _parent_bounds: Option<(i32, i32, i32, i32)>,
+) -> Result<(), String> {
+    // Get all boxes with layout information
+    let mut box_bounds: Vec<(String, i32, i32, i32, i32)> = Vec::new();
+
+    for box_item in boxes {
+        if let Some(ref id) = box_item.id {
+            if let Some(&(x, y, width, height)) = layout_map.get(id) {
+                box_bounds.push((id.clone(), x, y, width, height));
+            }
+        }
+    }
+
+    // Check each pair of sibling boxes for overlap
+    for i in 0..box_bounds.len() {
+        for j in (i + 1)..box_bounds.len() {
+            let (id1, x1, y1, w1, h1) = &box_bounds[i];
+            let (id2, x2, y2, w2, h2) = &box_bounds[j];
+
+            if boxes_overlap((*x1, *y1, *w1, *h1), (*x2, *y2, *w2, *h2)) {
+                return Err(format!(
+                    "Boxes '{}' at ({}, {}) with size ({}, {}) and '{}' at ({}, {}) with size ({}, {}) overlap",
+                    id1, x1, y1, w1, h1, id2, x2, y2, w2, h2
+                ));
+            }
+        }
+    }
+
+    Ok(())
+}
+
 // Render the diagram AST as an SVG
 pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool) {
     // Get canvas size from layout or use defaults
@@ -159,6 +253,12 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
 
     // Build layout map
     let layout_map = build_layout_map(doc);
+
+    // Validate layout before rendering
+    if let Err(e) = validate_layout(doc, &layout_map) {
+        eprintln!("Layout validation error: {}", e);
+        std::process::exit(1);
+    }
 
     // Collect text elements while rendering boxes
     let mut text_elements = Vec::new();
