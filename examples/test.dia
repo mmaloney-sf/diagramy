@@ -65,7 +65,7 @@ layout {
     }
     traceFunnel {
         pos: (575, 95)
-        size: (340, 160)
+        size: (300, 160)
     }
     traceSink {
         pos: (575, 505)

@@ -131,7 +131,8 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     let mut text_elements = Vec::new();
 
     // Render all boxes (rectangles only) using layout information
-    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements);
+    // Start with zero parent offset (no parent)
+    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements, 0, 0);
 
     // Render all text elements on top (so text is always in front)
     for text_element in text_elements {
@@ -144,14 +145,17 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
 }
 
 // Recursively render boxes with layout information
+// parent_offset_x and parent_offset_y track cumulative offset from stacked parent boxes
 fn render_boxes_with_layout(
     boxes: &[Box],
     layout_map: &HashMap<String, (i32, i32, i32, i32)>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<svg::node::element::Text>,
+    parent_offset_x: i32,
+    parent_offset_y: i32,
 ) -> SvgDocument {
     for box_item in boxes {
-        doc = render_box_with_layout(box_item, layout_map, doc, text_elements);
+        doc = render_box_with_layout(box_item, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
     }
     doc
 }
@@ -159,11 +163,14 @@ fn render_boxes_with_layout(
 // Render a single box using layout information
 // Children are rendered AFTER parents to ensure they appear in front (higher z-index in SVG)
 // Text elements are collected and rendered later on top of all boxes
+// parent_offset_x and parent_offset_y track cumulative offset from stacked parent boxes
 fn render_box_with_layout(
     box_item: &Box,
     layout_map: &HashMap<String, (i32, i32, i32, i32)>,
     mut doc: SvgDocument,
     text_elements: &mut Vec<svg::node::element::Text>,
+    parent_offset_x: i32,
+    parent_offset_y: i32,
 ) -> SvgDocument {
     // Get title from properties (optional)
     let title = box_item.properties.iter()
@@ -190,15 +197,20 @@ fn render_box_with_layout(
     // Render parent box first (so it appears behind children)
     if let Some(ref id) = box_item.id {
         if let Some(&(x, y, width, height)) = layout_map.get(id) {
+            // Apply parent offset to this box's position
+            let x = x + parent_offset_x;
+            let y = y + parent_offset_y;
+
             // Draw stacked rectangles behind the main box (if stacked > 0)
-            // Each rectangle is offset up and to the left from the previous one
+            // Background boxes stay at layout position, main box shifts down and right
             if stacked_count > 0 {
                 let stack_stagger = 12; // Offset amount in pixels for each stacked box
 
-                // Draw from back to front (furthest offset first)
+                // Draw background boxes from back to front
+                // Each is offset from the layout position
                 for i in (1..=stacked_count).rev() {
-                    let offset_x = -(i * stack_stagger);
-                    let offset_y = -(i * stack_stagger);
+                    let offset_x = (stacked_count - i) * stack_stagger;
+                    let offset_y = (stacked_count - i) * stack_stagger;
 
                     let stacked_rect = Rectangle::new()
                         .set("x", x + offset_x)
@@ -214,9 +226,11 @@ fn render_box_with_layout(
             }
 
             // Draw main rectangle for this box (on top of stacked rectangles)
+            // Main box is offset down and right by stacked_count * stack_stagger
+            let main_offset = if stacked_count > 0 { stacked_count * 12 } else { 0 };
             let rect = Rectangle::new()
-                .set("x", x)
-                .set("y", y)
+                .set("x", x + main_offset)
+                .set("y", y + main_offset)
                 .set("width", width)
                 .set("height", height)
                 .set("fill", svg_color)
@@ -227,9 +241,14 @@ fn render_box_with_layout(
 
             // Collect title text element (to be rendered later on top of all boxes)
             // Use contrasting color for readability
+            // Text is positioned on the main box (which may be offset if stacked)
             if let Some(title_text) = title {
                 let padding = 8; // Padding from edges
                 let font_size = 14;
+
+                // Text goes on the main box, which is offset if stacked
+                let text_base_x = x + main_offset;
+                let text_base_y = y + main_offset;
 
                 if is_vertical {
                     // Vertical text: rotated 90 degrees counter-clockwise
@@ -239,8 +258,8 @@ fn render_box_with_layout(
                     // 3. After rotation, coordinate system is rotated, so:
                     //    - To move DOWN on screen (positive Y), we translate in negative X (after rotation)
                     //    - We need to shift down by font_size to account for baseline
-                    let text_x = x + padding;
-                    let text_y = y + padding;
+                    let text_x = text_base_x + padding;
+                    let text_y = text_base_y + padding;
 
                     // Use transform with translate and rotate
                     // Translate to upper left, then rotate around origin, then translate DOWN on screen
@@ -273,8 +292,8 @@ fn render_box_with_layout(
 
                     // Add shadow text (rendered first, behind the main text)
                     let shadow = Text::new(&title_text)
-                        .set("x", x + padding + 1)
-                        .set("y", y + padding + font_size + 1)
+                        .set("x", text_base_x + padding + 1)
+                        .set("y", text_base_y + padding + font_size + 1)
                         .set("text-anchor", "start")
                         .set("font-size", font_size)
                         .set("fill", "rgba(0, 0, 0, 0.3)")
@@ -283,26 +302,37 @@ fn render_box_with_layout(
 
                     // Add main text
                     let text = Text::new(&title_text)
-                        .set("x", x + padding)
-                        .set("y", y + padding + font_size) // Add font size for baseline
+                        .set("x", text_base_x + padding)
+                        .set("y", text_base_y + padding + font_size) // Add font size for baseline
                         .set("text-anchor", "start")
                         .set("font-size", font_size)
                         .set("fill", text_color);
                     text_elements.push(text);
                 }
             }
+            // Calculate cumulative offset for children
+            // Children should be offset by parent's offset plus this box's main_offset
+            let child_offset_x = parent_offset_x + main_offset;
+            let child_offset_y = parent_offset_y + main_offset;
+
+            // Render children AFTER parent (so they appear in front with higher z-index)
+            // Pass the cumulative offset to children
+            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, child_offset_x, child_offset_y);
         } else {
             // No layout found for this identifier
             println!("Warning: No layout found for box with id '{}'", id);
+
+            // Still render children with current parent offset
+            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
         }
     } else {
         // Box has no identifier
         let title_str = title.as_deref().unwrap_or("(no title)");
         println!("Warning: Box '{}' has no identifier, skipping layout", title_str);
-    }
 
-    // Render children AFTER parent (so they appear in front with higher z-index)
-    doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements);
+        // Still render children with current parent offset
+        doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y);
+    }
 
     doc
 }

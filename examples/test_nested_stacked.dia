@@ -1,0 +1,42 @@
+version = 0.1.0
+
+// Test diagram with nested stacked boxes
+// This tests that offsets accumulate correctly through multiple levels
+diagram {
+    box grandparent {
+        title: "Grandparent"
+        color: blue
+        stacked: 1
+
+        box parent {
+            title: "Parent"
+            color: red
+            stacked: 1
+
+            box child {
+                title: "Child"
+                color: green
+            }
+        }
+    }
+}
+
+layout {
+    size: (600, 500)
+
+    grandparent {
+        pos: (50, 50)
+        size: (500, 400)
+    }
+
+    parent {
+        pos: (100, 100)
+        size: (350, 250)
+    }
+
+    child {
+        pos: (150, 150)
+        size: (200, 100)
+    }
+}
+

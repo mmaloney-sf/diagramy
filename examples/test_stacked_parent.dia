@@ -1,0 +1,41 @@
+version = 0.1.0
+
+// Test diagram with a stacked parent box containing children
+// This tests that children shift down with their parent when parent is stacked
+diagram {
+    box parent {
+        title: "Parent Box"
+        color: blue
+        stacked: 2
+
+        box child1 {
+            title: "Child 1"
+            color: red
+        }
+
+        box child2 {
+            title: "Child 2"
+            color: green
+        }
+    }
+}
+
+layout {
+    size: (600, 500)
+
+    parent {
+        pos: (50, 50)
+        size: (500, 400)
+    }
+
+    child1 {
+        pos: (100, 100)
+        size: (150, 100)
+    }
+
+    child2 {
+        pos: (300, 100)
+        size: (150, 100)
+    }
+}
+
