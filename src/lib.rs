@@ -67,7 +67,7 @@ fn convert_to_absolute_positions(
 
 // Map .dia color names to SVG hex color codes
 // Colors chosen to match reference.png - muted, professional palette
-fn map_color(color_name: &str) -> &str {
+pub fn map_color(color_name: &str) -> &str {
     match color_name {
         "red" => "#D98880",        // Soft coral red
         "blue" => "#85C1E2",       // Soft sky blue
@@ -229,7 +229,7 @@ fn check_sibling_overlaps(
 }
 
 // Render the diagram AST as an SVG
-pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool) {
+pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>) {
     // Get canvas size from layout or use defaults
     let (width, height) = doc.layout.canvas_size.unwrap_or((800, 600));
 
@@ -242,14 +242,24 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
         .set("width", display_width)             // Scale display size
         .set("height", display_height);
 
-    // Add background if not transparent
-    if !transparent {
+    // Add background based on options
+    if let Some(color) = background_color {
+        // Use specified background color (map through color table)
+        let bg_color = map_color(color);
+        let background = Rectangle::new()
+            .set("width", "100%")
+            .set("height", "100%")
+            .set("fill", bg_color);
+        svg_doc = svg_doc.add(background);
+    } else if !transparent {
+        // Use white background if not transparent and no color specified
         let background = Rectangle::new()
             .set("width", "100%")
             .set("height", "100%")
             .set("fill", "#FFFFFF");
         svg_doc = svg_doc.add(background);
     }
+    // Otherwise, leave transparent (no background)
 
     // Build layout map
     let layout_map = build_layout_map(doc);

@@ -20,6 +20,10 @@ struct Args {
     /// Use white background instead of transparent
     #[arg(long)]
     no_transparent: bool,
+
+    /// Background color (e.g., red, blue, #FFFFFF). If not set, uses transparent or white (with --no-transparent)
+    #[arg(long)]
+    background: Option<String>,
 }
 
 // Helper function to convert byte offset to line and column
@@ -124,7 +128,7 @@ fn main() {
                     .or(doc.layout.scale)
                     .unwrap_or(1.0);
 
-                render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent);
+                render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent, args.background.as_deref());
             }
             Err(e) => {
                 print_parse_error(&input_file, &input, &e);
