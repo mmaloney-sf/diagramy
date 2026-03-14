@@ -23,6 +23,12 @@ diagram {
                 color: red
             }
         }
+
+        box cdc {
+            title: "CDC" vertical
+            color: blue
+        }
+
         box debug {
             title: "Debug"
             box innerDebug {
@@ -36,55 +42,50 @@ diagram {
             }
         }
     }
-
-    box cdc {
-        title: "CDC" vertical
-        color: blue
-    }
 }
 
 layout {
-    size: (1533, 788)
-    scale: 50%
+    size: (3000, 1600)
+    scale: 35%
 
     top {
-        pos: (40, 30) // (x, y)
-        size: (1450, 725) // (width, height)
+        pos: (600, 200) // (x, y)
+        size: (1300, 1350) // (width, height)
     }
     entropy {
-        pos: (35, 35)
-        size: (420, 285)
+        pos: (300, 200)
+        size: (900, 300)
     }
     trngDb {
-        pos: (40, 40)
-        size: (340, 220)
+        pos: (100, 50)
+        size: (340, 200)
     }
     trace {
-        pos: (495, 35)
-        size: (420, 630)
+        pos: (300, 550)
+        size: (950, 400)
     }
     traceFunnel {
         pos: (40, 30)
-        size: (300, 160)
+        size: (360, 306)
     }
     traceSink {
-        pos: (40, 440)
-        size: (340, 160)
+        pos: (480, 30)
+        size: (387, 306)
     }
     debug {
-        pos: (955, 35)
-        size: (420, 630)
+        pos: (300, 1000)
+        size: (950, 130)
     }
     innerDebug {
-        pos: (40, 30)
-        size: (340, 250)
+        pos: (40, 20)
+        size: (400, 80)
     }
     debug2 {
-        pos: (40, 315)
-        size: (340, 285)
+        pos: (480, 20)
+        size: (430, 80)
     }
     cdc {
-        pos: (1500, 30)
+        pos: (150, 550)
         size: (115, 315)
     }
 }
