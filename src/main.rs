@@ -2,6 +2,7 @@ use std::fs;
 use std::path::Path;
 use clap::Parser;
 use diagramy::{grammar, render_diagram_to_svg};
+use lalrpop_util::ParseError;
 
 /// Convert .dia diagram files to SVG
 #[derive(Parser, Debug)]
@@ -19,6 +20,67 @@ struct Args {
     /// Use white background instead of transparent
     #[arg(long)]
     no_transparent: bool,
+}
+
+// Helper function to convert byte offset to line and column
+fn get_line_col(input: &str, location: usize) -> (usize, usize) {
+    let mut line = 1;
+    let mut col = 1;
+
+    for (i, ch) in input.chars().enumerate() {
+        if i >= location {
+            break;
+        }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
+    }
+
+    (line, col)
+}
+
+// Print detailed parse error information
+fn print_parse_error<T, E>(filename: &str, input: &str, error: &ParseError<usize, T, E>)
+where
+    T: std::fmt::Display,
+    E: std::fmt::Display,
+{
+    match error {
+        ParseError::InvalidToken { location } => {
+            let (line, col) = get_line_col(input, *location);
+            eprintln!("Parse error in {}: InvalidToken", filename);
+            eprintln!("  Location: line {}, column {}", line, col);
+        }
+        ParseError::UnrecognizedEof { location, expected } => {
+            let (line, col) = get_line_col(input, *location);
+            eprintln!("Parse error in {}: UnrecognizedEof", filename);
+            eprintln!("  Location: line {}, column {}", line, col);
+            if !expected.is_empty() {
+                eprintln!("  Expected one of: {}", expected.join(", "));
+            }
+        }
+        ParseError::UnrecognizedToken { token: (start, tok, _end), expected } => {
+            let (line, col) = get_line_col(input, *start);
+            eprintln!("Parse error in {}: UnrecognizedToken", filename);
+            eprintln!("  Location: line {}, column {}", line, col);
+            eprintln!("  Token: {}", tok);
+            if !expected.is_empty() {
+                eprintln!("  Expected one of: {}", expected.join(", "));
+            }
+        }
+        ParseError::ExtraToken { token: (start, tok, _end) } => {
+            let (line, col) = get_line_col(input, *start);
+            eprintln!("Parse error in {}: ExtraToken", filename);
+            eprintln!("  Location: line {}, column {}", line, col);
+            eprintln!("  Token: {}", tok);
+        }
+        ParseError::User { error } => {
+            eprintln!("Parse error in {}: {}", filename, error);
+        }
+    }
 }
 
 fn main() {
@@ -65,7 +127,7 @@ fn main() {
                 render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent);
             }
             Err(e) => {
-                eprintln!("Error parsing {}: {:?}", input_file, e);
+                print_parse_error(&input_file, &input, &e);
             }
         }
 
