@@ -7,6 +7,12 @@ diagram {
             box trngDb {
                 title: "TRNG-DB"
                 color: blue
+                port trngOscIn {
+                    side: right
+                }
+                port entropyOut {
+                     side: left
+                }
             }
         }
 
@@ -41,6 +47,37 @@ diagram {
                 color: pink
             }
         }
+
+        port pinstrapsIn {
+            side: right
+        }
+    }
+
+    port pinstrapsSource {
+        title: "pinstraps WGPort, secure tieoffs"
+    }
+
+    port oscSource {
+        title: "OSC"
+    }
+
+    port entropySink {
+         // no title: attribute is required
+    }
+
+    arrow {
+        from: pinstrapsSource
+        to: pinstrapsIn
+    }
+
+    arrow {
+        from: oscSource
+        to: trngOscIn
+    }
+
+    arrow {
+        from: entropyOut
+        to: entropySink
     }
 }
 
@@ -87,5 +124,23 @@ layout {
     cdc {
         pos: (150, 550)
         size: (115, 315)
+    }
+    pinstrapsSource {
+        pos: (2200, 300)
+    }
+    pinstrapsIn {
+        interp: 10%
+    }
+    oscSource {
+        pos: (2200, 500)
+    }
+    trngOscIn {
+        interp: 50%
+    }
+    entropySink {
+        pos: (100, 300)
+    }
+    entropyOut {
+        interp: 10%
     }
 }
