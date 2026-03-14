@@ -136,6 +136,9 @@ fn get_contrast_text_color(hex_color: &str) -> &str {
 
 // Validate the diagram layout
 fn validate_layout(doc: &Document, layout_map: &HashMap<String, (i32, i32, i32, i32)>) -> Result<(), String> {
+    // Get canvas size
+    let (canvas_width, canvas_height) = doc.layout.canvas_size.unwrap_or((800, 600));
+
     // Validate each top-level box and its children
     for box_item in &doc.diagram.boxes {
         validate_box(box_item, layout_map, None)?;
@@ -143,6 +146,9 @@ fn validate_layout(doc: &Document, layout_map: &HashMap<String, (i32, i32, i32, 
 
     // Check for overlaps between sibling boxes at each level
     check_sibling_overlaps(&doc.diagram.boxes, layout_map, None)?;
+
+    // Check that all boxes are within canvas bounds
+    check_canvas_bounds(layout_map, canvas_width, canvas_height)?;
 
     Ok(())
 }
@@ -222,6 +228,39 @@ fn check_sibling_overlaps(
                     id1, x1, y1, w1, h1, id2, x2, y2, w2, h2
                 ));
             }
+        }
+    }
+
+    Ok(())
+}
+
+// Check that all boxes are within canvas bounds
+fn check_canvas_bounds(
+    layout_map: &HashMap<String, (i32, i32, i32, i32)>,
+    canvas_width: i32,
+    canvas_height: i32,
+) -> Result<(), String> {
+    for (id, &(x, y, width, height)) in layout_map.iter() {
+        // Check if box extends beyond canvas boundaries
+        if x < 0 || y < 0 {
+            return Err(format!(
+                "Box '{}' at ({}, {}) has negative coordinates (canvas starts at 0, 0)",
+                id, x, y
+            ));
+        }
+
+        if x + width > canvas_width {
+            return Err(format!(
+                "Box '{}' extends beyond canvas width: right edge at {} but canvas width is {}",
+                id, x + width, canvas_width
+            ));
+        }
+
+        if y + height > canvas_height {
+            return Err(format!(
+                "Box '{}' extends beyond canvas height: bottom edge at {} but canvas height is {}",
+                id, y + height, canvas_height
+            ));
         }
     }
 
