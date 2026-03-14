@@ -186,10 +186,10 @@ layout {
         interp: 50%
     }
     entropySink {
-        pos: (100, 470)
+        pos: (100, 550)
     }
     entropyOut {
-        interp: 10%
+        interp: 50%
     }
     cdcSink {
         pos: (500, 907)
