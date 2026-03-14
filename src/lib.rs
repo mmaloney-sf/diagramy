@@ -251,26 +251,36 @@ fn render_box_with_layout(
                 let text_base_y = y + main_offset;
 
                 if is_vertical {
-                    // Vertical text: rotated 90 degrees counter-clockwise
-                    // For vertical text in upper left corner:
-                    // 1. Start at upper left corner (x + padding, y + padding)
-                    // 2. Rotate -90 degrees makes horizontal text go downward
-                    // 3. After rotation, coordinate system is rotated, so:
-                    //    - To move DOWN on screen (positive Y), we translate in negative X (after rotation)
-                    //    - We need to shift down by font_size to account for baseline
-                    let text_x = text_base_x + padding;
-                    let text_y = text_base_y + padding;
+                    // Vertical text: rotate 90 degrees counter-clockwise around upper left corner,
+                    // then shift down in screen coordinates (positive Y direction)
 
-                    // Use transform with translate and rotate
-                    // Translate to upper left, then rotate around origin, then translate DOWN on screen
-                    // After -90 rotation, moving down on screen means translating in negative X
-                    let transform = format!("translate({} {}) rotate(-90) translate({} 0)",
-                                          text_x, text_y, -font_size);
+                    // BEFORE rotation: calculate text width
+                    let char_count = title_text.chars().count();
+                    let estimated_text_width = (char_count as f64 * font_size as f64 * 0.6) as i32;
+
+                    // Upper left corner of the box (with padding)
+                    let corner_x = text_base_x + padding;
+                    let corner_y = text_base_y + padding;
+
+                    // Shift down in screen coordinates by text width + 2 * padding
+                    let translate_y = estimated_text_width + 2 * padding;
+
+                    // Adjust the rotation center down by translate_y in screen coordinates
+                    let rotated_corner_x = corner_x;
+                    let rotated_corner_y = corner_y + translate_y;
+
+                    // Text position also shifted down (baseline is font_size below the corner)
+                    let text_x = corner_x;
+                    let text_y = corner_y + font_size + translate_y;
+
+                    // Transform: rotate around the shifted upper left corner
+                    let transform = format!("rotate(-90 {} {})",
+                                          rotated_corner_x, rotated_corner_y);
 
                     // Add shadow text (rendered first, behind the main text)
                     let shadow = Text::new(&title_text)
-                        .set("x", 1)
-                        .set("y", 1)
+                        .set("x", text_x + 1)
+                        .set("y", text_y + 1)
                         .set("text-anchor", "start")
                         .set("font-size", font_size)
                         .set("fill", "rgba(0, 0, 0, 0.3)")
@@ -280,8 +290,8 @@ fn render_box_with_layout(
 
                     // Add main text
                     let text = Text::new(&title_text)
-                        .set("x", 0)
-                        .set("y", 0)
+                        .set("x", text_x)
+                        .set("y", text_y)
                         .set("text-anchor", "start")
                         .set("font-size", font_size)
                         .set("fill", text_color)

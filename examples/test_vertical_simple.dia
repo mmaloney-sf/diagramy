@@ -1,0 +1,29 @@
+version = 0.1.0
+
+// Simple test for vertical text
+diagram {
+    box horizontal {
+        title: "Horizontal Text"
+        color: blue
+    }
+
+    box verticalbox {
+        title: "Vertical Text" vertical
+        color: red
+    }
+}
+
+layout {
+    size: (600, 400)
+
+    horizontal {
+        pos: (50, 50)
+        size: (200, 100)
+    }
+
+    verticalbox {
+        pos: (300, 50)
+        size: (200, 100)
+    }
+}
+
