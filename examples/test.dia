@@ -44,46 +44,46 @@ diagram {
 }
 
 layout {
-    size: (3066, 1576)
+    size: (1533, 788)
 
     top {
-        pos: (80, 60) // (x, y)
-        size: (2900, 1450) // (width, height)
+        pos: (40, 30) // (x, y)
+        size: (1450, 725) // (width, height)
     }
     entropy {
-        pos: (150, 130)
-        size: (840, 570)
+        pos: (75, 65)
+        size: (420, 285)
     }
     trngDb {
-        pos: (230, 210)
-        size: (680, 440)
+        pos: (115, 105)
+        size: (340, 220)
     }
     trace {
-        pos: (1070, 130)
-        size: (840, 1260)
+        pos: (535, 65)
+        size: (420, 630)
     }
     traceFunnel {
-        pos: (1150, 190)
-        size: (680, 320)
+        pos: (575, 95)
+        size: (340, 160)
     }
     traceSink {
-        pos: (1150, 1010)
-        size: (680, 320)
+        pos: (575, 505)
+        size: (340, 160)
     }
     debug {
-        pos: (1990, 130)
-        size: (840, 1260)
+        pos: (995, 65)
+        size: (420, 630)
     }
     innerDebug {
-        pos: (2070, 190)
-        size: (680, 500)
+        pos: (1035, 95)
+        size: (340, 250)
     }
     debug2 {
-        pos: (2070, 760)
-        size: (680, 570)
+        pos: (1035, 380)
+        size: (340, 285)
     }
     cdc {
-        pos: (150, 760)
-        size: (230, 630)
+        pos: (75, 380)
+        size: (115, 315)
     }
 }
