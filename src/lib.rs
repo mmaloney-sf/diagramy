@@ -2,7 +2,8 @@
 #[macro_use] extern crate lalrpop_util;
 
 use svg::Document as SvgDocument;
-use svg::node::element::{Text, Rectangle, Circle, Line};
+use svg::node::element::{Text, Rectangle, Circle, Line, Path};
+use svg::node::element::path::Data;
 use std::collections::HashMap;
 
 pub mod ast;
@@ -759,7 +760,7 @@ fn render_single_port(
     doc
 }
 
-// Render all arrows
+// Render all arrows as orthogonal (Manhattan-style) paths
 fn render_arrows(
     arrows: &[Arrow],
     port_map: &HashMap<String, (i32, i32)>,
@@ -767,18 +768,38 @@ fn render_arrows(
 ) -> SvgDocument {
     for arrow in arrows {
         if let (Some(&(x1, y1)), Some(&(x2, y2))) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
-            // Draw line
-            let line = Line::new()
-                .set("x1", x1)
-                .set("y1", y1)
-                .set("x2", x2)
-                .set("y2", y2)
+            // Create orthogonal path
+            let path_data = create_orthogonal_path(x1, y1, x2, y2);
+
+            let path = Path::new()
+                .set("d", path_data)
                 .set("stroke", "#333")
                 .set("stroke-width", 2)
+                .set("fill", "none")
                 .set("marker-end", "url(#arrowhead)");
-            doc = doc.add(line);
+            doc = doc.add(path);
         }
     }
 
     doc
+}
+
+// Create an orthogonal path from (x1, y1) to (x2, y2)
+// The path goes horizontally first, then vertically, then horizontally again
+fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32) -> Data {
+    let mut data = Data::new().move_to((x1, y1));
+
+    // Calculate midpoint for the vertical segment
+    let mid_x = (x1 + x2) / 2;
+
+    // Go horizontally to midpoint
+    data = data.line_to((mid_x, y1));
+
+    // Go vertically to destination y
+    data = data.line_to((mid_x, y2));
+
+    // Go horizontally to destination
+    data = data.line_to((x2, y2));
+
+    data
 }
