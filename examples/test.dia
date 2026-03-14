@@ -52,35 +52,35 @@ layout {
         size: (1450, 725) // (width, height)
     }
     entropy {
-        pos: (75, 65)
+        pos: (35, 35)
         size: (420, 285)
     }
     trngDb {
-        pos: (115, 105)
+        pos: (40, 40)
         size: (340, 220)
     }
     trace {
-        pos: (535, 65)
+        pos: (495, 35)
         size: (420, 630)
     }
     traceFunnel {
-        pos: (575, 95)
+        pos: (40, 30)
         size: (300, 160)
     }
     traceSink {
-        pos: (575, 505)
+        pos: (40, 440)
         size: (340, 160)
     }
     debug {
-        pos: (995, 65)
+        pos: (955, 35)
         size: (420, 630)
     }
     innerDebug {
-        pos: (1035, 95)
+        pos: (40, 30)
         size: (340, 250)
     }
     debug2 {
-        pos: (1035, 380)
+        pos: (40, 315)
         size: (340, 285)
     }
     cdc {

@@ -30,12 +30,12 @@ layout {
     }
 
     parent {
-        pos: (100, 100)
+        pos: (50, 50)
         size: (350, 250)
     }
 
     child {
-        pos: (150, 150)
+        pos: (50, 50)
         size: (200, 100)
     }
 }

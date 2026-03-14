@@ -11,8 +11,10 @@ use ast::{Document, Box, Property, LayoutProperty};
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
 // Build a layout map from the layout section
+// Positions in the layout are relative to parent, so we need to convert them to absolute
 fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
-    let mut layout_map = HashMap::new();
+    // First, build a map of relative positions from the layout section
+    let mut relative_layout_map = HashMap::new();
 
     for item in &doc.layout.items {
         let mut pos = (0, 0);
@@ -25,11 +27,42 @@ fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
             }
         }
 
-        // Store as (x, y, width, height)
-        layout_map.insert(item.name.clone(), (pos.0, pos.1, size.0, size.1));
+        // Store as (x, y, width, height) - these are relative positions
+        relative_layout_map.insert(item.name.clone(), (pos.0, pos.1, size.0, size.1));
     }
 
-    layout_map
+    // Now convert relative positions to absolute by walking the diagram tree
+    let mut absolute_layout_map = HashMap::new();
+    for box_item in &doc.diagram.boxes {
+        convert_to_absolute_positions(box_item, &relative_layout_map, &mut absolute_layout_map, 0, 0);
+    }
+
+    absolute_layout_map
+}
+
+// Recursively convert relative positions to absolute positions
+fn convert_to_absolute_positions(
+    box_item: &Box,
+    relative_map: &HashMap<String, (i32, i32, i32, i32)>,
+    absolute_map: &mut HashMap<String, (i32, i32, i32, i32)>,
+    parent_x: i32,
+    parent_y: i32,
+) {
+    if let Some(ref id) = box_item.id {
+        if let Some(&(rel_x, rel_y, width, height)) = relative_map.get(id) {
+            // Convert relative position to absolute
+            let abs_x = parent_x + rel_x;
+            let abs_y = parent_y + rel_y;
+
+            // Store absolute position
+            absolute_map.insert(id.clone(), (abs_x, abs_y, width, height));
+
+            // Process children with this box's absolute position as their parent
+            for child in &box_item.children {
+                convert_to_absolute_positions(child, relative_map, absolute_map, abs_x, abs_y);
+            }
+        }
+    }
 }
 
 // Map .dia color names to SVG hex color codes

@@ -32,13 +32,13 @@ layout {
 
     // First child box
     child1 {
-        pos: (70, 100) // (x, y)
+        pos: (20, 50) // (x, y)
         size: (150, 80) // (width, height)
     }
 
     // Second child box
     child2 {
-        pos: (250, 100) // (x, y)
+        pos: (200, 50) // (x, y)
         size: (150, 80) // (width, height)
     }
 }
