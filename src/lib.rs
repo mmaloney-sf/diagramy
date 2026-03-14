@@ -11,6 +11,10 @@ use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
+// Scale factor for border radius and padding relative to font size
+// border_radius = BORDER_RADIUS_SCALE * (font_size / 18.0)
+const BORDER_RADIUS_SCALE: f64 = 10.0;
+
 // Build a layout map from the layout section
 // Positions in the layout are relative to parent, so we need to convert them to absolute
 fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
@@ -494,6 +498,10 @@ fn render_box_with_layout(
             let x = x + parent_offset_x;
             let y = y + parent_offset_y;
 
+            // Calculate border radius based on font size (base size for font_size=18)
+            let scale = font_size as f64 / 18.0;
+            let border_radius = (BORDER_RADIUS_SCALE * scale) as i32;
+
             // Draw stacked rectangles behind the main box (if stacked > 0)
             // Background boxes stay at layout position, main box shifts down and right
             if stacked_count > 0 {
@@ -513,7 +521,7 @@ fn render_box_with_layout(
                         .set("fill", svg_color)
                         .set("stroke", "#333")
                         .set("stroke-width", 2)
-                        .set("rx", 5);
+                        .set("rx", border_radius);
                     doc = doc.add(stacked_rect);
                 }
             }
@@ -529,14 +537,15 @@ fn render_box_with_layout(
                 .set("fill", svg_color)
                 .set("stroke", "#333")
                 .set("stroke-width", 2)
-                .set("rx", 5);
+                .set("rx", border_radius);
             doc = doc.add(rect);
 
             // Collect title text element (to be rendered later on top of all boxes)
             // Use contrasting color for readability
             // Text is positioned on the main box (which may be offset if stacked)
             if let Some(title_text) = title {
-                let padding = 8; // Padding from edges
+                // Padding scales with border radius (same as font size scaling)
+                let padding = border_radius;
 
                 // Text goes on the main box, which is offset if stacked
                 let text_base_x = x + main_offset;
