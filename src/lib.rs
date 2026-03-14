@@ -72,30 +72,30 @@ fn convert_to_absolute_positions(
 }
 
 // Map .dia color names to SVG hex color codes
-// Colors chosen to match reference.png - muted, professional palette
+// Colors are highly desaturated and bright for a professional, subtle palette
 // Returns an error if the color name is not recognized
 pub fn map_color(color_name: &str) -> Result<&str, String> {
     match color_name {
-        "red" => Ok("#D98880"),        // Soft coral red
-        "blue" => Ok("#85C1E2"),       // Soft sky blue
-        "green" => Ok("#82E0AA"),      // Soft mint green
-        "yellow" => Ok("#F9E79F"),     // Soft pale yellow
-        "orange" => Ok("#F5B041"),     // Soft orange
-        "purple" => Ok("#BB8FCE"),     // Soft lavender purple
-        "pink" => Ok("#F5B7B1"),       // Soft pastel pink
-        "cyan" => Ok("#7FB3D5"),       // Soft cyan blue
-        "magenta" => Ok("#D7BDE2"),    // Soft magenta/lilac
-        "lime" => Ok("#ABEBC6"),       // Soft lime green
-        "teal" => Ok("#76D7C4"),       // Soft teal
-        "indigo" => Ok("#A9CCE3"),     // Soft indigo blue
-        "brown" => Ok("#C39BD3"),      // Soft mauve
-        "gray" => Ok("#D5DBDB"),       // Soft light gray
-        "grey" => Ok("#D5DBDB"),       // Soft light gray
-        "black" => Ok("#566573"),      // Soft dark gray
-        "white" => Ok("#F8F9F9"),      // Soft white
-        "navy" => Ok("#5D6D7E"),       // Soft navy gray
-        "maroon" => Ok("#C39BD3"),     // Soft purple
-        "olive" => Ok("#A9DFBF"),      // Soft olive green
+        "red" => Ok("#E8DEDD"),
+        "blue" => Ok("#DEE8ED"),
+        "green" => Ok("#DEE8E3"),
+        "yellow" => Ok("#E8E8DE"),
+        "orange" => Ok("#E8E3DE"),
+        "purple" => Ok("#E3DEE8"),
+        "pink" => Ok("#E8DEE3"),
+        "cyan" => Ok("#DEE8E8"),
+        "magenta" => Ok("#E8DEE8"),
+        "lime" => Ok("#E3E8DE"),
+        "teal" => Ok("#DEE8E5"),
+        "indigo" => Ok("#DEE3E8"),
+        "brown" => Ok("#E5DEE3"),
+        "gray" => Ok("#D5DBDB"),
+        "grey" => Ok("#D5DBDB"),
+        "black" => Ok("#566573"),
+        "white" => Ok("#F8F9F9"),
+        "navy" => Ok("#5D6D7E"),
+        "maroon" => Ok("#E3DEE8"),
+        "olive" => Ok("#E3E8DE"),
         _ => Err(format!("Unknown color: '{}'. Valid colors are: red, blue, green, yellow, orange, purple, pink, cyan, magenta, lime, teal, indigo, brown, gray/grey, black, white, navy, maroon, olive", color_name)),
     }
 }
