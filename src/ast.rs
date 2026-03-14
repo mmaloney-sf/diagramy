@@ -22,7 +22,7 @@ pub struct Box {
 pub enum Property {
     Title(String),
     Color(String),
-    Stack(i32),
+    Stacked(i32),
     Vertical,
 }
 

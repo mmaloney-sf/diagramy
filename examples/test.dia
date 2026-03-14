@@ -15,7 +15,7 @@ diagram {
             box traceFunnel {
                 title: "Trace Funnel"
                 color: blue
-                stack: 3
+                stacked: 3
             }
 
             box traceSink {

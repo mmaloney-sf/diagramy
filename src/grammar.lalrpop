@@ -69,7 +69,7 @@ PropertyItem: Vec<Property> = {
     "title" ":" <s:String> "vertical" => vec![Property::Title(s), Property::Vertical],
     "title" ":" <s:String> => vec![Property::Title(s)],
     "color" ":" <c:Ident> => vec![Property::Color(c)],
-    "stack" ":" <n:Num> => vec![Property::Stack(n)],
+    "stacked" ":" <n:Num> => vec![Property::Stacked(n)],
 };
 
 String: String = {
