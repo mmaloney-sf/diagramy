@@ -135,7 +135,13 @@ fn main() {
                 // Use layout fontsize if provided, otherwise use CLI font_size
                 let font_size = doc.layout.fontsize.unwrap_or(args.font_size);
 
-                render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent, args.background.as_deref(), font_size);
+                match render_diagram_to_svg(&doc, &output_file, scale_factor, !args.no_transparent, args.background.as_deref(), font_size) {
+                    Ok(()) => {},
+                    Err(e) => {
+                        eprintln!("Error rendering diagram: {}", e);
+                        std::process::exit(1);
+                    }
+                }
             }
             Err(e) => {
                 print_parse_error(&input_file, &input, &e);

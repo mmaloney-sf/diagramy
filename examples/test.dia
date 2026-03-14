@@ -1,7 +1,10 @@
 version = 0.1.0
 
 diagram {
+    color: grey
+
     box top {
+        color: white
         box entropy {
             title: "Entropy"
             box trngDb {

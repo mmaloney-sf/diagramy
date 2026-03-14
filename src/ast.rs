@@ -2,7 +2,8 @@
 
 // Helper enum for parsing diagram items
 #[derive(Debug, Clone)]
-pub enum BoxOrPortOrArrow {
+pub enum DiagramItem {
+    Prop(DiagramProperty),
     B(Box),
     P(Port),
     A(Arrow),
@@ -23,9 +24,15 @@ pub struct Document {
 
 #[derive(Debug, Clone)]
 pub struct Diagram {
+    pub color: Option<String>,
     pub boxes: Vec<Box>,
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
+}
+
+#[derive(Debug, Clone)]
+pub enum DiagramProperty {
+    Color(String),
 }
 
 #[derive(Debug, Clone)]

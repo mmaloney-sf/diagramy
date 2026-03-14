@@ -69,29 +69,30 @@ fn convert_to_absolute_positions(
 
 // Map .dia color names to SVG hex color codes
 // Colors chosen to match reference.png - muted, professional palette
-pub fn map_color(color_name: &str) -> &str {
+// Returns an error if the color name is not recognized
+pub fn map_color(color_name: &str) -> Result<&str, String> {
     match color_name {
-        "red" => "#D98880",        // Soft coral red
-        "blue" => "#85C1E2",       // Soft sky blue
-        "green" => "#82E0AA",      // Soft mint green
-        "yellow" => "#F9E79F",     // Soft pale yellow
-        "orange" => "#F5B041",     // Soft orange
-        "purple" => "#BB8FCE",     // Soft lavender purple
-        "pink" => "#F5B7B1",       // Soft pastel pink
-        "cyan" => "#7FB3D5",       // Soft cyan blue
-        "magenta" => "#D7BDE2",    // Soft magenta/lilac
-        "lime" => "#ABEBC6",       // Soft lime green
-        "teal" => "#76D7C4",       // Soft teal
-        "indigo" => "#A9CCE3",     // Soft indigo blue
-        "brown" => "#C39BD3",      // Soft mauve
-        "gray" => "#D5DBDB",       // Soft light gray
-        "grey" => "#D5DBDB",       // Soft light gray
-        "black" => "#566573",      // Soft dark gray
-        "white" => "#F8F9F9",      // Soft white
-        "navy" => "#5D6D7E",       // Soft navy gray
-        "maroon" => "#C39BD3",     // Soft purple
-        "olive" => "#A9DFBF",      // Soft olive green
-        _ => "#D5DBDB",            // Default to soft gray for unknown colors
+        "red" => Ok("#D98880"),        // Soft coral red
+        "blue" => Ok("#85C1E2"),       // Soft sky blue
+        "green" => Ok("#82E0AA"),      // Soft mint green
+        "yellow" => Ok("#F9E79F"),     // Soft pale yellow
+        "orange" => Ok("#F5B041"),     // Soft orange
+        "purple" => Ok("#BB8FCE"),     // Soft lavender purple
+        "pink" => Ok("#F5B7B1"),       // Soft pastel pink
+        "cyan" => Ok("#7FB3D5"),       // Soft cyan blue
+        "magenta" => Ok("#D7BDE2"),    // Soft magenta/lilac
+        "lime" => Ok("#ABEBC6"),       // Soft lime green
+        "teal" => Ok("#76D7C4"),       // Soft teal
+        "indigo" => Ok("#A9CCE3"),     // Soft indigo blue
+        "brown" => Ok("#C39BD3"),      // Soft mauve
+        "gray" => Ok("#D5DBDB"),       // Soft light gray
+        "grey" => Ok("#D5DBDB"),       // Soft light gray
+        "black" => Ok("#566573"),      // Soft dark gray
+        "white" => Ok("#F8F9F9"),      // Soft white
+        "navy" => Ok("#5D6D7E"),       // Soft navy gray
+        "maroon" => Ok("#C39BD3"),     // Soft purple
+        "olive" => Ok("#A9DFBF"),      // Soft olive green
+        _ => Err(format!("Unknown color: '{}'. Valid colors are: red, blue, green, yellow, orange, purple, pink, cyan, magenta, lime, teal, indigo, brown, gray/grey, black, white, navy, maroon, olive", color_name)),
     }
 }
 
@@ -269,6 +270,36 @@ fn check_canvas_bounds(
     Ok(())
 }
 
+// Validate all colors in the diagram
+fn validate_colors(doc: &Document) -> Result<(), String> {
+    // Validate diagram-level color
+    if let Some(ref color) = doc.diagram.color {
+        map_color(color)?;
+    }
+
+    // Validate all box colors
+    validate_box_colors(&doc.diagram.boxes)?;
+
+    Ok(())
+}
+
+// Recursively validate colors in boxes
+fn validate_box_colors(boxes: &[Box]) -> Result<(), String> {
+    for box_item in boxes {
+        // Validate this box's color if it has one
+        for prop in &box_item.properties {
+            if let Property::Color(color) = prop {
+                map_color(color)?;
+            }
+        }
+
+        // Recursively validate children
+        validate_box_colors(&box_item.children)?;
+    }
+
+    Ok(())
+}
+
 // Add arrowhead marker definition to SVG
 fn add_arrowhead_marker(doc: SvgDocument, font_size: i32) -> SvgDocument {
     use svg::node::element::{Marker, Polygon, Definitions};
@@ -303,7 +334,15 @@ fn add_arrowhead_marker(doc: SvgDocument, font_size: i32) -> SvgDocument {
 }
 
 // Render the diagram AST as an SVG
-pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>, font_size: i32) {
+pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>, font_size: i32) -> Result<(), String> {
+    // Validate all colors in the diagram first
+    validate_colors(doc)?;
+
+    // Validate background color if provided
+    if let Some(color) = background_color {
+        map_color(color)?;
+    }
+
     // Get canvas size from layout or use defaults
     let (width, height) = doc.layout.canvas_size.unwrap_or((800, 600));
 
@@ -317,9 +356,18 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
         .set("height", display_height);
 
     // Add background based on options
+    // Priority: CLI background > diagram color > white (if not transparent) > transparent
     if let Some(color) = background_color {
-        // Use specified background color (map through color table)
-        let bg_color = map_color(color);
+        // Use specified CLI background color (map through color table)
+        let bg_color = map_color(color)?;
+        let background = Rectangle::new()
+            .set("width", "100%")
+            .set("height", "100%")
+            .set("fill", bg_color);
+        svg_doc = svg_doc.add(background);
+    } else if let Some(ref diagram_color) = doc.diagram.color {
+        // Use diagram-level color as background
+        let bg_color = map_color(diagram_color)?;
         let background = Rectangle::new()
             .set("width", "100%")
             .set("height", "100%")
@@ -343,16 +391,16 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
 
     // Validate layout before rendering
     if let Err(e) = validate_layout(doc, &layout_map) {
-        eprintln!("Layout validation error: {}", e);
-        std::process::exit(1);
+        return Err(format!("Layout validation error: {}", e));
     }
 
     // Collect text elements while rendering boxes
     let mut text_elements = Vec::new();
 
     // Render all boxes (rectangles only) using layout information
-    // Start with zero parent offset (no parent)
-    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements, 0, 0, font_size);
+    // Start with zero parent offset (no parent) and diagram color as inherited color
+    let inherited_color = doc.diagram.color.as_deref();
+    svg_doc = render_boxes_with_layout(&doc.diagram.boxes, &layout_map, svg_doc, &mut text_elements, 0, 0, font_size, inherited_color);
 
     // Build port position map
     let port_map = build_port_map(doc, &layout_map);
@@ -374,10 +422,13 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     // Save to file
     svg::save(filename, &svg_doc).unwrap();
     println!("Saved diagram to: {}", filename);
+
+    Ok(())
 }
 
 // Recursively render boxes with layout information
 // parent_offset_x and parent_offset_y track cumulative offset from stacked parent boxes
+// inherited_color is the color from the parent (or diagram) to use if this box has no color
 fn render_boxes_with_layout(
     boxes: &[Box],
     layout_map: &HashMap<String, (i32, i32, i32, i32)>,
@@ -386,9 +437,10 @@ fn render_boxes_with_layout(
     parent_offset_x: i32,
     parent_offset_y: i32,
     font_size: i32,
+    inherited_color: Option<&str>,
 ) -> SvgDocument {
     for box_item in boxes {
-        doc = render_box_with_layout(box_item, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size);
+        doc = render_box_with_layout(box_item, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size, inherited_color);
     }
     doc
 }
@@ -405,6 +457,7 @@ fn render_box_with_layout(
     parent_offset_x: i32,
     parent_offset_y: i32,
     font_size: i32,
+    inherited_color: Option<&str>,
 ) -> SvgDocument {
     // Get title from properties (optional)
     let title = box_item.properties.iter()
@@ -419,11 +472,14 @@ fn render_box_with_layout(
         .find_map(|p| if let Property::Stacked(n) = p { Some(*n) } else { None })
         .unwrap_or(0);
 
-    // Get color from properties and map to SVG hex color
-    let color_name = box_item.properties.iter()
-        .find_map(|p| if let Property::Color(c) = p { Some(c.clone()) } else { None })
-        .unwrap_or_else(|| "gray".to_string());
-    let svg_color = map_color(&color_name);
+    // Get color from properties, or inherit from parent
+    let box_color = box_item.properties.iter()
+        .find_map(|p| if let Property::Color(c) = p { Some(c.as_str()) } else { None })
+        .or(inherited_color);
+
+    // Map to SVG hex color (use inherited color or default to gray)
+    // At this point colors have been validated, so unwrap is safe
+    let svg_color = map_color(box_color.unwrap_or("gray")).unwrap();
 
     // Calculate contrasting text color based on background
     let text_color = get_contrast_text_color(svg_color);
@@ -559,22 +615,22 @@ fn render_box_with_layout(
             let child_offset_y = parent_offset_y + main_offset;
 
             // Render children AFTER parent (so they appear in front with higher z-index)
-            // Pass the cumulative offset to children
-            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, child_offset_x, child_offset_y, font_size);
+            // Pass the cumulative offset and this box's color to children
+            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, child_offset_x, child_offset_y, font_size, box_color);
         } else {
             // No layout found for this identifier
             println!("Warning: No layout found for box with id '{}'", id);
 
-            // Still render children with current parent offset
-            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size);
+            // Still render children with current parent offset and inherited color
+            doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size, box_color);
         }
     } else {
         // Box has no identifier
         let title_str = title.as_deref().unwrap_or("(no title)");
         println!("Warning: Box '{}' has no identifier, skipping layout", title_str);
 
-        // Still render children with current parent offset
-        doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size);
+        // Still render children with current parent offset and inherited color
+        doc = render_boxes_with_layout(&box_item.children, layout_map, doc, text_elements, parent_offset_x, parent_offset_y, font_size, box_color);
     }
 
     doc

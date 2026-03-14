@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, Box, Property, Layout, LayoutEntry, LayoutItem, LayoutProperty, Port, PortProperty, Arrow, BoxOrPortOrArrow, BoxChild};
+use crate::ast::{Document, Diagram, DiagramProperty, DiagramItem, Box, Property, Layout, LayoutEntry, LayoutItem, LayoutProperty, Port, PortProperty, Arrow, BoxChild};
 
 grammar;
 
@@ -32,27 +32,34 @@ VersionNumber: String = {
 };
 
 DiagramBlock: Diagram = {
-    "diagram" "{" <boxes:BoxOrPortOrArrow*> "}" => {
+    "diagram" "{" <items:DiagramItem*> "}" => {
+        let mut color = None;
         let mut box_list = Vec::new();
         let mut port_list = Vec::new();
         let mut arrow_list = Vec::new();
 
-        for item in boxes {
+        for item in items {
             match item {
-                BoxOrPortOrArrow::B(b) => box_list.push(b),
-                BoxOrPortOrArrow::P(p) => port_list.push(p),
-                BoxOrPortOrArrow::A(a) => arrow_list.push(a),
+                DiagramItem::Prop(DiagramProperty::Color(c)) => color = Some(c),
+                DiagramItem::B(b) => box_list.push(b),
+                DiagramItem::P(p) => port_list.push(p),
+                DiagramItem::A(a) => arrow_list.push(a),
             }
         }
 
-        Diagram { boxes: box_list, ports: port_list, arrows: arrow_list }
+        Diagram { color, boxes: box_list, ports: port_list, arrows: arrow_list }
     },
 };
 
-BoxOrPortOrArrow: BoxOrPortOrArrow = {
-    <b:Box> => BoxOrPortOrArrow::B(b),
-    <p:Port> => BoxOrPortOrArrow::P(p),
-    <a:Arrow> => BoxOrPortOrArrow::A(a),
+DiagramItem: DiagramItem = {
+    <prop:DiagramPropertyItem> => DiagramItem::Prop(prop),
+    <b:Box> => DiagramItem::B(b),
+    <p:Port> => DiagramItem::P(p),
+    <a:Arrow> => DiagramItem::A(a),
+};
+
+DiagramPropertyItem: DiagramProperty = {
+    "color" ":" <c:Ident> => DiagramProperty::Color(c),
 };
 
 LayoutBlock: Layout = {
