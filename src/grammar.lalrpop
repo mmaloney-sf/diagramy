@@ -162,6 +162,7 @@ PortPropertyList: Vec<PortProperty> = {
 PortPropertyItem: PortProperty = {
     "title" ":" <s:String> => PortProperty::Title(s),
     "side" ":" <side:Ident> => PortProperty::Side(side),
+    "style" ":" <style:Ident> => PortProperty::Style(style),
 };
 
 Arrow: Arrow = {

@@ -90,6 +90,7 @@ pub struct Port {
 pub enum PortProperty {
     Title(String),
     Side(String),  // left, right, top, bottom
+    Style(String), // tieoff, etc.
 }
 
 #[derive(Debug, Clone)]

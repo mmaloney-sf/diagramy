@@ -70,30 +70,37 @@ diagram {
 
     port pinstrapsSource {
         title: "pinstraps WGPort, secure tieoffs"
+        style: tieoff
     }
 
     port oscSource {
         title: "OSC"
+        style: tieoff
     }
 
     port entropySink {
          // no title: attribute is required
+        style: tieoff
     }
 
     port cdcSink {
         title: "CDC Sink"
+        style: tieoff
     }
 
     port traceClockSource {
         title: "Trace Clock Source"
+        style: tieoff
     }
 
     port atbPibSink {
         title: "ATB PIB Sink"
+        style: tieoff
     }
 
     port debugSink2 {
         title: "Debug Sink 2"
+        style: tieoff
     }
 
     arrow {

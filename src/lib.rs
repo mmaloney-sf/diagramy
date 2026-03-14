@@ -408,8 +408,11 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
     // Build port connections map (which ports connect to which)
     let port_connections = build_port_connections(&doc.diagram.arrows, &port_map);
 
+    // Build port tieoff map (which ports have style: tieoff)
+    let port_tieoff_map = build_port_tieoff_map(doc);
+
     // Render arrows
-    svg_doc = render_arrows(&doc.diagram.arrows, &port_map, svg_doc, font_size);
+    svg_doc = render_arrows(&doc.diagram.arrows, &port_map, &port_tieoff_map, svg_doc, font_size);
 
     // Render ports
     svg_doc = render_ports(&doc.diagram.ports, &doc.diagram.boxes, &port_map, &port_connections, svg_doc, &mut text_elements, font_size);
@@ -636,6 +639,44 @@ fn render_box_with_layout(
     doc
 }
 
+// Build a map of which ports have style: tieoff
+// Returns HashMap<port_id, bool>
+fn build_port_tieoff_map(doc: &Document) -> HashMap<String, bool> {
+    let mut tieoff_map = HashMap::new();
+
+    // Process top-level ports
+    for port in &doc.diagram.ports {
+        if let Some(ref id) = port.id {
+            let is_tieoff = port.properties.iter()
+                .any(|p| matches!(p, PortProperty::Style(s) if s == "tieoff"));
+            tieoff_map.insert(id.clone(), is_tieoff);
+        }
+    }
+
+    // Process ports inside boxes
+    for box_item in &doc.diagram.boxes {
+        collect_box_port_tieoffs(box_item, &mut tieoff_map);
+    }
+
+    tieoff_map
+}
+
+// Recursively collect port tieoff status from boxes
+fn collect_box_port_tieoffs(box_item: &Box, tieoff_map: &mut HashMap<String, bool>) {
+    for port in &box_item.ports {
+        if let Some(ref id) = port.id {
+            let is_tieoff = port.properties.iter()
+                .any(|p| matches!(p, PortProperty::Style(s) if s == "tieoff"));
+            tieoff_map.insert(id.clone(), is_tieoff);
+        }
+    }
+
+    // Recurse into children
+    for child in &box_item.children {
+        collect_box_port_tieoffs(child, tieoff_map);
+    }
+}
+
 // Build a map of port connections from arrows
 // Returns HashMap<port_id, Vec<(connected_port_id, direction)>>
 // Direction is (dx, dy) indicating the direction TO the connected port
@@ -818,39 +859,47 @@ fn render_single_port(
     text_elements: &mut Vec<Text>,
     font_size: i32,
 ) -> SvgDocument {
+    // Check if this port has style: tieoff
+    let is_tieoff = port.properties.iter()
+        .any(|p| matches!(p, PortProperty::Style(s) if s == "tieoff"));
+
     // Scale port circle with font size (base size for font_size=18)
     let scale = font_size as f64 / 18.0;
     let radius = (8.0 * scale) as i32;
     let stroke_width = (2.0 * scale) as i32;
 
-    // Draw circle
-    let circle = Circle::new()
-        .set("cx", x)
-        .set("cy", y)
-        .set("r", radius)
-        .set("fill", "white")
-        .set("stroke", "#333")
-        .set("stroke-width", stroke_width);
-    doc = doc.add(circle);
+    // Only draw circle with X if style is tieoff
+    if is_tieoff {
 
-    // Draw X through it
-    let line1 = Line::new()
-        .set("x1", x - radius / 2)
-        .set("y1", y - radius / 2)
-        .set("x2", x + radius / 2)
-        .set("y2", y + radius / 2)
-        .set("stroke", "#333")
-        .set("stroke-width", stroke_width);
-    doc = doc.add(line1);
+        // Draw circle
+        let circle = Circle::new()
+            .set("cx", x)
+            .set("cy", y)
+            .set("r", radius)
+            .set("fill", "white")
+            .set("stroke", "#333")
+            .set("stroke-width", stroke_width);
+        doc = doc.add(circle);
 
-    let line2 = Line::new()
-        .set("x1", x - radius / 2)
-        .set("y1", y + radius / 2)
-        .set("x2", x + radius / 2)
-        .set("y2", y - radius / 2)
-        .set("stroke", "#333")
-        .set("stroke-width", stroke_width);
-    doc = doc.add(line2);
+        // Draw X through it
+        let line1 = Line::new()
+            .set("x1", x - radius / 2)
+            .set("y1", y - radius / 2)
+            .set("x2", x + radius / 2)
+            .set("y2", y + radius / 2)
+            .set("stroke", "#333")
+            .set("stroke-width", stroke_width);
+        doc = doc.add(line1);
+
+        let line2 = Line::new()
+            .set("x1", x - radius / 2)
+            .set("y1", y + radius / 2)
+            .set("x2", x + radius / 2)
+            .set("y2", y - radius / 2)
+            .set("stroke", "#333")
+            .set("stroke-width", stroke_width);
+        doc = doc.add(line2);
+    }
 
     // Add label if present
     if let Some(title) = port.properties.iter()
@@ -931,6 +980,7 @@ fn calculate_label_position(
 fn render_arrows(
     arrows: &[Arrow],
     port_map: &HashMap<String, (i32, i32)>,
+    port_tieoff_map: &HashMap<String, bool>,
     mut doc: SvgDocument,
     font_size: i32,
 ) -> SvgDocument {
@@ -940,8 +990,11 @@ fn render_arrows(
 
     for arrow in arrows {
         if let (Some(&(x1, y1)), Some(&(x2, y2))) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
-            // Create orthogonal path, shortened to avoid overlapping with port circle
-            let path_data = create_orthogonal_path(x1, y1, x2, y2, font_size);
+            // Check if destination port has tieoff style (has x-circle)
+            let dest_has_tieoff = port_tieoff_map.get(&arrow.to).copied().unwrap_or(false);
+
+            // Create orthogonal path, only shortened if destination has tieoff style
+            let path_data = create_orthogonal_path(x1, y1, x2, y2, font_size, dest_has_tieoff);
 
             let path = Path::new()
                 .set("d", path_data)
@@ -958,26 +1011,32 @@ fn render_arrows(
 
 // Create an orthogonal path from (x1, y1) to (x2, y2)
 // The path goes horizontally first, then vertically, then horizontally again
-// The path is shortened at the end to avoid overlapping with the port circle
-fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32, font_size: i32) -> Data {
+// The path is shortened at the end only if dest_has_tieoff is true (to avoid overlapping with x-circle)
+fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32, font_size: i32, dest_has_tieoff: bool) -> Data {
     let mut data = Data::new().move_to((x1, y1));
-
-    // Calculate how much to shorten the arrow (port radius + small gap)
-    let scale = font_size as f64 / 18.0;
-    let port_radius = (8.0 * scale) as i32;
-    let gap = (3.0 * scale) as i32;
-    let shorten = port_radius + gap;
 
     // Calculate midpoint for the vertical segment
     let mid_x = (x1 + x2) / 2;
 
-    // Determine the direction of the final segment to shorten appropriately
-    let dx = x2 - mid_x;
-    let shortened_x2 = if dx > 0 {
-        x2 - shorten
-    } else if dx < 0 {
-        x2 + shorten
+    // Calculate final x position (shortened only if destination has tieoff style)
+    let final_x2 = if dest_has_tieoff {
+        // Calculate how much to shorten the arrow (port radius + small gap)
+        let scale = font_size as f64 / 18.0;
+        let port_radius = (8.0 * scale) as i32;
+        let gap = (3.0 * scale) as i32;
+        let shorten = port_radius + gap;
+
+        // Determine the direction of the final segment to shorten appropriately
+        let dx = x2 - mid_x;
+        if dx > 0 {
+            x2 - shorten
+        } else if dx < 0 {
+            x2 + shorten
+        } else {
+            x2
+        }
     } else {
+        // Don't shorten - go all the way to the destination
         x2
     };
 
@@ -987,8 +1046,8 @@ fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32, font_size: i32) ->
     // Go vertically to destination y
     data = data.line_to((mid_x, y2));
 
-    // Go horizontally to destination (shortened)
-    data = data.line_to((shortened_x2, y2));
+    // Go horizontally to destination (shortened only if tieoff)
+    data = data.line_to((final_x2, y2));
 
     data
 }
