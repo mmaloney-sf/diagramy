@@ -1,0 +1,21 @@
+version = 0.1.0
+
+// Example: UnrecognizedToken error
+// This file has an invalid property name "invalid_property"
+diagram {
+    box test {
+        title: "Test"
+        color: blue
+        invalid_property: 123
+    }
+}
+
+layout {
+    size: (400, 300)
+    
+    test {
+        pos: (50, 50)
+        size: (100, 100)
+    }
+}
+

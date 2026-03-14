@@ -1,0 +1,20 @@
+version = 0.1.0
+
+// Example: Missing colon in property
+// This file is missing a colon after "title"
+diagram {
+    box test {
+        title "Test"
+        color: blue
+    }
+}
+
+layout {
+    size: (400, 300)
+    
+    test {
+        pos: (50, 50)
+        size: (100, 100)
+    }
+}
+
