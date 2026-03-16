@@ -62,6 +62,60 @@ DiagramPropertyItem: DiagramProperty = {
     "color" ":" <c:Ident> => DiagramProperty::Color(c),
 };
 
+Box: Box = {
+    "box" <id:Ident?> "{" <props:PropertyList> <items:BoxChild*> "}" => {
+        let mut children = Vec::new();
+        let mut ports = Vec::new();
+
+        for item in items {
+            match item {
+                BoxChild::B(b) => children.push(b),
+                BoxChild::P(p) => ports.push(p),
+            }
+        }
+
+        Box { id, properties: props, children, ports }
+    },
+};
+
+BoxChild: BoxChild = {
+    <b:Box> => BoxChild::B(b),
+    <p:Port> => BoxChild::P(p),
+};
+
+PropertyList: Vec<Property> = {
+    <props:PropertyItem*> => props.into_iter().flatten().collect(),
+};
+
+PropertyItem: Vec<Property> = {
+    "title" ":" <s:String> "vertical" => vec![Property::Title(s), Property::Vertical],
+    "title" ":" <s:String> => vec![Property::Title(s)],
+    "color" ":" <c:Ident> => vec![Property::Color(c)],
+    "stacked" ":" <n:Num> => vec![Property::Stacked(n)],
+};
+
+Port: Port = {
+    "port" <id:Ident?> "{" <props:PortPropertyList> "}" => {
+        Port { id, properties: props }
+    },
+};
+
+PortPropertyList: Vec<PortProperty> = {
+    <props:PortPropertyItem*> => props,
+};
+
+PortPropertyItem: PortProperty = {
+    "title" ":" <s:String> => PortProperty::Title(s),
+    "side" ":" <side:Ident> => PortProperty::Side(side),
+    "style" ":" <style:Ident> => PortProperty::Style(style),
+};
+
+Arrow: Arrow = {
+    "arrow" "{" "from" ":" <from:Ident> "to" ":" <to:Ident> "}" => {
+        Arrow { from, to }
+    },
+};
+
 LayoutBlock: Layout = {
     "layout" "{" <entries:LayoutEntry*> "}" => {
         let mut canvas_size = None;
@@ -101,39 +155,6 @@ LayoutProperty: LayoutProperty = {
     "interp" ":" <n:Num> "%" => LayoutProperty::Interp(n),
 };
 
-Box: Box = {
-    "box" <id:Ident?> "{" <props:PropertyList> <items:BoxChild*> "}" => {
-        let mut children = Vec::new();
-        let mut ports = Vec::new();
-
-        for item in items {
-            match item {
-                BoxChild::B(b) => children.push(b),
-                BoxChild::P(p) => ports.push(p),
-            }
-        }
-
-        Box { id, properties: props, children, ports }
-    },
-};
-
-BoxChild: BoxChild = {
-    <b:Box> => BoxChild::B(b),
-    <p:Port> => BoxChild::P(p),
-};
-
-// PropertyList handles flattening of properties (including vertical titles)
-PropertyList: Vec<Property> = {
-    <props:PropertyItem*> => props.into_iter().flatten().collect(),
-};
-
-PropertyItem: Vec<Property> = {
-    "title" ":" <s:String> "vertical" => vec![Property::Title(s), Property::Vertical],
-    "title" ":" <s:String> => vec![Property::Title(s)],
-    "color" ":" <c:Ident> => vec![Property::Color(c)],
-    "stacked" ":" <n:Num> => vec![Property::Stacked(n)],
-};
-
 String: String = {
     r#""[^"]*""# => {
         let s = <>;
@@ -147,26 +168,4 @@ Ident: String = {
 
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap(),
-};
-
-Port: Port = {
-    "port" <id:Ident?> "{" <props:PortPropertyList> "}" => {
-        Port { id, properties: props }
-    },
-};
-
-PortPropertyList: Vec<PortProperty> = {
-    <props:PortPropertyItem*> => props,
-};
-
-PortPropertyItem: PortProperty = {
-    "title" ":" <s:String> => PortProperty::Title(s),
-    "side" ":" <side:Ident> => PortProperty::Side(side),
-    "style" ":" <style:Ident> => PortProperty::Style(style),
-};
-
-Arrow: Arrow = {
-    "arrow" "{" "from" ":" <from:Ident> "to" ":" <to:Ident> "}" => {
-        Arrow { from, to }
-    },
 };
