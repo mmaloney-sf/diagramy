@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, DiagramProperty, DiagramItem, Box, Property, Layout, LayoutEntry, LayoutItem, LayoutProperty, Port, PortProperty, Arrow, BoxChild};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords};
 
 grammar;
 
@@ -16,10 +16,10 @@ match {
 }
 
 pub Document: Document = {
-    <v:Version> <d:DiagramBlock> <l:LayoutBlock> => {
+    <v:Version> <d:Diagram> <defs:BoxDef*> => {
         // Assert version is 0.1.0
         assert_eq!(v, "0.1.0", "Unsupported version: {}. Expected version 0.1.0", v);
-        Document { diagram: d, layout: l }
+        Document { version: v, diagram: d, box_defs: defs }
     },
 };
 
@@ -31,128 +31,46 @@ VersionNumber: String = {
     r"[0-9]+\.[0-9]+\.[0-9]+" => <>.to_string(),
 };
 
-DiagramBlock: Diagram = {
-    "diagram" "{" <items:DiagramItem*> "}" => {
-        let mut color = None;
-        let mut box_list = Vec::new();
-        let mut port_list = Vec::new();
-        let mut arrow_list = Vec::new();
+Diagram: Diagram = {
+    "diagram" "{" <props:Prop*> "}" => Diagram { props },
+};
 
-        for item in items {
-            match item {
-                DiagramItem::Prop(DiagramProperty::Color(c)) => color = Some(c),
-                DiagramItem::B(b) => box_list.push(b),
-                DiagramItem::P(p) => port_list.push(p),
-                DiagramItem::A(a) => arrow_list.push(a),
-            }
-        }
+BoxDef: BoxDef = {
+    "box" <name:Ident> <body:BoxBody> => BoxDef { name, body },
+};
 
-        Diagram { color, boxes: box_list, ports: port_list, arrows: arrow_list }
+BoxBody: BoxBody = {
+    "{" <items:BoxItem*> "}" => BoxBody { items },
+};
+
+BoxItem: BoxItem = {
+    <inst:BoxInst> => BoxItem::BoxInst(inst),
+    <prop:Prop> => BoxItem::Prop(prop),
+    <port:Port> => BoxItem::Port(port),
+};
+
+BoxInst: BoxInst = {
+    "box" <id:Ident?> "at" <coords:Coords> <body:BoxBody> => {
+        BoxInst::WithBody { id, coords, body }
+    },
+    "box" <id:Ident> "at" <coords:Coords> <def_name:Ident> => {
+        BoxInst::Reference { id, coords, def_name }
     },
 };
 
-DiagramItem: DiagramItem = {
-    <prop:DiagramPropertyItem> => DiagramItem::Prop(prop),
-    <b:Box> => DiagramItem::B(b),
-    <p:Port> => DiagramItem::P(p),
-    <a:Arrow> => DiagramItem::A(a),
-};
-
-DiagramPropertyItem: DiagramProperty = {
-    "color" ":" <c:Ident> => DiagramProperty::Color(c),
-};
-
-Box: Box = {
-    "box" <id:Ident?> "{" <props:PropertyList> <items:BoxChild*> "}" => {
-        let mut children = Vec::new();
-        let mut ports = Vec::new();
-
-        for item in items {
-            match item {
-                BoxChild::B(b) => children.push(b),
-                BoxChild::P(p) => ports.push(p),
-            }
-        }
-
-        Box { id, properties: props, children, ports }
-    },
-};
-
-BoxChild: BoxChild = {
-    <b:Box> => BoxChild::B(b),
-    <p:Port> => BoxChild::P(p),
-};
-
-PropertyList: Vec<Property> = {
-    <props:PropertyItem*> => props.into_iter().flatten().collect(),
-};
-
-PropertyItem: Vec<Property> = {
-    "title" ":" <s:String> "vertical" => vec![Property::Title(s), Property::Vertical],
-    "title" ":" <s:String> => vec![Property::Title(s)],
-    "color" ":" <c:Ident> => vec![Property::Color(c)],
-    "stacked" ":" <n:Num> => vec![Property::Stacked(n)],
+Prop: Prop = {
+    <key:Ident> ":" <value:Ident> => Prop::PropIdent { key, value },
+    <key:Ident> ":" <value:String> => Prop::PropString { key, value },
+    <key:Ident> ":" <value:Num> => Prop::PropNumber { key, value },
+    <key:Ident> ":" <value:Coords> => Prop::PropCoords { key, value },
 };
 
 Port: Port = {
-    "port" <id:Ident?> "{" <props:PortPropertyList> "}" => {
-        Port { id, properties: props }
-    },
+    "port" <name:Ident> => Port { name },
 };
 
-PortPropertyList: Vec<PortProperty> = {
-    <props:PortPropertyItem*> => props,
-};
-
-PortPropertyItem: PortProperty = {
-    "title" ":" <s:String> => PortProperty::Title(s),
-    "side" ":" <side:Ident> => PortProperty::Side(side),
-    "style" ":" <style:Ident> => PortProperty::Style(style),
-};
-
-Arrow: Arrow = {
-    "arrow" "{" "from" ":" <from:Ident> "to" ":" <to:Ident> "}" => {
-        Arrow { from, to }
-    },
-};
-
-LayoutBlock: Layout = {
-    "layout" "{" <entries:LayoutEntry*> "}" => {
-        let mut canvas_size = None;
-        let mut scale = None;
-        let mut fontsize = None;
-        let mut items = Vec::new();
-
-        for entry in entries {
-            match entry {
-                LayoutEntry::CanvasSize(w, h) => canvas_size = Some((w, h)),
-                LayoutEntry::Scale(s) => scale = Some(s),
-                LayoutEntry::FontSize(f) => fontsize = Some(f),
-                LayoutEntry::BoxLayout(item) => items.push(item),
-            }
-        }
-
-        Layout { canvas_size, scale, fontsize, items }
-    },
-};
-
-LayoutEntry: LayoutEntry = {
-    "size" ":" "(" <w:Num> "," <h:Num> ")" => LayoutEntry::CanvasSize(w, h),
-    "scale" ":" <n:Num> "%" => LayoutEntry::Scale((n as f64) / 100.0),
-    "fontsize" ":" <n:Num> => LayoutEntry::FontSize(n),
-    <item:LayoutItem> => LayoutEntry::BoxLayout(item),
-};
-
-LayoutItem: LayoutItem = {
-    <name:Ident> "{" <props:LayoutProperty*> "}" => {
-        LayoutItem { name, properties: props }
-    },
-};
-
-LayoutProperty: LayoutProperty = {
-    "pos" ":" "(" <x:Num> "," <y:Num> ")" => LayoutProperty::Pos(x, y),
-    "size" ":" "(" <w:Num> "," <h:Num> ")" => LayoutProperty::Size(w, h),
-    "interp" ":" <n:Num> "%" => LayoutProperty::Interp(n),
+Coords: Coords = {
+    "(" <x:Num> "," <y:Num> ")" => Coords { x, y },
 };
 
 String: String = {

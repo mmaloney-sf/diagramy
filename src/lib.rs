@@ -1,15 +1,20 @@
 // Include the generated parser module
 #[macro_use] extern crate lalrpop_util;
 
+/* TODO: Rendering code needs to be updated for new AST
 use svg::Document as SvgDocument;
 use svg::node::element::{Text, Rectangle, Circle, Line, Path};
 use svg::node::element::path::Data;
 use std::collections::HashMap;
+*/
 
 pub mod ast;
-use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
+// TODO: Update imports for new AST
+// use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
+
+/* TODO: All rendering code below needs to be updated for new AST
 
 // Scale factor for border radius and padding relative to font size
 // border_radius = BORDER_RADIUS_SCALE * (font_size / 18.0)
@@ -1060,3 +1065,5 @@ fn create_orthogonal_path(x1: i32, y1: i32, x2: i32, y2: i32, font_size: i32, de
 
     data
 }
+
+*/ // End of TODO: All rendering code needs to be updated for new AST

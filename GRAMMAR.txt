@@ -26,8 +26,8 @@
         | Port
 
     BoxInst :=
-          "box" Ident? "at" Coord BoxBody
-        | "box" Ident "at" Coord Ident
+          "box" Ident? "at" Coords BoxBody
+        | "box" Ident "at" Coords Ident
 
     Prop :=
           PropIdent
@@ -35,10 +35,10 @@
         | PropNumber
         | PropCoords
 
-    PropIdent  := String ":" Ident
-    PropString := String ":" String
-    PropNumber := String ":" Num
-    PropCoords := String ":" Coord
+    PropIdent  := Ident ":" Ident
+    PropString := Ident ":" String
+    PropNumber := Ident ":" Num
+    PropCoords := Ident ":" Coords
 
     Port :=
         "port" Ident
@@ -53,7 +53,8 @@
     VersionNumber := [0-9]+ "." [0-9]+ "." [0-9]+
 
 
-    Coord := "(" Num "," Num ")"
+    Coords := "(" Num "," Num ")"
+
 
 ////////////////////////////////////////
 // Tokens
