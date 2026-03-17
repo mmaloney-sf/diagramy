@@ -50,10 +50,12 @@ BoxItem: BoxItem = {
 };
 
 BoxInst: BoxInst = {
-    "box" <id:Ident?> "at" <coords:Coords> <dim:Dimensions?> <body:BoxBody> => {
+    "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <body:BoxBody> => {
+        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1 });
         BoxInst::WithBody { id, coords, dim, body }
     },
-    "box" <id:Ident?> "at" <coords:Coords> <dim:Dimensions?> <l:@L> <def_name:Ident> <r:@R> => {
+    "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <l:@L> <def_name:Ident> <r:@R> => {
+        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1 });
         BoxInst::Reference { id, coords, dim, def_name, location: (l, r) }
     },
 };

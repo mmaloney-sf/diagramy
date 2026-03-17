@@ -26,8 +26,8 @@
         | Port
 
     BoxInst :=
-          "box" Ident? "at" Coords Dim? BoxBody
-        | "box" Ident? "at" Coords Dim? Ident
+          "box" Ident? "at" Coords ("dim" Dim)? BoxBody
+        | "box" Ident? "at" Coords ("dim" Dim)? Ident
 
     Prop :=
           PropIdent
