@@ -252,24 +252,68 @@ fn render_box_title(
         // Split title by newlines
         let lines: Vec<&str> = title.split('\n').collect();
 
+        // Calculate padding based on box size (matches border radius calculation)
+        let min_dimension = width.min(height) as f64;
+        let padding = (min_dimension / 20.0).max(2.0).min(15.0) as usize;
+
+        // Calculate available space for text
+        let available_width = if diagram_box.has_children {
+            // For boxes with children, text is left-aligned with padding on both sides
+            width.saturating_sub(2 * padding)
+        } else {
+            // For boxes without children, text is centered but still needs padding
+            width.saturating_sub(2 * padding)
+        };
+        let available_height = height.saturating_sub(2 * padding);
+
+        // Estimate text dimensions and calculate scaling factor
+        // Average character width is approximately 0.6 * font_size for Arial
+        const CHAR_WIDTH_RATIO: f64 = 0.6;
+
+        // Find the widest line
+        let max_line_chars = lines.iter()
+            .map(|line| line.chars().count())
+            .max()
+            .unwrap_or(0);
+
+        // Calculate required width for the widest line
+        let estimated_text_width = (max_line_chars as f64 * scaled_font_size as f64 * CHAR_WIDTH_RATIO) as usize;
+
+        // Calculate required height for all lines
+        let estimated_text_height = lines.len() * scaled_font_size;
+
+        // Calculate scaling factors needed to fit within available space
+        let width_scale = if estimated_text_width > available_width && estimated_text_width > 0 {
+            available_width as f64 / estimated_text_width as f64
+        } else {
+            1.0
+        };
+
+        let height_scale = if estimated_text_height > available_height && estimated_text_height > 0 {
+            available_height as f64 / estimated_text_height as f64
+        } else {
+            1.0
+        };
+
+        // Use the smaller of the two scaling factors to ensure text fits in both dimensions
+        let final_scale = width_scale.min(height_scale);
+        let final_font_size = (scaled_font_size as f64 * final_scale).max(1.0) as usize;
+
         // Position the text based on whether the box has children
         if diagram_box.has_children {
             // Box has children: position title in upper left
-            // Calculate padding based on box size (matches border radius calculation)
-            let min_dimension = width.min(height) as f64;
-            let padding = (min_dimension / 20.0).max(2.0).min(15.0) as usize;
             let start_x = x + padding;
-            let start_y = y + scaled_font_size + padding;
+            let start_y = y + final_font_size + padding;
 
             // Render each line separately
             for (i, line) in lines.iter().enumerate() {
-                let line_y = start_y + (i * scaled_font_size);
+                let line_y = start_y + (i * final_font_size);
                 let text = Text::new(*line)
                     .set("x", start_x)
                     .set("y", line_y)
                     .set("text-anchor", "start")
                     .set("dominant-baseline", "auto")
-                    .set("font-size", scaled_font_size)
+                    .set("font-size", final_font_size)
                     .set("font-family", "Arial, sans-serif")
                     .set("fill", text_color.clone());
                 svg_doc = svg_doc.add(text);
@@ -280,18 +324,18 @@ fn render_box_title(
             let center_y = y + height / 2;
 
             // Calculate total height of all lines
-            let total_height = lines.len() * scaled_font_size;
-            let start_y = center_y - (total_height / 2) + scaled_font_size;
+            let total_height = lines.len() * final_font_size;
+            let start_y = center_y - (total_height / 2) + final_font_size;
 
             // Render each line centered
             for (i, line) in lines.iter().enumerate() {
-                let line_y = start_y + (i * scaled_font_size);
+                let line_y = start_y + (i * final_font_size);
                 let text = Text::new(*line)
                     .set("x", center_x)
                     .set("y", line_y)
                     .set("text-anchor", "middle")
                     .set("dominant-baseline", "auto")
-                    .set("font-size", scaled_font_size)
+                    .set("font-size", final_font_size)
                     .set("font-family", "Arial, sans-serif")
                     .set("fill", text_color.clone());
                 svg_doc = svg_doc.add(text);
