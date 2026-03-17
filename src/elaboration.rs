@@ -16,6 +16,7 @@ pub struct BoxDef {
     pub title: Option<String>,
     pub color: Option<String>,
     pub margin: Option<f64>,
+    pub border_style: Option<String>,
     pub boxes: Vec<Box>,
 }
 
@@ -119,6 +120,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     let mut title: Option<String> = None;
     let mut color: Option<String> = None;
     let mut margin: Option<f64> = None;
+    let mut border_style: Option<String> = None;
     let mut boxes: Vec<Box> = Vec::new();
 
     // First pass: extract properties
@@ -133,6 +135,9 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                 }
                 ast::Prop::PropIdent { key, value } if key == "color" => {
                     color = Some(value.clone());
+                }
+                ast::Prop::PropIdent { key, value } if key == "borderStyle" => {
+                    border_style = Some(value.clone());
                 }
                 ast::Prop::PropFrac { key, value } if key == "margin" => {
                     margin = Some(*value);
@@ -181,6 +186,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
         title,
         color,
         margin,
+        border_style,
         boxes,
     })
 }

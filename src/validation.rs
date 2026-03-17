@@ -14,7 +14,10 @@ const VALID_COLORS: &[&str] = &[
 const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top"];
 
 // Valid box-level properties
-const VALID_BOX_PROPS: &[&str] = &["grid", "title", "color", "text", "margin"];
+const VALID_BOX_PROPS: &[&str] = &["grid", "title", "color", "text", "margin", "borderStyle"];
+
+// Valid border styles
+const VALID_BORDER_STYLES: &[&str] = &["solid", "none", "dotted", "dashed"];
 
 /// Validate the entire document
 pub fn validate(doc: &Document, _source: &str, filename: &str) -> Result<(), String> {
@@ -168,6 +171,20 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
                     filename,
                     margin_value
                 ));
+            }
+        }
+        "borderStyle" => {
+            if let Prop::PropIdent { value, .. } = prop {
+                if !VALID_BORDER_STYLES.contains(&value.as_str()) {
+                    return Err(format!(
+                        "{}: Unknown borderStyle: '{}'. Valid styles are: {}",
+                        filename,
+                        value,
+                        VALID_BORDER_STYLES.join(", ")
+                    ));
+                }
+            } else {
+                return Err(format!("{}: Property 'borderStyle' must be an identifier, got {:?}", filename, prop));
             }
         }
         _ => {}

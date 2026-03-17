@@ -35,6 +35,8 @@ pub struct DiagramBox {
     pub font_scale: f64,
     /// Whether this box has child boxes
     pub has_children: bool,
+    /// Border style: solid, none, dotted, or dashed
+    pub border_style: Option<String>,
 }
 
 /// RGB color representation
@@ -209,17 +211,46 @@ fn render_box_rectangle(
     // Use the smaller dimension and scale it down
     let border_radius = (min_dimension / 20.0).max(2.0).min(15.0);
 
-    // Create rounded rectangle
-    let rect = Rectangle::new()
+    // Determine border style (default is "solid")
+    let border_style = diagram_box.border_style.as_deref().unwrap_or("solid");
+
+    // Create rounded rectangle with appropriate border styling
+    let mut rect = Rectangle::new()
         .set("x", x)
         .set("y", y)
         .set("width", width)
         .set("height", height)
         .set("rx", border_radius)
         .set("ry", border_radius)
-        .set("fill", fill_color)
-        .set("stroke", "#333")
-        .set("stroke-width", stroke_width);
+        .set("fill", fill_color);
+
+    // Apply border style
+    match border_style {
+        "none" => {
+            // Transparent border (no stroke)
+            rect = rect.set("stroke", "transparent").set("stroke-width", 0);
+        }
+        "dotted" => {
+            // Dotted border
+            rect = rect
+                .set("stroke", "#333")
+                .set("stroke-width", stroke_width)
+                .set("stroke-dasharray", format!("{},{}", stroke_width * 2.0, stroke_width * 2.0));
+        }
+        "dashed" => {
+            // Dashed border
+            rect = rect
+                .set("stroke", "#333")
+                .set("stroke-width", stroke_width)
+                .set("stroke-dasharray", format!("{},{}", stroke_width * 6.0, stroke_width * 3.0));
+        }
+        _ => {
+            // Default: solid border
+            rect = rect
+                .set("stroke", "#333")
+                .set("stroke-width", stroke_width);
+        }
+    }
 
     svg_doc = svg_doc.add(rect);
     Ok(svg_doc)
@@ -405,6 +436,7 @@ fn flatten_boxes(
             color: box_def.color.clone(),
             font_scale,
             has_children: !box_def.boxes.is_empty(),
+            border_style: box_def.border_style.clone(),
         });
     }
 
