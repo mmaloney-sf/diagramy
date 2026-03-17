@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords, Dimensions};
 
 grammar;
 
@@ -53,7 +53,7 @@ BoxInst: BoxInst = {
     "box" <id:Ident?> "at" <coords:Coords> <body:BoxBody> => {
         BoxInst::WithBody { id, coords, body }
     },
-    "box" <id:Ident> "at" <coords:Coords> <l:@L> <def_name:Ident> <r:@R> => {
+    "box" <id:Ident?> "at" <coords:Coords> <l:@L> <def_name:Ident> <r:@R> => {
         BoxInst::Reference { id, coords, def_name, location: (l, r) }
     },
 };
@@ -64,6 +64,7 @@ Prop: Prop = {
     <key:Ident> ":" <value:Frac> => Prop::PropFrac { key, value },
     <key:Ident> ":" <value:Num> => Prop::PropNumber { key, value },
     <key:Ident> ":" <value:Coords> => Prop::PropCoords { key, value },
+    <key:Ident> ":" <value:Dimensions> => Prop::PropDim { key, value },
 };
 
 Port: Port = {
@@ -92,4 +93,14 @@ Num: i32 = {
 Frac: f64 = {
     r"-[0-9]+(\.[0-9]+)?" => f64::from_str(<>).unwrap(),
     r"[0-9]+\.[0-9]+" => f64::from_str(<>).unwrap(),
+};
+
+Dimensions: Dimensions = {
+    r"[0-9]+x[0-9]+" => {
+        let s = <>;
+        let parts: Vec<&str> = s.split('x').collect();
+        let height = i32::from_str(parts[0]).unwrap();
+        let width = i32::from_str(parts[1]).unwrap();
+        Dimensions { height, width }
+    },
 };

@@ -38,7 +38,7 @@ pub enum BoxInst {
         body: BoxBody,
     },
     Reference {
-        id: String,
+        id: Option<String>,
         coords: Coords,
         def_name: String,
         location: (usize, usize), // (line, column)
@@ -52,6 +52,7 @@ pub enum Prop {
     PropNumber { key: String, value: i32 },
     PropFrac { key: String, value: f64 },
     PropCoords { key: String, value: Coords },
+    PropDim { key: String, value: Dimensions },
 }
 
 #[derive(Debug, Clone)]
@@ -63,4 +64,10 @@ pub struct Port {
 pub struct Coords {
     pub row: i32,
     pub col: i32,
+}
+
+#[derive(Debug, Clone)]
+pub struct Dimensions {
+    pub height: i32,
+    pub width: i32,
 }

@@ -27,7 +27,7 @@
 
     BoxInst :=
           "box" Ident? "at" Coords BoxBody
-        | "box" Ident "at" Coords Ident
+        | "box" Ident? "at" Coords Ident
 
     Prop :=
           PropIdent
@@ -35,12 +35,14 @@
         | PropNumber
         | PropFrac
         | PropCoords
+        | PropDim
 
     PropIdent  := Ident ":" Ident
     PropString := Ident ":" String+
     PropNumber := Ident ":" Num
     PropFrac   := Ident ":" Frac
     PropCoords := Ident ":" Coords
+    PropDim    := Ident ":" Dim
 
     Port :=
         "port" Ident
@@ -63,3 +65,4 @@
     String := '"' [^"]* '"'
     Num := [0-9]+
     Frac := "-"? [0-9]+ ("." [0-9]+)?
+    Dimensions := [0-9]+x[0-9]+

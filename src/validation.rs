@@ -38,6 +38,7 @@ fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
             Prop::PropNumber { key, .. } => key,
             Prop::PropFrac { key, .. } => key,
             Prop::PropCoords { key, .. } => key,
+            Prop::PropDim { key, .. } => key,
         };
 
         // Check if property is known
@@ -120,6 +121,7 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
         Prop::PropNumber { key, .. } => key,
         Prop::PropFrac { key, .. } => key,
         Prop::PropCoords { key, .. } => key,
+        Prop::PropDim { key, .. } => key,
     };
 
     // Check if property is known
@@ -241,7 +243,7 @@ fn validate_unique_box_names(body: &BoxBody) -> Result<(), String> {
         if let BoxItem::BoxInst(box_inst) = item {
             let id = match box_inst {
                 crate::ast::BoxInst::WithBody { id, .. } => id.as_ref(),
-                crate::ast::BoxInst::Reference { id, .. } => Some(id),
+                crate::ast::BoxInst::Reference { id, .. } => id.as_ref(),
             };
 
             // Only check named boxes
