@@ -154,7 +154,7 @@ fn main() {
     let parser = grammar::DocumentParser::new();
 
     // Parse the file
-    match parser.parse(&input) {
+    match parser.parse(&input, &input) {
         Ok(doc) => {
             // For --parse, just print the AST without validation
             if args.parse {

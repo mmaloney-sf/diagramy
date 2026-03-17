@@ -37,16 +37,16 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
 
     for prop in &doc.diagram.props {
         match prop {
-            ast::Prop::PropIdent { key, value } if key == "color" => {
+            ast::Prop::PropIdent { key, value, .. } if key == "color" => {
                 color = value.clone();
             }
-            ast::Prop::PropIdent { key, value } if key == "top" => {
+            ast::Prop::PropIdent { key, value, .. } if key == "top" => {
                 top_name = Some(value.clone());
             }
-            ast::Prop::PropNumber { key, value } if key == "width" => {
+            ast::Prop::PropNumber { key, value, .. } if key == "width" => {
                 width = Some(*value as usize);
             }
-            ast::Prop::PropString { key, value } if key == "title" => {
+            ast::Prop::PropString { key, value, .. } if key == "title" => {
                 title = Some(value.join("\n"));
             }
             _ => {}
@@ -95,6 +95,8 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
 }
 
 /// Convert byte offset to line and column numbers
+/// This function is deprecated - use Span::from_offsets instead
+#[allow(dead_code)]
 fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
     let mut line = 1;
     let mut col = 1;
@@ -127,19 +129,19 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::Prop(prop) = item {
             match prop {
-                ast::Prop::PropDim { key, value } if key == "grid" => {
+                ast::Prop::PropDim { key, value, .. } if key == "grid" => {
                     grid = (value.height as usize, value.width as usize);
                 }
-                ast::Prop::PropString { key, value } if key == "title" || key == "text" => {
+                ast::Prop::PropString { key, value, .. } if key == "title" || key == "text" => {
                     title = Some(value.join("\n"));
                 }
-                ast::Prop::PropIdent { key, value } if key == "color" => {
+                ast::Prop::PropIdent { key, value, .. } if key == "color" => {
                     color = Some(value.clone());
                 }
-                ast::Prop::PropIdent { key, value } if key == "borderStyle" => {
+                ast::Prop::PropIdent { key, value, .. } if key == "borderStyle" => {
                     border_style = Some(value.clone());
                 }
-                ast::Prop::PropFrac { key, value } if key == "margin" => {
+                ast::Prop::PropFrac { key, value, .. } if key == "margin" => {
                     margin = Some(*value);
                 }
                 _ => {}
@@ -151,7 +153,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
             match box_inst {
-                ast::BoxInst::WithBody { id: _, coords, dim, body } => {
+                ast::BoxInst::WithBody { id: _, coords, dim, body, .. } => {
                     // Recursively convert the nested box body
                     let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
                     boxes.push(Box {
@@ -161,7 +163,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         dim: (dim.height as usize, dim.width as usize),
                     });
                 }
-                ast::BoxInst::Reference { id: _, coords, dim, def_name, location } => {
+                ast::BoxInst::Reference { id: _, coords, dim, def_name, location: _, span } => {
                     // Look up the referenced box definition
                     if let Some(referenced_def) = box_def_map.get(def_name) {
                         let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;
@@ -173,8 +175,9 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         });
                     } else {
                         // Error: referenced box definition not found
-                        let (line, col) = offset_to_line_col(source, location.0);
-                        return Err(format!("{}:{}:{}: No such box: {}", filename, line, col, def_name));
+                        // Use span information for better error reporting
+                        let start = span.start();
+                        return Err(format!("{}:{}:{}: No such box: {}", filename, start.line(), start.col(), def_name));
                     }
                 }
             }

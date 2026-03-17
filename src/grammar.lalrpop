@@ -1,7 +1,7 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords, Dimensions};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords, Dimensions, Span};
 
-grammar;
+grammar(source: &str);
 
 // Skip whitespace and comments
 match {
@@ -16,10 +16,10 @@ match {
 }
 
 pub Document: Document = {
-    <v:Version> <d:Diagram> <defs:BoxDef*> => {
+    <ll:@L> <v:Version> <d:Diagram> <defs:BoxDef*> <rr:@R> => {
         // Assert version is 0.1.0
         assert_eq!(v, "0.1.0", "Unsupported version: {}. Expected version 0.1.0", v);
-        Document { version: v, diagram: d, box_defs: defs }
+        Document { version: v, diagram: d, box_defs: defs, span: Span::from_offsets(source, ll, rr) }
     },
 };
 
@@ -32,15 +32,15 @@ VersionNumber: String = {
 };
 
 Diagram: Diagram = {
-    "diagram" "{" <props:Prop*> "}" => Diagram { props },
+    <ll:@L> "diagram" "{" <props:Prop*> "}" <rr:@R> => Diagram { props, span: Span::from_offsets(source, ll, rr) },
 };
 
 BoxDef: BoxDef = {
-    "box" <name:Ident> <body:BoxBody> => BoxDef { name, body },
+    <ll:@L> "box" <name:Ident> <body:BoxBody> <rr:@R> => BoxDef { name, body, span: Span::from_offsets(source, ll, rr) },
 };
 
 BoxBody: BoxBody = {
-    "{" <items:BoxItem*> "}" => BoxBody { items },
+    <ll:@L> "{" <items:BoxItem*> "}" <rr:@R> => BoxBody { items, span: Span::from_offsets(source, ll, rr) },
 };
 
 BoxItem: BoxItem = {
@@ -50,31 +50,31 @@ BoxItem: BoxItem = {
 };
 
 BoxInst: BoxInst = {
-    "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <body:BoxBody> => {
-        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1 });
-        BoxInst::WithBody { id, coords, dim, body }
+    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <body:BoxBody> <rr:@R> => {
+        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
+        BoxInst::WithBody { id, coords, dim, body, span: Span::from_offsets(source, ll, rr) }
     },
-    "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <l:@L> <def_name:Ident> <r:@R> => {
-        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1 });
-        BoxInst::Reference { id, coords, dim, def_name, location: (l, r) }
+    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
+        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
+        BoxInst::Reference { id, coords, dim, def_name, location: (l, r), span: Span::from_offsets(source, ll, rr) }
     },
 };
 
 Prop: Prop = {
-    <key:Ident> ":" <value:Ident> => Prop::PropIdent { key, value },
-    <key:Ident> ":" <value:String+> => Prop::PropString { key, value },
-    <key:Ident> ":" <value:Frac> => Prop::PropFrac { key, value },
-    <key:Ident> ":" <value:Num> => Prop::PropNumber { key, value },
-    <key:Ident> ":" <value:Coords> => Prop::PropCoords { key, value },
-    <key:Ident> ":" <value:Dimensions> => Prop::PropDim { key, value },
+    <ll:@L> <key:Ident> ":" <value:Ident> <rr:@R> => Prop::PropIdent { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <value:String+> <rr:@R> => Prop::PropString { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <value:Frac> <rr:@R> => Prop::PropFrac { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <value:Num> <rr:@R> => Prop::PropNumber { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <value:Coords> <rr:@R> => Prop::PropCoords { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <value:Dimensions> <rr:@R> => Prop::PropDim { key, value, span: Span::from_offsets(source, ll, rr) },
 };
 
 Port: Port = {
-    "port" <name:Ident> => Port { name },
+    <ll:@L> "port" <name:Ident> <rr:@R> => Port { name, span: Span::from_offsets(source, ll, rr) },
 };
 
 Coords: Coords = {
-    "(" <row:Num> "," <col:Num> ")" => Coords { row, col },
+    <ll:@L> "(" <row:Num> "," <col:Num> ")" <rr:@R> => Coords { row, col, span: Span::from_offsets(source, ll, rr) },
 };
 
 String: String = {
@@ -98,11 +98,10 @@ Frac: f64 = {
 };
 
 Dimensions: Dimensions = {
-    r"[0-9]+x[0-9]+" => {
-        let s = <>;
+    <ll:@L> <s:r"[0-9]+x[0-9]+"> <rr:@R> => {
         let parts: Vec<&str> = s.split('x').collect();
         let height = i32::from_str(parts[0]).unwrap();
         let width = i32::from_str(parts[1]).unwrap();
-        Dimensions { height, width }
+        Dimensions { height, width, span: Span::from_offsets(source, ll, rr) }
     },
 };

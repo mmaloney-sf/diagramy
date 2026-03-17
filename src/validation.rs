@@ -35,6 +35,8 @@ pub fn validate(doc: &Document, _source: &str, filename: &str) -> Result<(), Str
 /// Validate diagram-level properties
 fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> {
     for prop in props {
+        let span = prop.span();
+        let start = span.start();
         let key = match prop {
             Prop::PropIdent { key, .. } => key,
             Prop::PropString { key, .. } => key,
@@ -47,8 +49,10 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
         // Check if property is known
         if !VALID_DIAGRAM_PROPS.contains(&key.as_str()) {
             return Err(format!(
-                "{}: Unknown diagram property: '{}'. Valid properties are: {}",
+                "{}:{}:{}: Unknown diagram property: '{}'. Valid properties are: {}",
                 filename,
+                start.line(),
+                start.col(),
                 key,
                 VALID_DIAGRAM_PROPS.join(", ")
             ));
@@ -58,24 +62,24 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
         match key.as_str() {
             "width" => {
                 if !matches!(prop, Prop::PropNumber { .. }) {
-                    return Err(format!("{}: Property 'width' must be a number, got {:?}", filename, prop));
+                    return Err(format!("{}:{}:{}: Property 'width' must be a number", filename, start.line(), start.col()));
                 }
             }
             "color" => {
                 if let Prop::PropIdent { value, .. } = prop {
-                    validate_color(value, filename)?;
+                    validate_color(value, filename, span)?;
                 } else {
-                    return Err(format!("{}: Property 'color' must be an identifier, got {:?}", filename, prop));
+                    return Err(format!("{}:{}:{}: Property 'color' must be an identifier", filename, start.line(), start.col()));
                 }
             }
             "title" => {
                 if !matches!(prop, Prop::PropString { .. }) {
-                    return Err(format!("{}: Property 'title' must be a string, got {:?}", filename, prop));
+                    return Err(format!("{}:{}:{}: Property 'title' must be a string", filename, start.line(), start.col()));
                 }
             }
             "top" => {
                 if !matches!(prop, Prop::PropIdent { .. }) {
-                    return Err(format!("{}: Property 'top' must be an identifier, got {:?}", filename, prop));
+                    return Err(format!("{}:{}:{}: Property 'top' must be an identifier", filename, start.line(), start.col()));
                 }
             }
             _ => {}
@@ -119,6 +123,8 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
 
 /// Validate a box-level property
 fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
+    let span = prop.span();
+    let start = span.start();
     let key = match prop {
         Prop::PropIdent { key, .. } => key,
         Prop::PropString { key, .. } => key,
@@ -131,8 +137,10 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
     // Check if property is known
     if !VALID_BOX_PROPS.contains(&key.as_str()) {
         return Err(format!(
-            "{}: Unknown box property: '{}'. Valid properties are: {}",
+            "{}:{}:{}: Unknown box property: '{}'. Valid properties are: {}",
             filename,
+            start.line(),
+            start.col(),
             key,
             VALID_BOX_PROPS.join(", ")
         ));
@@ -142,19 +150,19 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
     match key.as_str() {
         "grid" => {
             if !matches!(prop, Prop::PropDim { .. }) {
-                return Err(format!("{}: Property 'grid' must be dimensions (heightxwidth), got {:?}", filename, prop));
+                return Err(format!("{}:{}:{}: Property 'grid' must be dimensions (heightxwidth)", filename, start.line(), start.col()));
             }
         }
         "title" | "text" => {
             if !matches!(prop, Prop::PropString { .. }) {
-                return Err(format!("{}: Property '{}' must be a string, got {:?}", filename, key, prop));
+                return Err(format!("{}:{}:{}: Property '{}' must be a string", filename, start.line(), start.col(), key));
             }
         }
         "color" => {
             if let Prop::PropIdent { value, .. } = prop {
-                validate_color(value, filename)?;
+                validate_color(value, filename, span)?;
             } else {
-                return Err(format!("{}: Property 'color' must be an identifier, got {:?}", filename, prop));
+                return Err(format!("{}:{}:{}: Property 'color' must be an identifier", filename, start.line(), start.col()));
             }
         }
         "margin" => {
@@ -162,13 +170,15 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
                 Prop::PropNumber { value, .. } => *value as f64,
                 Prop::PropFrac { value, .. } => *value,
                 _ => {
-                    return Err(format!("{}: Property 'margin' must be a number, got {:?}", filename, prop));
+                    return Err(format!("{}:{}:{}: Property 'margin' must be a number", filename, start.line(), start.col()));
                 }
             };
             if margin_value < 0.0 || margin_value > 0.5 {
                 return Err(format!(
-                    "{}: Property 'margin' must be between 0.0 and 0.5, got {}",
+                    "{}:{}:{}: Property 'margin' must be between 0.0 and 0.5, got {}",
                     filename,
+                    start.line(),
+                    start.col(),
                     margin_value
                 ));
             }
@@ -177,14 +187,16 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
             if let Prop::PropIdent { value, .. } = prop {
                 if !VALID_BORDER_STYLES.contains(&value.as_str()) {
                     return Err(format!(
-                        "{}: Unknown borderStyle: '{}'. Valid styles are: {}",
+                        "{}:{}:{}: Unknown borderStyle: '{}'. Valid styles are: {}",
                         filename,
+                        start.line(),
+                        start.col(),
                         value,
                         VALID_BORDER_STYLES.join(", ")
                     ));
                 }
             } else {
-                return Err(format!("{}: Property 'borderStyle' must be an identifier, got {:?}", filename, prop));
+                return Err(format!("{}:{}:{}: Property 'borderStyle' must be an identifier", filename, start.line(), start.col()));
             }
         }
         _ => {}
@@ -194,11 +206,14 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
 }
 
 /// Validate that a color is in the valid color table
-fn validate_color(color: &str, filename: &str) -> Result<(), String> {
+fn validate_color(color: &str, filename: &str, span: crate::ast::Span) -> Result<(), String> {
     if !VALID_COLORS.contains(&color) {
+        let start = span.start();
         return Err(format!(
-            "{}: Unknown color: '{}'. Valid colors are: {}",
+            "{}:{}:{}: Unknown color: '{}'. Valid colors are: {}",
             filename,
+            start.line(),
+            start.col(),
             color,
             VALID_COLORS.join(", ")
         ));
@@ -209,7 +224,7 @@ fn validate_color(color: &str, filename: &str) -> Result<(), String> {
 /// Extract grid size from box properties
 fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dimensions> {
     for item in &body.items {
-        if let BoxItem::Prop(Prop::PropDim { key, value }) = item {
+        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
             if key == "grid" {
                 return Some(value.clone());
             }
@@ -231,6 +246,8 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
 
     for item in &body.items {
         if let BoxItem::BoxInst(box_inst) = item {
+            let span = box_inst.span();
+            let start = span.start();
             let (coords, dim) = match box_inst {
                 crate::ast::BoxInst::WithBody { coords, dim, .. } => (coords, dim),
                 crate::ast::BoxInst::Reference { coords, dim, .. } => (coords, dim),
@@ -239,15 +256,15 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
             // Check if position is within grid bounds (1-based indexing)
             if coords.row < 1 || coords.row > grid_size.height {
                 return Err(format!(
-                    "{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [1, {}]",
-                    filename, coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
+                    "{}:{}:{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [1, {}]",
+                    filename, start.line(), start.col(), coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
                 ));
             }
 
             if coords.col < 1 || coords.col > grid_size.width {
                 return Err(format!(
-                    "{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [1, {}]",
-                    filename, coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
+                    "{}:{}:{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [1, {}]",
+                    filename, start.line(), start.col(), coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
                 ));
             }
 
@@ -258,15 +275,15 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
 
             if end_row > grid_size.height {
                 return Err(format!(
-                    "{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
-                    filename, coords.row, coords.col, dim.height, dim.width, end_row, grid_size.height
+                    "{}:{}:{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
+                    filename, start.line(), start.col(), coords.row, coords.col, dim.height, dim.width, end_row, grid_size.height
                 ));
             }
 
             if end_col > grid_size.width {
                 return Err(format!(
-                    "{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
-                    filename, coords.row, coords.col, dim.height, dim.width, end_col, grid_size.width
+                    "{}:{}:{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
+                    filename, start.line(), start.col(), coords.row, coords.col, dim.height, dim.width, end_col, grid_size.width
                 ));
             }
 
@@ -276,8 +293,8 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
                     let cell = (row, col);
                     if occupied_cells.contains(&cell) {
                         return Err(format!(
-                            "{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                            filename, coords.row, coords.col, dim.height, dim.width, row, col
+                            "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
+                            filename, start.line(), start.col(), coords.row, coords.col, dim.height, dim.width, row, col
                         ));
                     }
                     occupied_cells.insert(cell);
@@ -295,6 +312,8 @@ fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), Strin
 
     for item in &body.items {
         if let BoxItem::BoxInst(box_inst) = item {
+            let span = box_inst.span();
+            let start = span.start();
             let id = match box_inst {
                 crate::ast::BoxInst::WithBody { id, .. } => id.as_ref(),
                 crate::ast::BoxInst::Reference { id, .. } => id.as_ref(),
@@ -304,8 +323,8 @@ fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), Strin
             if let Some(name) = id {
                 if names.contains(name) {
                     return Err(format!(
-                        "{}: Duplicate box name '{}'. Each box must have a unique name within its parent",
-                        filename, name
+                        "{}:{}:{}: Duplicate box name '{}'. Each box must have a unique name within its parent",
+                        filename, start.line(), start.col(), name
                     ));
                 }
                 names.insert(name.clone());
