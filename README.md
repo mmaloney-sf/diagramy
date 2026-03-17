@@ -1,315 +1,215 @@
 # Diagramy
 
-A declarative diagram language and rendering engine for creating technical block diagrams with precise layout control. Diagramy separates diagram structure from layout, enabling maintainable, version-controllable diagram specifications.
+A declarative markup language for creating grid-based block diagrams. Diagramy makes it easy to create clean, professional diagrams for system architectures, network topologies, and other structured visualizations.
 
-## Overview
+## Features
 
-Diagramy is a domain-specific language (DSL) for technical diagrams commonly found in hardware and software architecture documentation. It provides:
+- **Grid-based layout system** - Position boxes using simple row/column coordinates
+- **Auto-positioning** - Boxes automatically fill the next available grid cell
+- **Multi-cell spanning** - Boxes can span multiple rows and columns
+- **Nested hierarchies** - Create complex diagrams with boxes inside boxes
+- **Reusable components** - Define box templates and reuse them throughout your diagram
+- **Customizable styling** - Colors, border styles, and multi-line text
+- **Simple syntax** - Clean, readable markup language
 
-- **Declarative syntax** for defining hierarchical box structures
-- **Separate layout specification** decoupled from diagram structure
-- **Port-based connectivity** with automatic arrow routing
-- **Scalable rendering** with configurable font sizes and visual elements
-- **Color inheritance** through the diagram hierarchy
-- **SVG output** for high-quality, scalable graphics
-
-![Reference](https://raw.githubusercontent.com/mmaloney-sf/diagramy/refs/heads/main/images/reference.svg)
-
-## Core Concepts
-
-### Diagram Structure
-
-A `.dia` file consists of three main sections:
-
-1. **Version declaration** - Specifies the file format version
-2. **Diagram block** - Defines the logical structure (boxes, ports, arrows)
-3. **Layout block** - Specifies the visual positioning and sizing
-
-This separation allows you to modify the visual layout without changing the logical structure, and vice versa.
-
-### Boxes
-
-Boxes are the primary visual elements. They can:
-- Contain other boxes (hierarchical nesting)
-- Have properties: `title`, `color`, `vertical` (for vertical text), `stacked` (for 3D effect)
-- Inherit colors from parent boxes or the diagram-level color
-- Be positioned and sized independently in the layout section
-
-### Ports
-
-Ports are connection points on boxes. They can be:
-- **Positioned absolutely** using `pos: (x, y)` coordinates
-- **Interpolated on box sides** using `interp: N%` with `side: left|right|top|bottom`
-- **Styled** with `style: tieoff` to render as circle-with-X markers
-- Connected via arrows for signal flow visualization
-
-### Arrows
-
-Arrows connect ports using orthogonal (Manhattan-style) routing:
-- Automatically route horizontally, then vertically, then horizontally
-- Render with arrowheads at the destination
-- Shorten automatically when pointing to tieoff-style ports
-- Extend fully to non-tieoff ports for maximum visibility
-
-### Layout
-
-The layout section maps diagram elements to screen coordinates:
-- `size: (width, height)` - Canvas dimensions
-- `scale: N%` - Rendering scale factor
-- `fontsize: N` - Font size for all text elements
-- Per-element `pos` and `size` specifications
-
-Coordinates use screen space (top-left origin, Y increases downward).
-
-## Usage
-
-### Basic Command
+## Installation
 
 ```bash
-diagramy examples/example.dia
+cargo build --release
 ```
 
-This generates `build/example.svg` by default.
+The binary will be available at `target/release/dgmy`.
 
-### Command-Line Options
+## Quick Start
+
+Create a file called `example.dgmy`:
 
 ```
-Usage: diagramy [OPTIONS] <INPUT>
-
-Arguments:
-  <INPUT>  Input .dia file
-
-Options:
-      --output <OUTPUT>          Output SVG file [default: build/<input>.svg]
-      --scale <SCALE>            Scale factor (0.0-1.0) [overrides layout scale]
-      --no-transparent           Use white background instead of transparent
-      --background <BACKGROUND>  Background color [overrides diagram color]
-      --font-size <FONT_SIZE>    Font size for text labels [default: 18]
-  -h, --help                     Print help
-```
-
-## Example
-
-### Simple Diagram
-
-Create a file `example.dia`:
-
-```dia
-version = 0.1.0
-
 diagram {
+    width: 400
     color: grey
-
-    box system {
-        text: "System"
-        color: white
-
-        box processor {
-            text: "Processor"
-            color: blue
-        }
-
-        box memory {
-            text: "Memory"
-            color: green
-        }
-    }
-
-    port clockSource {
-        title: "Clock"
-        style: tieoff
-    }
-
-    port clockIn {
-        side: left
-    }
-
-    arrow {
-        from: clockSource
-        to: clockIn
-    }
+    text: "My First Diagram"
 }
 
-layout {
-    size: (800, 600)
-    fontsize: 24
+box top {
+    grid: 2x2
 
-    system {
-        pos: (200, 150)
-        size: (400, 300)
+    box is {
+        color: red
+        text: "Box A"
     }
 
-    processor {
-        pos: (50, 50)
-        size: (150, 100)
+    box is {
+        color: green
+        text: "Box B"
     }
 
-    memory {
-        pos: (50, 180)
-        size: (150, 100)
+    box is {
+        color: blue
+        text: "Box C"
     }
 
-    clockSource {
-        pos: (50, 250)
-    }
-
-    clockIn {
-        interp: 50%
+    box is {
+        color: yellow
+        text: "Box D"
     }
 }
 ```
 
-### Render the Diagram
+Render it to SVG:
 
 ```bash
-diagramy examples/example.dia
+dgmy example.dgmy
 ```
 
-This generates `build/example.svg`.
+This creates `example.svg`.
+Open it with:
 
-### Output
-
-![Example Diagram](https://raw.githubusercontent.com/mmaloney-sf/diagramy/refs/heads/main/images/example.svg)
-
-The rendered diagram shows:
-- A grey canvas background (from `color: grey` at diagram level)
-- A white "System" box containing two nested boxes
-- A blue "Processor" box and green "Memory" box
-- A clock source port with tieoff style (circle-with-X)
-- An arrow with orthogonal routing from the clock source to the system
+```bash
+dgmy example.dgmy --open
+```
 
 ## Language Reference
 
-### Diagram Properties
+### Diagram Section
 
-```dia
+Every file starts with a `diagram` section that defines global properties:
+
+```
 diagram {
-    color: <color_name>  // Canvas background and default box color
-    // ... boxes, ports, arrows
+    version: "0.1.0"    // Optional version string
+    width: 800          // Diagram width in pixels
+    color: grey         // Background color
+    text: "Title"       // Diagram title
 }
 ```
 
-### Box Properties
+### Box Definitions
 
-```dia
-box <identifier> {
-    text: "<text>"       // Display text (required for visibility)
-    color: <color_name>  // Box fill color (inherits from parent if omitted)
-    vertical             // Render title text vertically
-    stacked: <N>         // Create 3D stacked effect with N background boxes
-    // ... nested boxes and ports
-}
+Boxes are the building blocks of your diagram. There are two types:
+
+**1. Reusable Box Definitions**
+
+Define a box template that can be reused:
+
 ```
+box MyComponent {
+    grid: 2x2
+    color: blue
 
-### Port Properties
+    box at (1, 1) is {
+        text: "Part A"
+    }
 
-```dia
-port <identifier> {
-    title: "<text>"           // Label text
-    side: left|right|top|bottom  // For interpolated ports
-    style: tieoff             // Render as circle-with-X marker
-}
-```
-
-### Arrow Syntax
-
-```dia
-arrow {
-    from: <port_identifier>
-    to: <port_identifier>
-}
-```
-
-### Layout Properties
-
-```dia
-layout {
-    size: (width, height)     // Canvas dimensions in pixels
-    scale: <N>%               // Rendering scale (e.g., 50%)
-    fontsize: <N>             // Font size in pixels
-
-    <identifier> {
-        pos: (x, y)           // Absolute position (top-left origin)
-        size: (width, height) // Element dimensions
-        interp: <N>%          // Port position along parent box side
+    box at (1, 2) is {
+        text: "Part B"
     }
 }
 ```
 
-### Supported Colors
+**2. Box Instances**
 
-Greyscale: `gray`, `grey`, `black`, `white`, `navy`
+Use boxes in your diagram:
 
-Chromatic (desaturated): `red`, `blue`, `green`, `yellow`, `orange`, `purple`, `pink`, `cyan`, `magenta`, `lime`, `teal`, `indigo`, `brown`, `maroon`, `olive`
+```
+box top {
+    grid: 3x3
 
-All chromatic colors are rendered with high desaturation and brightness for a professional, subtle appearance.
+    // Reference a defined box
+    box at (1, 1) is MyComponent
 
-## Advanced Features
-
-### Color Inheritance
-
-Colors cascade through the hierarchy:
-1. Explicit box `color` property
-2. Parent box color
-3. Diagram-level `color` property
-4. Default (gray)
-
-This allows setting a base color scheme at the diagram level and overriding selectively.
-
-### Port Positioning
-
-**Absolute positioning** (for external ports):
-```dia
-port myPort { }
-
-layout {
-    myPort {
-        pos: (100, 200)
+    // Inline box definition
+    box at (1, 2) is {
+        color: red
+        text: "Inline Box"
     }
 }
 ```
 
-**Interpolated positioning** (for ports on box edges):
-```dia
-box myBox {
-    port sidePort {
-        side: right
-    }
-}
+### Grid System
 
-layout {
-    sidePort {
-        interp: 50%  // 50% down the right side
-    }
+Every box with children must define a grid:
+
+```
+box parent {
+    grid: 3x4  // 3 rows, 4 columns
+
+    // Child boxes are positioned within this grid
 }
 ```
 
-### Stacked Boxes
+### Positioning
 
-Create a 3D effect with background boxes:
-```dia
-box myBox {
-    stacked: 3  // Three background boxes
+**Explicit positioning:**
+```
+box at (2, 3) is {  // Row 2, Column 3 (1-based)
+    text: "Fixed Position"
 }
 ```
 
-Each background box is offset by 12 pixels diagonally.
+**Auto-positioning:**
+```
+box is {  // Automatically placed in next available cell
+    text: "Auto Position"
+}
+```
 
-### Orthogonal Arrow Routing
+### Dimensions
 
-Arrows automatically route using Manhattan-style paths:
-1. Horizontal segment from source
-2. Vertical segment at midpoint
-3. Horizontal segment to destination
+Boxes can span multiple grid cells:
 
-Arrows automatically shorten when pointing to tieoff-style ports to avoid overlapping the circle marker.
+```
+box at (1, 1) dim 2x3 is {  // 2 rows, 3 columns
+    text: "Large Box"
+}
+```
 
-## Architecture
+### Properties
 
-Diagramy uses a three-stage pipeline:
+**Box Properties:**
+- `grid: HxW` - Define grid size for child boxes
+- `color: <color>` - Background color
+- `text: "..."` - Text content (can be multi-line)
+- `borderStyle: <style>` - Border style (solid, dotted, dashed, none)
 
-1. **Parsing** - LALRPOP-generated parser converts `.dia` text to AST
-2. **Validation** - Validates colors, layout references, and structural constraints
-3. **Rendering** - Generates SVG with scaled visual elements
+**Available Colors:**
+red, green, blue, yellow, purple, cyan, orange, pink, white, grey
 
-The parser is generated from a formal grammar (`src/grammar.lalrpop`), ensuring consistent parsing and enabling future language extensions.
+**Multi-line Text:**
+```
+text: "Line 1"
+      "Line 2"
+      "Line 3"
+```
+
+## Examples
+
+The `examples/` directory contains 12 comprehensive examples:
+
+1. **[01_simple_grid.dgmy](examples/01_simple_grid.dgmy)** - Basic 2x2 grid layout ([rendered](assets/images/01_simple_grid.svg))
+2. **[02_auto_positioning.dgmy](examples/02_auto_positioning.dgmy)** - Automatic box positioning ([rendered](assets/images/02_auto_positioning.svg))
+3. **[03_dimensions.dgmy](examples/03_dimensions.dgmy)** - Boxes spanning multiple cells ([rendered](assets/images/03_dimensions.svg))
+4. **[04_nested_boxes.dgmy](examples/04_nested_boxes.dgmy)** - Hierarchical box structures ([rendered](assets/images/04_nested_boxes.svg))
+5. **[05_reusable_definitions.dgmy](examples/05_reusable_definitions.dgmy)** - Component reuse ([rendered](assets/images/05_reusable_definitions.svg))
+6. **[06_multiline_text.dgmy](examples/06_multiline_text.dgmy)** - Multi-line text labels ([rendered](assets/images/06_multiline_text.svg))
+7. **[07_border_styles.dgmy](examples/07_border_styles.dgmy)** - Different border styles ([rendered](assets/images/07_border_styles.svg))
+8. **[08_color_palette.dgmy](examples/08_color_palette.dgmy)** - All available colors ([rendered](assets/images/08_color_palette.svg))
+9. **[09_system_architecture.dgmy](examples/09_system_architecture.dgmy)** - Computer system diagram ([rendered](assets/images/09_system_architecture.svg))
+10. **[10_network_topology.dgmy](examples/10_network_topology.dgmy)** - Network layout ([rendered](assets/images/10_network_topology.svg))
+11. **[11_mixed_features.dgmy](examples/11_mixed_features.dgmy)** - Combining multiple features ([rendered](assets/images/11_mixed_features.svg))
+12. **[12_microservice_architecture.dgmy](examples/12_microservice_architecture.dgmy)** - Complex microservice system ([rendered](assets/images/12_microservice_architecture.svg))
+
+Render all examples:
+
+```bash
+for f in examples/*.dgmy; do dgmy "$f"; done
+```
+
+## Command-Line Options
+
+```
+dgmy <file>              # Render to SVG (default)
+dgmy <file> --open       # Render and open in default viewer
+dgmy <file> --parse      # Parse and print AST (debug)
+dgmy <file> --validate   # Validate and print AST (debug)
+```

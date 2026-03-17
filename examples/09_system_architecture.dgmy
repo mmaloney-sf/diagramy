@@ -1,0 +1,76 @@
+// Example 9: System Architecture
+// A practical example showing a computer system architecture
+// Demonstrates nested boxes, dimensions, and reusable components
+diagram {
+    version: "0.1.0"
+    width: 800
+    color: grey
+    text: "Computer System Architecture"
+}
+
+// Define a processor core
+box Processor {
+    grid: 3x2
+    color: blue
+
+    box at (1, 1) dim 1x2 is {
+        text: "Control Unit"
+    }
+
+    box at (2, 1) is {
+        text: "ALU"
+    }
+
+    box at (2, 2) is {
+        text: "FPU"
+    }
+
+    box at (3, 1) dim 1x2 is {
+        text: "Cache L1"
+    }
+}
+
+// Define a memory module
+box Memory {
+    grid: 2x1
+    color: green
+
+    box at (1, 1) is {
+        text: "RAM"
+    }
+
+    box at (2, 1) is {
+        text: "Controller"
+    }
+}
+
+box top {
+    grid: 3x3
+
+    // CPU section with two cores
+    box at (1, 1) dim 2x2 is {
+        grid: 1x2
+        borderStyle: dashed
+
+        box at (1, 1) is Processor
+        box at (1, 2) is Processor
+    }
+
+    // Shared L2 Cache
+    box at (1, 3) dim 2x1 is {
+        color: cyan
+        text: "L2 Cache"
+              "Shared"
+    }
+
+    // Memory modules
+    box at (3, 1) is Memory
+    box at (3, 2) is Memory
+
+    // I/O Controller
+    box at (3, 3) is {
+        color: yellow
+        text: "I/O"
+              "Controller"
+    }
+}

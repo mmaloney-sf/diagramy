@@ -1,0 +1,111 @@
+<svg height="350" viewBox="0 0 700 350" width="700" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#D5DBDB" height="100%" width="100%"/>
+<rect fill="transparent" height="256" rx="10" ry="10" stroke="#333" stroke-width="2.56" width="606" x="47" y="47"/>
+<rect fill="#DEE8ED" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="62" y="59"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="68" y="62"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="68" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="128" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="68" y="130"/>
+<rect fill="#DEE8ED" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="213" y="59"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="219" y="62"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="219" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="279" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="219" y="130"/>
+<rect fill="#DEE8ED" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="364" y="59"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="370" y="62"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="370" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="430" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="370" y="130"/>
+<rect fill="#DEE8ED" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="515" y="59"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="521" y="62"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="521" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="48" x="581" y="96"/>
+<rect fill="transparent" height="28" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="108" x="521" y="130"/>
+<rect fill="#DEE8E3" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="62" y="187"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="74" y="192"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="74" y="244"/>
+<rect fill="#DEE8E3" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="213" y="187"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="225" y="192"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="225" y="244"/>
+<rect fill="#DEE8E3" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="364" y="187"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="376" y="192"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="376" y="244"/>
+<rect fill="#DEE8E3" height="104" rx="5.2" ry="5.2" stroke="#333" stroke-width="1.04" width="121" x="515" y="187"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="527" y="192"/>
+<rect fill="transparent" height="42" rx="2.1" ry="2.1" stroke="#333" stroke-width="0.5" width="97" x="527" y="244"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="122" y="83">
+ALU
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="92" y="116">
+L1-I
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="152" y="116">
+L1-D
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="122" y="151">
+Registers
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="273" y="83">
+ALU
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="243" y="116">
+L1-I
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="303" y="116">
+L1-D
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="273" y="151">
+Registers
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="424" y="83">
+ALU
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="394" y="116">
+L1-I
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="454" y="116">
+L1-D
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="424" y="151">
+Registers
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="575" y="83">
+ALU
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="545" y="116">
+L1-I
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" x="605" y="116">
+L1-D
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="575" y="151">
+Registers
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="122" y="220">
+Data
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="122" y="272">
+Control
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="273" y="220">
+Data
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="273" y="272">
+Control
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="424" y="220">
+Data
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="424" y="272">
+Control
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="575" y="220">
+Data
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="575" y="272">
+Control
+</text>
+<text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="350" y="37">
+Reusable Components
+</text>
+</svg>

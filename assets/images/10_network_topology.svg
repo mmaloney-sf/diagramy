@@ -1,0 +1,93 @@
+<svg height="933" viewBox="0 0 700 933" width="700" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#F8F9F9" height="100%" width="100%"/>
+<rect fill="transparent" height="839" rx="10" ry="10" stroke="#333" stroke-width="3" width="606" x="47" y="47"/>
+<rect fill="#E8DEDD" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="269" y="67"/>
+<rect fill="#E8E3DE" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="269" y="276"/>
+<rect fill="#E8E8DE" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="67" y="485"/>
+<rect fill="#E8E8DE" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="269" y="485"/>
+<rect fill="#E8E8DE" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="471" y="485"/>
+<rect fill="#DEE8ED" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="67" y="694"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="83" y="698"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="83" y="740"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="83" y="782"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="83" y="824"/>
+<rect fill="#DEE8ED" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="269" y="694"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="285" y="698"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="285" y="740"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="285" y="782"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="285" y="824"/>
+<rect fill="#DEE8ED" height="169" rx="8.1" ry="8.1" stroke="#333" stroke-width="1.62" width="162" x="471" y="694"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="487" y="698"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="487" y="740"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="487" y="782"/>
+<rect fill="transparent" height="34" rx="2" ry="2" stroke="#333" stroke-width="0.5" width="130" x="487" y="824"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="151">
+Internet
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="164">
+Gateway
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="360">
+Core
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="373">
+Router
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="569">
+Switch
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="582">
+A
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="569">
+Switch
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="582">
+B
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="569">
+Switch
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="582">
+C
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="722">
+Web
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="764">
+App
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="806">
+DB
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="848">
+Cache
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="722">
+Web
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="764">
+App
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="806">
+DB
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="848">
+Cache
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="722">
+Web
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="764">
+App
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="806">
+DB
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="848">
+Cache
+</text>
+<text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="350" y="37">
+Network Topology
+</text>
+</svg>

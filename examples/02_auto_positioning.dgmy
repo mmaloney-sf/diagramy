@@ -1,0 +1,49 @@
+// Example 2: Auto-Positioning
+// Boxes without explicit "at" clauses are automatically positioned
+// in the next available grid cell, scanning left-to-right, top-to-bottom
+diagram {
+    version: "0.1.0"
+    width: 500
+    color: white
+    text: "Auto-Positioning Demo"
+}
+
+box top {
+    grid: 3x3
+
+    // First box auto-positions to (1, 1)
+    box is {
+        color: red
+        text: "Auto 1"
+    }
+
+    // Second box auto-positions to (1, 2)
+    box is {
+        color: green
+        text: "Auto 2"
+    }
+
+    // Explicitly position a box at (2, 2)
+    box at (2, 2) is {
+        color: blue
+        text: "Fixed"
+    }
+
+    // Next auto-positioned box goes to (1, 3)
+    box is {
+        color: yellow
+        text: "Auto 3"
+    }
+
+    // Auto-positions to (2, 1) - skips (2, 2) which is occupied
+    box is {
+        color: purple
+        text: "Auto 4"
+    }
+
+    // Auto-positions to (2, 3)
+    box is {
+        color: cyan
+        text: "Auto 5"
+    }
+}

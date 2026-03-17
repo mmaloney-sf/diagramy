@@ -1,0 +1,43 @@
+// Example 6: Multi-line Text
+// Text can span multiple lines for better readability
+// Each line is specified separately and will be rendered on its own line
+diagram {
+    version: "0.1.0"
+    width: 500
+    color: white
+    text: "Multi-line Text Demo"
+}
+
+box top {
+    grid: 2x2
+
+    // Single-line text
+    box at (1, 1) is {
+        color: red
+        text: "Single Line"
+    }
+
+    // Two-line text
+    box at (1, 2) is {
+        color: green
+        text: "First Line"
+              "Second Line"
+    }
+
+    // Three-line text
+    box at (2, 1) is {
+        color: blue
+        text: "Line 1"
+              "Line 2"
+              "Line 3"
+    }
+
+    // Multi-line text with longer content
+    box at (2, 2) is {
+        color: yellow
+        text: "Memory"
+              "Controller"
+              "Unit"
+              "v2.0"
+    }
+}

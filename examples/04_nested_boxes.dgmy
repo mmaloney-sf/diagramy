@@ -1,0 +1,72 @@
+// Example 4: Nested Boxes
+// Boxes can contain other boxes, creating hierarchical layouts
+// Each box defines its own grid for positioning child boxes
+diagram {
+    version: "0.1.0"
+    width: 600
+    color: white
+    text: "Nested Boxes"
+}
+
+box top {
+    grid: 2x2
+
+    // A parent box containing nested children
+    box at (1, 1) is {
+        color: red
+        grid: 2x2
+
+        // Child boxes within Parent A
+        box at (1, 1) is {
+            color: pink
+            text: "Child A1"
+        }
+
+        box at (1, 2) is {
+            color: pink
+            text: "Child A2"
+        }
+
+        box at (2, 1) is {
+            color: pink
+            text: "Child A3"
+        }
+
+        box at (2, 2) is {
+            color: pink
+            text: "Child A4"
+        }
+    }
+
+    // Another parent box with different nesting
+    box at (1, 2) is {
+        color: blue
+        grid: 3x1
+
+        box at (1, 1) is {
+            color: cyan
+            text: "Child B1"
+        }
+
+        box at (2, 1) is {
+            color: cyan
+            text: "Child B2"
+        }
+
+        box at (3, 1) is {
+            color: cyan
+            text: "Child B3"
+        }
+    }
+
+    // Simple boxes without nesting
+    box at (2, 1) is {
+        color: green
+        text: "Simple C"
+    }
+
+    box at (2, 2) is {
+        color: yellow
+        text: "Simple D"
+    }
+}

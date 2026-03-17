@@ -1,0 +1,47 @@
+<svg height="320" viewBox="0 0 800 320" width="800" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#F8F9F9" height="100%" width="100%"/>
+<rect fill="transparent" height="226" rx="10" ry="10" stroke="#333" stroke-width="2.26" width="706" x="47" y="47"/>
+<rect fill="#E8DEDD" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="61" y="58"/>
+<rect fill="#DEE8E3" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="202" y="58"/>
+<rect fill="#DEE8ED" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="343" y="58"/>
+<rect fill="#E8E8DE" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="484" y="58"/>
+<rect fill="#E3DEE8" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="625" y="58"/>
+<rect fill="#DEE8E8" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="61" y="171"/>
+<rect fill="#E8E3DE" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="202" y="171"/>
+<rect fill="#E8DEE3" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="343" y="171"/>
+<rect fill="#F8F9F9" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="484" y="171"/>
+<rect fill="#D5DBDB" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="113" x="625" y="171"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="117" y="110">
+Red
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="258" y="110">
+Green
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="399" y="110">
+Blue
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="540" y="110">
+Yellow
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="681" y="110">
+Purple
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="117" y="223">
+Cyan
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="258" y="223">
+Orange
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="399" y="223">
+Pink
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="540" y="223">
+White
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="681" y="223">
+Grey
+</text>
+<text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="400" y="37">
+Color Palette
+</text>
+</svg>

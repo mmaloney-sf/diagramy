@@ -1,0 +1,38 @@
+// Example 1: Simple Grid Layout
+// This example demonstrates the basic grid layout system with a 2x2 grid
+diagram {
+    version: "0.1.0"
+    width: 400
+    color: grey
+    text: "Simple Grid Layout"
+}
+
+// The top-level box defines a 2x2 grid
+box top {
+    grid: 2x2
+
+    // Each box is positioned using (row, col) coordinates (1-based)
+    // Box at position (1, 1) - top left
+    box at (1, 1) is {
+        color: red
+        text: "Box A"
+    }
+
+    // Box at position (1, 2) - top right
+    box at (1, 2) is {
+        color: green
+        text: "Box B"
+    }
+
+    // Box at position (2, 1) - bottom left
+    box at (2, 1) is {
+        color: blue
+        text: "Box C"
+    }
+
+    // Box at position (2, 2) - bottom right
+    box at (2, 2) is {
+        color: yellow
+        text: "Box D"
+    }
+}

@@ -1,0 +1,73 @@
+// Example 10: Network Topology
+// Shows a network layout with routers, switches, and servers
+// Demonstrates practical use of colors and labels
+diagram {
+    version: "0.1.0"
+    width: 700
+    color: white
+    text: "Network Topology"
+}
+
+// Define a server rack
+box ServerRack {
+    grid: 4x1
+    color: blue
+
+    box at (1, 1) is {
+        text: "Web"
+    }
+
+    box at (2, 1) is {
+        text: "App"
+    }
+
+    box at (3, 1) is {
+        text: "DB"
+    }
+
+    box at (4, 1) is {
+        text: "Cache"
+    }
+}
+
+box top {
+    grid: 4x3
+
+    // Internet gateway
+    box at (1, 2) is {
+        color: red
+        text: "Internet"
+              "Gateway"
+    }
+
+    // Core router
+    box at (2, 2) is {
+        color: orange
+        text: "Core"
+              "Router"
+    }
+
+    // Distribution switches
+    box at (3, 1) is {
+        color: yellow
+        text: "Switch"
+              "A"
+    }
+
+    box at (3, 2) is {
+        color: yellow
+        text: "Switch"
+              "B"
+    }
+
+    box at (3, 3) is {
+        color: yellow
+        text: "Switch"
+              "C"
+    }
+
+    // Server racks
+    box at (4, 1) is ServerRack
+    box at (4, 2) is ServerRack
+    box at (4, 3) is ServerRack
+}

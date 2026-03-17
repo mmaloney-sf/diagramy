@@ -1,0 +1,92 @@
+// Example 11: Mixed Features
+// Combines multiple features: auto-positioning, dimensions, nesting,
+// reusable definitions, border styles, and multi-line text
+diagram {
+    version: "0.1.0"
+    width: 900
+    color: grey
+    text: "Mixed Features Demo"
+}
+
+// Reusable component with custom styling
+box Module {
+    grid: 2x2
+    color: cyan
+    borderStyle: dashed
+
+    box at (1, 1) is {
+        text: "Input"
+    }
+
+    box at (1, 2) is {
+        text: "Process"
+    }
+
+    box at (2, 1) is {
+        text: "Output"
+    }
+
+    box at (2, 2) is {
+        text: "Control"
+    }
+}
+
+box top {
+    grid: 4x6
+
+    // Large header box spanning the width
+    box at (1, 1) dim 1x6 is {
+        color: blue
+        text: "System Header"
+        borderStyle: solid
+    }
+
+    // Explicitly positioned large box
+    box at (2, 1) dim 2x2 is {
+        color: red
+        text: "Large"
+              "Component"
+              "(2x2)"
+    }
+
+    // Small boxes
+    box at (2, 3) is {
+        color: green
+        text: "Small"
+    }
+
+    box at (2, 4) is {
+        color: yellow
+        text: "Small"
+    }
+
+    // Module instance
+    box at (2, 5) dim 2x2 is Module
+
+    // Label with no border
+    box at (4, 1) dim 1x2 is {
+        text: "Footer Label"
+        borderStyle: none
+    }
+
+    // More boxes
+    box at (3, 3) is {
+        color: purple
+        text: "Box"
+    }
+
+    box at (3, 4) is {
+        color: orange
+        text: "Box"
+    }
+
+    box at (4, 3) is {
+        color: pink
+        text: "Box"
+    }
+
+    box at (4, 4) is {
+        color: cyan
+        text: "Box"
+    }
+}

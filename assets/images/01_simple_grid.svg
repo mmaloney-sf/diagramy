@@ -1,0 +1,23 @@
+<svg height="400" viewBox="0 0 400 400" width="400" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#D5DBDB" height="100%" width="100%"/>
+<rect fill="transparent" height="306" rx="10" ry="10" stroke="#333" stroke-width="3" width="306" x="47" y="47"/>
+<rect fill="#E8DEDD" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-width="1.23" width="123" x="62" y="62"/>
+<rect fill="#DEE8E3" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-width="1.23" width="123" x="215" y="62"/>
+<rect fill="#DEE8ED" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-width="1.23" width="123" x="62" y="215"/>
+<rect fill="#E8E8DE" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-width="1.23" width="123" x="215" y="215"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="123" y="130">
+Box A
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="276" y="130">
+Box B
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="123" y="283">
+Box C
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="276" y="283">
+Box D
+</text>
+<text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="200" y="37">
+Simple Grid Layout
+</text>
+</svg>
