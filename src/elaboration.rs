@@ -19,6 +19,20 @@ pub struct BoxDef {
     pub margin: Option<f64>,
     pub border_style: Option<String>,
     pub boxes: Vec<Box>,
+    pub ports: Vec<Port>,
+    pub arrows: Vec<Arrow>,
+}
+
+#[derive(Debug, Clone)]
+pub struct Port {
+    pub name: String,
+    pub coords: (i32, i32), // Integer coordinates
+}
+
+#[derive(Debug, Clone)]
+pub struct Arrow {
+    pub from: String,
+    pub to: String,
 }
 
 #[derive(Debug)]
@@ -164,28 +178,45 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     let mut margin: Option<f64> = None;
     let mut border_style: Option<String> = None;
     let mut boxes: Vec<Box> = Vec::new();
+    let mut ports: Vec<Port> = Vec::new();
+    let mut arrows: Vec<Arrow> = Vec::new();
 
-    // First pass: extract properties
+    // First pass: extract properties, ports, and arrows
     for item in &body.items {
-        if let ast::BoxItem::Prop(prop) = item {
-            match prop {
-                ast::Prop::PropDim { key, value, .. } if key == "grid" => {
-                    grid = (value.height as usize, value.width as usize);
+        match item {
+            ast::BoxItem::Prop(prop) => {
+                match prop {
+                    ast::Prop::PropDim { key, value, .. } if key == "grid" => {
+                        grid = (value.height as usize, value.width as usize);
+                    }
+                    ast::Prop::PropString { key, value, .. } if key == "text" => {
+                        title = Some(value.join("\n"));
+                    }
+                    ast::Prop::PropIdent { key, value, .. } if key == "color" => {
+                        color = Some(value.clone());
+                    }
+                    ast::Prop::PropIdent { key, value, .. } if key == "borderStyle" => {
+                        border_style = Some(value.clone());
+                    }
+                    ast::Prop::PropFrac { key, value, .. } if key == "margin" => {
+                        margin = Some(*value);
+                    }
+                    _ => {}
                 }
-                ast::Prop::PropString { key, value, .. } if key == "text" => {
-                    title = Some(value.join("\n"));
-                }
-                ast::Prop::PropIdent { key, value, .. } if key == "color" => {
-                    color = Some(value.clone());
-                }
-                ast::Prop::PropIdent { key, value, .. } if key == "borderStyle" => {
-                    border_style = Some(value.clone());
-                }
-                ast::Prop::PropFrac { key, value, .. } if key == "margin" => {
-                    margin = Some(*value);
-                }
-                _ => {}
             }
+            ast::BoxItem::Port(port) => {
+                ports.push(Port {
+                    name: port.name.clone(),
+                    coords: (port.coords.row, port.coords.col),
+                });
+            }
+            ast::BoxItem::Arrow(arrow) => {
+                arrows.push(Arrow {
+                    from: arrow.from.clone(),
+                    to: arrow.to.clone(),
+                });
+            }
+            _ => {}
         }
     }
 
@@ -294,5 +325,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
         margin,
         border_style,
         boxes,
+        ports,
+        arrows,
     })
 }

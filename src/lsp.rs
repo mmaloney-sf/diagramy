@@ -696,6 +696,9 @@ fn check_box_body_hover(
             BoxItem::Port(_) => {
                 // Port hover not implemented yet
             }
+            BoxItem::Arrow(_) => {
+                // Arrow hover not implemented yet
+            }
         }
     }
 

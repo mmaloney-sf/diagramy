@@ -1,7 +1,7 @@
 // Diagram representation with absolute coordinates
 
 use svg::Document as SvgDocument;
-use svg::node::element::{Rectangle, Text};
+use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
 use crate::elaboration;
 
 // Minimum font size as a fraction of the base font size
@@ -18,8 +18,24 @@ const TOP_LEVEL_MARGIN: usize = (DEFAULT_FONT_SIZE as f64 * 1.5) as usize + 20;
 #[derive(Debug)]
 pub struct Diagram {
     pub boxes: Vec<DiagramBox>,
+    pub ports: Vec<DiagramPort>,
+    pub arrows: Vec<DiagramArrow>,
     pub title: Option<String>,
     pub color: Option<String>,
+}
+
+/// A port in the diagram with absolute position
+#[derive(Debug)]
+pub struct DiagramPort {
+    pub name: String,
+    pub pos: (usize, usize), // Absolute position
+}
+
+/// An arrow in the diagram connecting two ports
+#[derive(Debug)]
+pub struct DiagramArrow {
+    pub from: String,
+    pub to: String,
 }
 
 /// A box in the diagram with absolute position and size
@@ -154,6 +170,14 @@ impl Diagram {
         // Second pass: Render all box titles on top
         for diagram_box in &self.boxes {
             svg_doc = render_box_title(svg_doc, diagram_box, font_size)?;
+        }
+
+        // Third pass: Render arrows (before ports so ports appear on top)
+        svg_doc = render_arrows(svg_doc, &self.arrows, &self.ports)?;
+
+        // Fourth pass: Render ports as small circles
+        for port in &self.ports {
+            svg_doc = render_port(svg_doc, port)?;
         }
 
         // Render diagram title centered at the top if present (on top of everything)
@@ -370,6 +394,8 @@ fn render_box_title(
 /// Convert an elaboration::Diagram to a diagram::Diagram with absolute coordinates
 pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagram {
     let mut boxes = Vec::new();
+    let mut ports = Vec::new();
+    let mut arrows = Vec::new();
 
     // Calculate absolute positions for all boxes
     // Add margin around the top-level box
@@ -391,10 +417,16 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
         top_height,
         canvas_width, // canvas width for logarithmic scaling
         &mut boxes,
+        &mut ports,
     );
+
+    // Collect all arrows from the top-level box
+    collect_arrows(&elab_diagram.top, &mut arrows);
 
     Diagram {
         boxes,
+        ports,
+        arrows,
         title: elab_diagram.title.clone(),
         color: Some(elab_diagram.color.clone()),
     }
@@ -409,6 +441,7 @@ fn flatten_boxes(
     parent_height: usize,
     canvas_width: usize,
     output: &mut Vec<DiagramBox>,
+    ports_output: &mut Vec<DiagramPort>,
 ) {
     // First, add the current box itself (if it has a title, color, or children)
     // Boxes with children should always be rendered to show their border
@@ -492,6 +525,121 @@ fn flatten_boxes(
             final_height,
             canvas_width,
             output,
+            ports_output,
         );
     }
+
+    // Process ports for this box
+    for port in &box_def.ports {
+        // Calculate absolute position based on scaled coordinates
+        // Port coordinates are (row, col) where row is y and col is x
+        // (0, 0) is upper-left of the box and (grid.height, grid.width) is lower-right
+        // Scale the coordinates to the actual box dimensions
+        let (grid_height, grid_width) = box_def.grid;
+
+        // Scale coordinates: map from (0, 0)-(grid_height, grid_width) to (0, 0)-(parent_height, parent_width)
+        let scale_x = if grid_width > 0 {
+            parent_width as f64 / grid_width as f64
+        } else {
+            1.0
+        };
+        let scale_y = if grid_height > 0 {
+            parent_height as f64 / grid_height as f64
+        } else {
+            1.0
+        };
+
+        let abs_x = parent_x + (port.coords.1 as f64 * scale_x) as usize; // col is x
+        let abs_y = parent_y + (port.coords.0 as f64 * scale_y) as usize; // row is y
+
+        ports_output.push(DiagramPort {
+            name: port.name.clone(),
+            pos: (abs_x, abs_y),
+        });
+    }
+}
+
+/// Recursively collect all arrows from a box and its children
+fn collect_arrows(box_def: &elaboration::BoxDef, output: &mut Vec<DiagramArrow>) {
+    // Add arrows from this box
+    for arrow in &box_def.arrows {
+        output.push(DiagramArrow {
+            from: arrow.from.clone(),
+            to: arrow.to.clone(),
+        });
+    }
+
+    // Recursively collect from child boxes
+    for child_box in &box_def.boxes {
+        collect_arrows(&child_box.def, output);
+    }
+}
+
+/// Render a port as a small circle
+fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocument, String> {
+    let (x, y) = port.pos;
+    let radius = 5;
+
+    let circle = Circle::new()
+        .set("cx", x)
+        .set("cy", y)
+        .set("r", radius)
+        .set("fill", "#333")
+        .set("stroke", "#333")
+        .set("stroke-width", 2);
+
+    svg_doc = svg_doc.add(circle);
+    Ok(svg_doc)
+}
+
+/// Render arrows connecting ports
+fn render_arrows(
+    mut svg_doc: SvgDocument,
+    arrows: &[DiagramArrow],
+    ports: &[DiagramPort],
+) -> Result<SvgDocument, String> {
+    // Build a map of port names to positions
+    let mut port_map = std::collections::HashMap::new();
+    for port in ports {
+        port_map.insert(port.name.clone(), port.pos);
+    }
+
+    // Add arrowhead marker definition
+    let marker = Marker::new()
+        .set("id", "arrowhead")
+        .set("markerWidth", 10)
+        .set("markerHeight", 10)
+        .set("refX", 9)
+        .set("refY", 3)
+        .set("orient", "auto")
+        .set("markerUnits", "strokeWidth")
+        .add(
+            Polygon::new()
+                .set("points", "0,0 0,6 9,3")
+                .set("fill", "#333")
+        );
+
+    let defs = Definitions::new().add(marker);
+    svg_doc = svg_doc.add(defs);
+
+    // Render each arrow
+    for arrow in arrows {
+        if let (Some(&from_pos), Some(&to_pos)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
+            let (x1, y1) = from_pos;
+            let (x2, y2) = to_pos;
+
+            let line = Line::new()
+                .set("x1", x1)
+                .set("y1", y1)
+                .set("x2", x2)
+                .set("y2", y2)
+                .set("stroke", "#333")
+                .set("stroke-width", 2)
+                .set("marker-end", "url(#arrowhead)");
+
+            svg_doc = svg_doc.add(line);
+        }
+    }
+
+    Ok(svg_doc)
 }

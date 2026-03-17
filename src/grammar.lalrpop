@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords, Dim, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Arrow, Coords, CoordsFrac, Dim, Span};
 
 grammar(source: &str);
 
@@ -37,6 +37,7 @@ BoxItem: BoxItem = {
     <inst:BoxInst> => BoxItem::BoxInst(inst),
     <prop:Prop> => BoxItem::Prop(prop),
     <port:Port> => BoxItem::Port(port),
+    <arrow:Arrow> => BoxItem::Arrow(arrow),
 };
 
 BoxInst: BoxInst = {
@@ -62,11 +63,25 @@ Prop: Prop = {
 };
 
 Port: Port = {
-    <ll:@L> "port" <name:Ident> <rr:@R> => Port { name, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> "port" <name:Ident> "at" <coords:Coords> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
+        let props = props.unwrap_or_default();
+        Port { name, coords, props, span: Span::from_offsets(source, ll, rr) }
+    },
+};
+
+Arrow: Arrow = {
+    <ll:@L> "arrow" <from:Ident> "to" <to:Ident> <props:("{" <Prop*> "}")?> <rr:@R> => {
+        let props = props.unwrap_or_default();
+        Arrow { from, to, props, span: Span::from_offsets(source, ll, rr) }
+    },
 };
 
 Coords: Coords = {
     <ll:@L> "(" <row:Num> "," <col:Num> ")" <rr:@R> => Coords { row, col, span: Span::from_offsets(source, ll, rr) },
+};
+
+CoordsFrac: CoordsFrac = {
+    <ll:@L> "(" <row:Frac> "," <col:Frac> ")" <rr:@R> => CoordsFrac { row, col, span: Span::from_offsets(source, ll, rr) },
 };
 
 String: String = {
@@ -85,8 +100,7 @@ Num: i32 = {
 };
 
 Frac: f64 = {
-    r"-[0-9]+(\.[0-9]+)?" => f64::from_str(<>).unwrap(),
-    r"[0-9]+\.[0-9]+" => f64::from_str(<>).unwrap(),
+    r"-?[0-9]+\.[0-9]+" => f64::from_str(<>).unwrap(),
 };
 
 Dim: Dim = {

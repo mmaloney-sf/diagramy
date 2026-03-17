@@ -99,6 +99,7 @@ pub enum BoxItem {
     BoxInst(BoxInst),
     Prop(Prop),
     Port(Port),
+    Arrow(Arrow),
 }
 
 impl BoxItem {
@@ -107,6 +108,7 @@ impl BoxItem {
             BoxItem::BoxInst(inst) => inst.span(),
             BoxItem::Prop(prop) => prop.span(),
             BoxItem::Port(port) => port.span,
+            BoxItem::Arrow(arrow) => arrow.span,
         }
     }
 }
@@ -165,6 +167,16 @@ impl Prop {
 #[derive(Debug, Clone)]
 pub struct Port {
     pub name: String,
+    pub coords: Coords,
+    pub props: Vec<Prop>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct Arrow {
+    pub from: String,
+    pub to: String,
+    pub props: Vec<Prop>,
     pub span: Span,
 }
 
@@ -172,6 +184,13 @@ pub struct Port {
 pub struct Coords {
     pub row: i32,
     pub col: i32,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct CoordsFrac {
+    pub row: f64,
+    pub col: f64,
     pub span: Span,
 }
 

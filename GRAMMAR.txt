@@ -24,6 +24,7 @@
           BoxInst
         | Prop
         | Port
+        | Arrow
 
     BoxInst :=
           "box" Ident? ("at" Coords)? ("dim" Dim)? "is" BoxBody
@@ -37,6 +38,25 @@
         | PropCoords
         | PropDim
 
+////////////////////////////////////////
+// Ports and Arrows
+////////////////////////////////////////
+
+    Port :=
+        "port" Ident "at" Coords ("is""PortBody)?
+
+    PortBody := "{" Prop* "}"
+
+    Arrow :=
+        "arrow" Ident "to" Ident ArrowBody?
+
+    ArrowBody := "{" Prop* "}"
+
+
+////////////////////////////////////////
+// Properties
+////////////////////////////////////////
+
     PropIdent  := Ident ":" Ident
     PropString := Ident ":" String+
     PropNumber := Ident ":" Num
@@ -44,23 +64,21 @@
     PropCoords := Ident ":" Coords
     PropDim    := Ident ":" Dim
 
-    Port :=
-        "port" Ident
-
 
 ////////////////////////////////////////
 // Extra
 ////////////////////////////////////////
 
-    Coords := "(" Num "," Num ")"
+    Coords     := "(" Num "," Num ")"
+    CoordsFrac := "(" Frac "," Frac ")"
 
 
 ////////////////////////////////////////
 // Tokens
 ////////////////////////////////////////
 
-    Ident := [a-zA-Z_][a-zA-Z0-9_]*
+    Ident  := [a-zA-Z_][a-zA-Z0-9_]*
     String := '"' [^"]* '"'
-    Num := [0-9]+
-    Frac := "-"? [0-9]+ ("." [0-9]+)?
-    Dim := [0-9]+x[0-9]+
+    Num    := [0-9]+
+    Frac   := "-"? [0-9]+ "." [0-9]+
+    Dim    := [0-9]+x[0-9]+

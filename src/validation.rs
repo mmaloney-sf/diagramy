@@ -117,8 +117,17 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
                     }
                 }
             }
-            BoxItem::Port(_) => {
-                // Ports don't have properties to validate at this level
+            BoxItem::Port(port) => {
+                // Validate port properties
+                for prop in &port.props {
+                    validate_box_prop(prop, filename)?;
+                }
+            }
+            BoxItem::Arrow(arrow) => {
+                // Validate arrow properties
+                for prop in &arrow.props {
+                    validate_box_prop(prop, filename)?;
+                }
             }
         }
     }
