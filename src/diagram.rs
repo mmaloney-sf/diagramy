@@ -407,9 +407,11 @@ fn flatten_boxes(
         let box_width = cell_width * span_width;
         let box_height = cell_height * span_height;
 
-        // Add 5% margin on each side
-        let margin_x = (box_width as f64 * 0.05) as usize;
-        let margin_y = (box_height as f64 * 0.05) as usize;
+        // Use margin from box definition, defaulting to 0.1 (10%)
+        // Margin is based on cell size (not box size) to ensure uniform margins regardless of dim
+        let margin_factor = box_def.margin.unwrap_or(0.1);
+        let margin_x = (cell_width as f64 * margin_factor) as usize;
+        let margin_y = (cell_height as f64 * margin_factor) as usize;
 
         let final_x = abs_x + margin_x;
         let final_y = abs_y + margin_y;

@@ -153,8 +153,18 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
             }
         }
         "margin" => {
-            if !matches!(prop, Prop::PropNumber { .. } | Prop::PropFrac { .. }) {
-                return Err(format!("Property 'margin' must be a number, got {:?}", prop));
+            let margin_value = match prop {
+                Prop::PropNumber { value, .. } => *value as f64,
+                Prop::PropFrac { value, .. } => *value,
+                _ => {
+                    return Err(format!("Property 'margin' must be a number, got {:?}", prop));
+                }
+            };
+            if margin_value < 0.0 || margin_value > 0.5 {
+                return Err(format!(
+                    "Property 'margin' must be between 0.0 and 0.5, got {}",
+                    margin_value
+                ));
             }
         }
         _ => {}
