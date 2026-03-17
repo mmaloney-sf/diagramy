@@ -533,10 +533,17 @@ fn flatten_boxes(
     for port in &box_def.ports {
         // Calculate absolute position based on fractional coordinates
         // Port coordinates are (row, col) where row is y and col is x
-        // Fractional coordinates: (0.0, 0.0) is upper-left, (HEIGHT, WIDTH) is lower-right
-        // Map fractional coordinates to actual box dimensions
-        let abs_x = parent_x + (port.coords.1 * parent_width as f64) as usize; // col is x
-        let abs_y = parent_y + (port.coords.0 * parent_height as f64) as usize; // row is y
+        // Fractional coordinates range from (0.0, 0.0) to (grid_height, grid_width)
+        // Need to scale by grid dimensions to get fractional position in box
+        let (grid_height, grid_width) = box_def.grid;
+
+        // Scale coordinates: divide by grid dimensions to get 0.0-1.0 range
+        let frac_y = port.coords.0 / grid_height as f64;
+        let frac_x = port.coords.1 / grid_width as f64;
+
+        // Map to actual box dimensions
+        let abs_x = parent_x + (frac_x * parent_width as f64) as usize; // col is x
+        let abs_y = parent_y + (frac_y * parent_height as f64) as usize; // row is y
 
         ports_output.push(DiagramPort {
             name: port.name.clone(),
@@ -607,6 +614,9 @@ fn render_arrows(
 
     let defs = Definitions::new().add(marker);
     svg_doc = svg_doc.add(defs);
+
+    // TODO: Use A* pathfinding for arrow routing
+    // For now, render simple straight lines
 
     // Render each arrow
     for arrow in arrows {

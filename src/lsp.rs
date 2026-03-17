@@ -1046,7 +1046,7 @@ fn check_port_hover(
     let coords_start = coords_span.start();
     let coords_end = coords_span.end();
     if is_position_in_span(line, col, coords_start.line(), coords_start.col(), coords_end.line(), coords_end.col()) {
-        return Some("Fractional coordinates specify a position as a (row, col) pair.\nValues range from (0.0, 0.0) at the upper-left corner to (HEIGHT, WIDTH) at the lower-right corner of the box.".to_string());
+        return Some("Fractional coordinates specify a position as a (row, col) pair.\nValues range from (0.0, 0.0) at the upper-left corner to (grid_height, grid_width) at the lower-right corner.\nFor a 3x3 grid, (1.5, 1.5) would be the center of the box.".to_string());
     }
 
     // Check if hovering over "at" keyword
