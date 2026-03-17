@@ -117,22 +117,45 @@ fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
     (line, col)
 }
 
-/// Find the next free grid position
-/// Returns (row, col) in 1-based indexing
-fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize)) -> (i32, i32) {
+/// Find the next free grid position that can fit a box with the given dimensions
+/// Returns Some((row, col)) in 1-based indexing, or None if no position found
+fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize), dim: (i32, i32)) -> Option<(i32, i32)> {
     let (grid_rows, grid_cols) = grid;
+    let (dim_height, dim_width) = dim;
 
     // Scan from (1,1) to (1,n), then (2,1) to (2,n), etc.
     for row in 1..=(grid_rows as i32) {
         for col in 1..=(grid_cols as i32) {
-            if !occupied.contains(&(row, col)) {
-                return (row, col);
+            // Check if the box would fit within grid bounds
+            let end_row = row + dim_height - 1;
+            let end_col = col + dim_width - 1;
+
+            if end_row > grid_rows as i32 || end_col > grid_cols as i32 {
+                continue; // Box doesn't fit within grid bounds at this position
+            }
+
+            // Check if all cells needed by this box are free
+            let mut all_free = true;
+            for r in row..=end_row {
+                for c in col..=end_col {
+                    if occupied.contains(&(r, c)) {
+                        all_free = false;
+                        break;
+                    }
+                }
+                if !all_free {
+                    break;
+                }
+            }
+
+            if all_free {
+                return Some((row, col));
             }
         }
     }
 
-    // If no free position found, return (1, 1) as fallback
-    (1, 1)
+    // If no free position found, return None
+    None
 }
 
 /// Convert an ast::BoxBody into a BoxDef, processing all items
@@ -180,7 +203,16 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
                     } else {
-                        find_next_free_position(&occupied, grid)
+                        match find_next_free_position(&occupied, grid, (dim.height, dim.width)) {
+                            Some(pos) => pos,
+                            None => {
+                                let start = span.start();
+                                return Err(format!(
+                                    "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
+                                    filename, start.line(), start.col(), dim.height, dim.width, grid.0, grid.1
+                                ));
+                            }
+                        }
                     };
 
                     // Check for overlaps and mark occupied cells (including cells occupied by dim)
@@ -211,7 +243,16 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
                     } else {
-                        find_next_free_position(&occupied, grid)
+                        match find_next_free_position(&occupied, grid, (dim.height, dim.width)) {
+                            Some(pos) => pos,
+                            None => {
+                                let start = span.start();
+                                return Err(format!(
+                                    "{}:{}:{}: Cannot auto-position box '{}' with dim {}x{}. No free space available in {}x{} grid",
+                                    filename, start.line(), start.col(), def_name, dim.height, dim.width, grid.0, grid.1
+                                ));
+                            }
+                        }
                     };
 
                     // Check for overlaps and mark occupied cells (including cells occupied by dim)

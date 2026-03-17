@@ -421,8 +421,9 @@ fn flatten_boxes(
     canvas_width: usize,
     output: &mut Vec<DiagramBox>,
 ) {
-    // First, add the current box itself (if it has a title or color)
-    if box_def.title.is_some() || box_def.color.is_some() {
+    // First, add the current box itself (if it has a title, color, or children)
+    // Boxes with children should always be rendered to show their border
+    if box_def.title.is_some() || box_def.color.is_some() || !box_def.boxes.is_empty() {
         // Linear scaling based on box width relative to canvas
         let width_ratio = parent_width as f64 / canvas_width as f64;
         let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
