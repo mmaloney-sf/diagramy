@@ -96,6 +96,18 @@ where
     match error {
         ParseError::InvalidToken { location } => {
             let (line, col) = get_line_col(input, *location);
+
+            // Check if the invalid token is a semicolon
+            if let Some(line_text) = input.lines().nth(line - 1) {
+                if let Some(ch) = line_text.chars().nth(col - 1) {
+                    if ch == ';' {
+                        eprintln!("Parse error in {}: Remove the semicolon", filename);
+                        eprintln!("  Location: line {}, column {}", line, col);
+                        return;
+                    }
+                }
+            }
+
             eprintln!("Parse error in {}: InvalidToken", filename);
             eprintln!("  Location: line {}, column {}", line, col);
         }
@@ -109,6 +121,15 @@ where
         }
         ParseError::UnrecognizedToken { token: (start, tok, _end), expected } => {
             let (line, col) = get_line_col(input, *start);
+
+            // Check if the token is a semicolon
+            let token_str = tok.to_string();
+            if token_str == ";" {
+                eprintln!("Parse error in {}: Remove the semicolon", filename);
+                eprintln!("  Location: line {}, column {}", line, col);
+                return;
+            }
+
             eprintln!("Parse error in {}: UnrecognizedToken", filename);
             eprintln!("  Location: line {}, column {}", line, col);
             eprintln!("  Token: {}", tok);
@@ -118,6 +139,15 @@ where
         }
         ParseError::ExtraToken { token: (start, tok, _end) } => {
             let (line, col) = get_line_col(input, *start);
+
+            // Check if the token is a semicolon
+            let token_str = tok.to_string();
+            if token_str == ";" {
+                eprintln!("Parse error in {}: Remove the semicolon", filename);
+                eprintln!("  Location: line {}, column {}", line, col);
+                return;
+            }
+
             eprintln!("Parse error in {}: ExtraToken", filename);
             eprintln!("  Location: line {}, column {}", line, col);
             eprintln!("  Token: {}", tok);
@@ -150,12 +180,13 @@ fn main() {
             if args.parse {
                 println!("{:#?}", doc);
             } else if args.validate {
-                // For --validate, validate and then print AST
+                // For --validate, just validate (don't print AST)
                 if let Err(e) = diagramy::validation::validate(&doc, &input, &args.file) {
                     eprintln!("Validation error: {}", e);
                     std::process::exit(1);
                 }
-                println!("{:#?}", doc);
+                // Validation successful - exit without printing
+                std::process::exit(0);
             } else {
                 // For all other modes (convert, default render), validate first
                 if let Err(e) = diagramy::validation::validate(&doc, &input, &args.file) {
