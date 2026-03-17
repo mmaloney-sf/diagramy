@@ -70,7 +70,7 @@ Port: Port = {
 };
 
 Arrow: Arrow = {
-    <ll:@L> "arrow" <from:Ident> "to" <to:Ident> <props:("{" <Prop*> "}")?> <rr:@R> => {
+    <ll:@L> "arrow" <from:Ident> "to" <to:Ident> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
         let props = props.unwrap_or_default();
         Arrow { from, to, props, span: Span::from_offsets(source, ll, rr) }
     },

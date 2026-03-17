@@ -43,12 +43,12 @@
 ////////////////////////////////////////
 
     Port :=
-        "port" Ident "at" Coords ("is""PortBody)?
+        "port" Ident "at" CoordsFrac ("is" PortBody)?
 
     PortBody := "{" Prop* "}"
 
     Arrow :=
-        "arrow" Ident "to" Ident ArrowBody?
+        "arrow" Ident "to" Ident ("is" ArrowBody)?
 
     ArrowBody := "{" Prop* "}"
 
