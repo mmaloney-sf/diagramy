@@ -1,6 +1,10 @@
 # Diagramy
 
-A declarative markup language for creating grid-based block diagrams. Diagramy makes it easy to create clean, professional diagrams for system architectures, network topologies, and other structured visualizations.
+A declarative markup language for creating grid-based block diagrams.
+Diagramy makes it easy to create clean, professional diagrams for system architectures,
+network topologies, and other structured visualizations.
+
+![09_system_architecture](assets/images/09_system_architecture.svg)
 
 ## Features
 
