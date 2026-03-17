@@ -1,6 +1,6 @@
 // Validation for the AST
 
-use crate::ast::{Document, Prop, BoxBody, BoxItem};
+use crate::ast::{Document, Prop, BoxBody, BoxItem, Port};
 use std::collections::HashSet;
 
 // Valid colors from the color table in lib.rs
@@ -122,6 +122,8 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
                 for prop in &port.props {
                     validate_box_prop(prop, filename)?;
                 }
+                // Validate port coordinates are in bounds
+                validate_port_bounds(port, body, filename)?;
             }
             BoxItem::Arrow(arrow) => {
                 // Validate arrow properties
@@ -468,4 +470,75 @@ fn validate_box_body_references(
     }
     Ok(())
 }
+
+/// Validate that port coordinates are within bounds
+fn validate_port_bounds(port: &Port, body: &BoxBody, filename: &str) -> Result<(), String> {
+    // Extract the grid dimensions from the box body
+    let mut grid = (1, 1); // default grid
+    for item in &body.items {
+        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
+            if key == "grid" {
+                grid = (value.height, value.width);
+                break;
+            }
+        }
+    }
+
+    let (height, width) = grid;
+    let port_span = port.coords.span;
+    let start = port_span.start();
+
+    // Validate row (y-coordinate) is in bounds [0.0, HEIGHT]
+    if port.coords.row < 0.0 {
+        return Err(format!(
+            "{}:{}:{}: Port '{}' row coordinate {} is out of bounds (must be >= 0.0)",
+            filename,
+            start.line(),
+            start.col(),
+            port.name,
+            port.coords.row
+        ));
+    }
+    if port.coords.row > height as f64 {
+        return Err(format!(
+            "{}:{}:{}: Port '{}' row coordinate {} is out of bounds (must be <= {} for grid {}x{})",
+            filename,
+            start.line(),
+            start.col(),
+            port.name,
+            port.coords.row,
+            height,
+            height,
+            width
+        ));
+    }
+
+    // Validate col (x-coordinate) is in bounds [0.0, WIDTH]
+    if port.coords.col < 0.0 {
+        return Err(format!(
+            "{}:{}:{}: Port '{}' col coordinate {} is out of bounds (must be >= 0.0)",
+            filename,
+            start.line(),
+            start.col(),
+            port.name,
+            port.coords.col
+        ));
+    }
+    if port.coords.col > width as f64 {
+        return Err(format!(
+            "{}:{}:{}: Port '{}' col coordinate {} is out of bounds (must be <= {} for grid {}x{})",
+            filename,
+            start.line(),
+            start.col(),
+            port.name,
+            port.coords.col,
+            width,
+            height,
+            width
+        ));
+    }
+
+    Ok(())
+}
+
 

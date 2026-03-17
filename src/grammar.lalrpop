@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Arrow, Coords, CoordsFrac, Dim, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Arrow, Coords, CoordsFrac, Path, Dim, Span};
 
 grammar(source: &str);
 
@@ -70,7 +70,7 @@ Port: Port = {
 };
 
 Arrow: Arrow = {
-    <ll:@L> "arrow" <from:Ident> "to" <to:Ident> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
+    <ll:@L> "arrow" <from:Path> "to" <to:Path> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
         let props = props.unwrap_or_default();
         Arrow { from, to, props, span: Span::from_offsets(source, ll, rr) }
     },
@@ -82,6 +82,14 @@ Coords: Coords = {
 
 CoordsFrac: CoordsFrac = {
     <ll:@L> "(" <row:Frac> "," <col:Frac> ")" <rr:@R> => CoordsFrac { row, col, span: Span::from_offsets(source, ll, rr) },
+};
+
+Path: Path = {
+    <ll:@L> <first:Ident> <rest:("." <Ident>)*> <rr:@R> => {
+        let mut parts = vec![first];
+        parts.extend(rest);
+        Path { parts, span: Span::from_offsets(source, ll, rr) }
+    },
 };
 
 String: String = {

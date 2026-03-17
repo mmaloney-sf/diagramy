@@ -48,7 +48,7 @@
     PortBody := "{" Prop* "}"
 
     Arrow :=
-        "arrow" Ident "to" Ident ("is" ArrowBody)?
+        "arrow" Path "to" Path ("is" ArrowBody)?
 
     ArrowBody := "{" Prop* "}"
 
@@ -71,6 +71,8 @@
 
     Coords     := "(" Num "," Num ")"
     CoordsFrac := "(" Frac "," Frac ")"
+
+    Path := Ident ("." Ident")*
 
 
 ////////////////////////////////////////

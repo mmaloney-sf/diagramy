@@ -212,8 +212,8 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
             }
             ast::BoxItem::Arrow(arrow) => {
                 arrows.push(Arrow {
-                    from: arrow.from.clone(),
-                    to: arrow.to.clone(),
+                    from: arrow.from.to_string(),
+                    to: arrow.to.to_string(),
                 });
             }
             _ => {}

@@ -174,8 +174,8 @@ pub struct Port {
 
 #[derive(Debug, Clone)]
 pub struct Arrow {
-    pub from: String,
-    pub to: String,
+    pub from: Path,
+    pub to: Path,
     pub props: Vec<Prop>,
     pub span: Span,
 }
@@ -192,6 +192,22 @@ pub struct CoordsFrac {
     pub row: f64,
     pub col: f64,
     pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct Path {
+    pub parts: Vec<String>,
+    pub span: Span,
+}
+
+impl Path {
+    pub fn to_string(&self) -> String {
+        self.parts.join(".")
+    }
+
+    pub fn to_parts(&self) -> Vec<String> {
+        self.parts.clone()
+    }
 }
 
 #[derive(Debug, Clone)]
