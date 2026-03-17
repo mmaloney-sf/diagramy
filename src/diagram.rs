@@ -396,16 +396,16 @@ fn flatten_boxes(
     // Process all child boxes
     for child_box in &box_def.boxes {
         let (grid_row, grid_col) = child_box.pos;
+        let (span_height, span_width) = child_box.dim;
 
         // Calculate absolute position
         // Add padding to position to account for the title and side padding
         let abs_x = parent_x + padding_left + (grid_col * cell_width);
         let abs_y = parent_y + padding_top + (grid_row * cell_height);
 
-        // For now, assume each box takes one grid cell
-        // TODO: Support boxes that span multiple cells
-        let box_width = cell_width;
-        let box_height = cell_height;
+        // Box spans multiple cells based on dim field
+        let box_width = cell_width * span_width;
+        let box_height = cell_height * span_height;
 
         // Add 5% margin on each side
         let margin_x = (box_width as f64 * 0.05) as usize;

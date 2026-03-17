@@ -23,6 +23,7 @@ pub struct BoxDef {
 pub struct Box {
     pub def: Arc<BoxDef>,
     pub pos: (usize, usize),
+    pub dim: (usize, usize), // (height, width) - number of grid cells to span
 }
 
 /// Convert an ast::Document into a diagram::Diagram
@@ -145,21 +146,23 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
             match box_inst {
-                ast::BoxInst::WithBody { id: _, coords, dim: _, body } => {
+                ast::BoxInst::WithBody { id: _, coords, dim, body } => {
                     // Recursively convert the nested box body
                     let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
                     boxes.push(Box {
                         def: Arc::new(nested_def),
                         pos: (coords.row as usize, coords.col as usize),
+                        dim: (dim.height as usize, dim.width as usize),
                     });
                 }
-                ast::BoxInst::Reference { id: _, coords, dim: _, def_name, location } => {
+                ast::BoxInst::Reference { id: _, coords, dim, def_name, location } => {
                     // Look up the referenced box definition
                     if let Some(referenced_def) = box_def_map.get(def_name) {
                         let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;
                         boxes.push(Box {
                             def: Arc::new(nested_def),
                             pos: (coords.row as usize, coords.col as usize),
+                            dim: (dim.height as usize, dim.width as usize),
                         });
                     } else {
                         // Error: referenced box definition not found

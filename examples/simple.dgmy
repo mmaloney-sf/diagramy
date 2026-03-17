@@ -1,0 +1,22 @@
+version = 0.1.0
+
+diagram {
+    width: 400
+    color: blue
+    title: "Simple.dgmy"
+}
+
+box top {
+    grid: 2x2
+
+    box core0 at (0, 0) dim 1x2 {
+        color: green
+        text: "Core 0"
+        grid: 1x2
+    }
+
+    box core1 at (1, 1) {
+        color: green
+        text: "Core 1"
+    }
+}
