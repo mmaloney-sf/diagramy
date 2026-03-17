@@ -62,17 +62,15 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
 
     // Find the top box definition based on the following priority:
     // 1. If "top" property is specified in diagram section, use that BoxDef
-    // 2. Otherwise, if a box named "top" exists, use it
-    // 3. Otherwise, use the first box definition
-    // 4. If no box definitions exist, error out
+    // 2. Otherwise, use the first box definition
+    // 3. If no box definitions exist, error out
     let top_ast_def = if let Some(ref name) = top_name {
         // top: property was specified, look it up
         box_def_map.get(name).copied()
             .ok_or_else(|| format!("{}:0:0: No such box: {}", filename, name))?
     } else {
-        // No top: property, try "top" box or first box
-        box_def_map.get("top").copied()
-            .or_else(|| doc.box_defs.first())
+        // No top: property, use first box
+        doc.box_defs.first()
             .ok_or_else(|| format!("{}:0:0: Document must have at least one box definition", filename))?
     };
 
