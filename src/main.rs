@@ -26,11 +26,7 @@ struct Args {
     #[arg(long)]
     convert: bool,
 
-    /// Render the diagram to an SVG file
-    #[arg(long)]
-    render: bool,
-
-    /// Open the rendered SVG file after creation (requires --render)
+    /// Open the rendered SVG file after creation
     #[arg(long)]
     open: bool,
 
@@ -135,12 +131,6 @@ where
 fn main() {
     let args = Args::parse();
 
-    // Validate arguments
-    if args.open && !args.render {
-        eprintln!("Error: --open requires --render");
-        std::process::exit(1);
-    }
-
     // Read the input file
     let input = match fs::read_to_string(&args.file) {
         Ok(content) => content,
@@ -167,7 +157,7 @@ fn main() {
                 }
                 println!("{:#?}", doc);
             } else {
-                // For all other modes (convert, render, default), validate first
+                // For all other modes (convert, default render), validate first
                 if let Err(e) = diagramy::validation::validate(&doc, &input, &args.file) {
                     eprintln!("Validation error: {}", e);
                     std::process::exit(1);
@@ -189,7 +179,8 @@ fn main() {
                             std::process::exit(1);
                         }
                     }
-                } else if args.render {
+                } else {
+                    // Default behavior: render to SVG
                     // Convert AST to elaboration diagram
                     let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
                         Ok(diagram) => diagram,
@@ -228,8 +219,6 @@ fn main() {
                             std::process::exit(1);
                         }
                     }
-                } else {
-                    dbg!(&doc);
                 }
             }
         }
