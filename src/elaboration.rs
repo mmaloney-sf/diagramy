@@ -29,7 +29,7 @@ pub struct Box {
 pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<ElaboratedDiagram, String> {
     // Extract diagram-level properties
     let mut color = String::from("transparent");
-    let mut size = (800, 600); // default size
+    let mut width: Option<usize> = None;
     let mut title: Option<String> = None;
     let mut top_name: Option<String> = None;
 
@@ -41,8 +41,8 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
             ast::Prop::PropIdent { key, value } if key == "top" => {
                 top_name = Some(value.clone());
             }
-            ast::Prop::PropCoords { key, value } if key == "size" => {
-                size = (value.x as usize, value.y as usize);
+            ast::Prop::PropNumber { key, value } if key == "width" => {
+                width = Some(*value as usize);
             }
             ast::Prop::PropString { key, value } if key == "title" => {
                 title = Some(value.join("\n"));
@@ -75,6 +75,13 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
 
     // Convert the top box definition
     let top_box_def = convert_ast_box_body(&top_ast_def.body, &box_def_map, source, filename)?;
+
+    // Calculate size from width and grid aspect ratio
+    let width = width.unwrap_or(800); // default width
+    let (grid_x, grid_y) = top_box_def.grid;
+    let aspect_ratio = grid_y as f64 / grid_x as f64;
+    let height = (width as f64 * aspect_ratio) as usize;
+    let size = (width, height);
 
     Ok(ElaboratedDiagram {
         color,

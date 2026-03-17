@@ -201,7 +201,6 @@ fn main() {
 
                     // Convert elaboration diagram to renderable diagram
                     let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
-                    dbg!(&diagram);
 
                     // Determine output filename
                     let output_file = args.output.unwrap_or_else(|| {

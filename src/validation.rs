@@ -11,7 +11,7 @@ const VALID_COLORS: &[&str] = &[
 ];
 
 // Valid diagram-level properties
-const VALID_DIAGRAM_PROPS: &[&str] = &["size", "color", "title"];
+const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top"];
 
 // Valid box-level properties
 const VALID_BOX_PROPS: &[&str] = &["grid", "title", "color", "text", "margin"];
@@ -51,9 +51,9 @@ fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
 
         // Validate property types
         match key.as_str() {
-            "size" => {
-                if !matches!(prop, Prop::PropCoords { .. }) {
-                    return Err(format!("Property 'size' must be coordinates (x, y), got {:?}", prop));
+            "width" => {
+                if !matches!(prop, Prop::PropNumber { .. }) {
+                    return Err(format!("Property 'width' must be a number, got {:?}", prop));
                 }
             }
             "color" => {
@@ -66,6 +66,11 @@ fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
             "title" => {
                 if !matches!(prop, Prop::PropString { .. }) {
                     return Err(format!("Property 'title' must be a string, got {:?}", prop));
+                }
+            }
+            "top" => {
+                if !matches!(prop, Prop::PropIdent { .. }) {
+                    return Err(format!("Property 'top' must be an identifier, got {:?}", prop));
                 }
             }
             _ => {}
@@ -100,6 +105,9 @@ fn validate_box_body(body: &BoxBody) -> Result<(), String> {
 
     // Validate box positions if this box has a grid
     validate_box_positions(body)?;
+
+    // Validate that no two boxes have the same name
+    validate_unique_box_names(body)?;
 
     Ok(())
 }
@@ -219,6 +227,33 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
                 ));
             }
             positions.insert(pos);
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate that no two boxes have the same name within a parent
+fn validate_unique_box_names(body: &BoxBody) -> Result<(), String> {
+    let mut names: HashSet<String> = HashSet::new();
+
+    for item in &body.items {
+        if let BoxItem::BoxInst(box_inst) = item {
+            let id = match box_inst {
+                crate::ast::BoxInst::WithBody { id, .. } => id.as_ref(),
+                crate::ast::BoxInst::Reference { id, .. } => Some(id),
+            };
+
+            // Only check named boxes
+            if let Some(name) = id {
+                if names.contains(name) {
+                    return Err(format!(
+                        "Duplicate box name '{}'. Each box must have a unique name within its parent",
+                        name
+                    ));
+                }
+                names.insert(name.clone());
+            }
         }
     }
 
