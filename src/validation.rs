@@ -124,6 +124,10 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
                 }
                 // Validate port coordinates are in bounds
                 validate_port_bounds(port, body, filename)?;
+                // Validate port is not inside child boxes
+                validate_port_not_in_child_boxes(port, body, filename)?;
+                // Validate port is not too close to corners
+                validate_port_not_near_corners(port, body, filename)?;
             }
             BoxItem::Arrow(arrow) => {
                 // Validate arrow properties
@@ -536,6 +540,143 @@ fn validate_port_bounds(port: &Port, body: &BoxBody, filename: &str) -> Result<(
             height,
             width
         ));
+    }
+
+    Ok(())
+}
+
+/// Validate that a port is not inside any child boxes (excluding margins)
+fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str) -> Result<(), String> {
+    use crate::ast::{BoxItem, BoxInst, Prop};
+
+    // Get grid dimensions
+    let mut grid = (1, 1);
+    for item in &body.items {
+        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
+            if key == "grid" {
+                grid = (value.height, value.width);
+                break;
+            }
+        }
+    }
+
+    let (grid_height, grid_width) = grid;
+
+    // Track auto-positioning: boxes without explicit coords fill the grid in row-major order
+    let mut auto_row = 1;
+    let mut auto_col = 1;
+
+    // Check each child box
+    for item in &body.items {
+        if let BoxItem::BoxInst(box_inst) = item {
+            // Get position and dimensions of the child box
+            let (coords_opt, dimensions) = match box_inst {
+                BoxInst::WithBody { coords, dim, .. } => (coords.as_ref(), dim),
+                BoxInst::Reference { coords, dim, .. } => (coords.as_ref(), dim),
+            };
+
+            // Determine actual position (explicit or auto-positioned)
+            let (child_row, child_col) = if let Some(coords) = coords_opt {
+                (coords.row, coords.col)
+            } else {
+                // Auto-positioned box
+                let pos = (auto_row, auto_col);
+                // Advance auto-position for next box
+                auto_col += dimensions.width;
+                if auto_col > grid_width {
+                    auto_col = 1;
+                    auto_row += dimensions.height;
+                }
+                pos
+            };
+
+            // Convert grid coordinates to fractional coordinates
+            // Child box position is 1-based, convert to 0-based
+            let child_row_start = (child_row - 1) as f64;
+            let child_col_start = (child_col - 1) as f64;
+            let child_row_end = child_row_start + dimensions.height as f64;
+            let child_col_end = child_col_start + dimensions.width as f64;
+
+            // Scale to match port coordinate system (0.0 to grid dimensions)
+            let child_y_start = child_row_start * (grid_height as f64 / grid_height as f64);
+            let child_x_start = child_col_start * (grid_width as f64 / grid_width as f64);
+            let child_y_end = child_row_end * (grid_height as f64 / grid_height as f64);
+            let child_x_end = child_col_end * (grid_width as f64 / grid_width as f64);
+
+            // Check if port is inside this child box (excluding boundaries/margins)
+            if port.coords.row > child_y_start && port.coords.row < child_y_end &&
+               port.coords.col > child_x_start && port.coords.col < child_x_end {
+                let port_span = port.coords.span;
+                let start = port_span.start();
+                return Err(format!(
+                    "{}:{}:{}: Port '{}' at ({}, {}) is inside a child box at ({}, {})",
+                    filename,
+                    start.line(),
+                    start.col(),
+                    port.name,
+                    port.coords.row,
+                    port.coords.col,
+                    child_row,
+                    child_col
+                ));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate that a port is not too close to corners
+fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -> Result<(), String> {
+    use crate::ast::{BoxItem, Prop};
+
+    // Get grid dimensions
+    let mut grid = (1, 1);
+    for item in &body.items {
+        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
+            if key == "grid" {
+                grid = (value.height, value.width);
+                break;
+            }
+        }
+    }
+
+    let (height, width) = grid;
+
+    // Define padding as a small distance from corners
+    // Using a fixed padding value (could be made configurable)
+    let padding = 0.1; // 10% of a grid cell
+
+    let port_row = port.coords.row;
+    let port_col = port.coords.col;
+
+    // Check distance from each corner
+    let corners = [
+        (0.0, 0.0, "upper-left"),
+        (0.0, width as f64, "upper-right"),
+        (height as f64, 0.0, "lower-left"),
+        (height as f64, width as f64, "lower-right"),
+    ];
+
+    for (corner_row, corner_col, corner_name) in &corners {
+        let distance = ((port_row - corner_row).powi(2) + (port_col - corner_col).powi(2)).sqrt();
+
+        if distance < padding {
+            let port_span = port.coords.span;
+            let start = port_span.start();
+            return Err(format!(
+                "{}:{}:{}: Port '{}' at ({}, {}) is too close to the {} corner ({}, {})",
+                filename,
+                start.line(),
+                start.col(),
+                port.name,
+                port.coords.row,
+                port.coords.col,
+                corner_name,
+                corner_row,
+                corner_col
+            ));
+        }
     }
 
     Ok(())
