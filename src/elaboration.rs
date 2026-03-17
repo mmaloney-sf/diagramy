@@ -175,7 +175,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
             match box_inst {
-                ast::BoxInst::WithBody { id: _, coords, dim, body, .. } => {
+                ast::BoxInst::WithBody { id: _, coords, dim, body, span } => {
                     // Determine position (auto-position if coords is None)
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
@@ -183,9 +183,16 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         find_next_free_position(&occupied, grid)
                     };
 
-                    // Mark occupied cells (including cells occupied by dim)
+                    // Check for overlaps and mark occupied cells (including cells occupied by dim)
                     for r in row..(row + dim.height) {
                         for c in col..(col + dim.width) {
+                            if occupied.contains(&(r, c)) {
+                                let start = span.start();
+                                return Err(format!(
+                                    "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
+                                    filename, start.line(), start.col(), row, col, dim.height, dim.width, r, c
+                                ));
+                            }
                             occupied.insert((r, c));
                         }
                     }
@@ -207,9 +214,16 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         find_next_free_position(&occupied, grid)
                     };
 
-                    // Mark occupied cells (including cells occupied by dim)
+                    // Check for overlaps and mark occupied cells (including cells occupied by dim)
                     for r in row..(row + dim.height) {
                         for c in col..(col + dim.width) {
+                            if occupied.contains(&(r, c)) {
+                                let start = span.start();
+                                return Err(format!(
+                                    "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
+                                    filename, start.line(), start.col(), row, col, dim.height, dim.width, r, c
+                                ));
+                            }
                             occupied.insert((r, c));
                         }
                     }
