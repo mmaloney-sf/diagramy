@@ -14,9 +14,13 @@ struct Args {
     #[arg(required = true)]
     file: String,
 
-    /// Parse only and print AST (don't render)
+    /// Parse only and print AST (don't validate or render)
     #[arg(long)]
     parse: bool,
+
+    /// Parse and validate (print AST if valid)
+    #[arg(long)]
+    validate: bool,
 
     /// Convert AST to diagram and print (for testing)
     #[arg(long)]
@@ -152,66 +156,82 @@ fn main() {
     // Parse the file
     match parser.parse(&input) {
         Ok(doc) => {
+            // For --parse, just print the AST without validation
             if args.parse {
                 println!("{:#?}", doc);
-            } else if args.convert {
-                // Test the conversion function
-                match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
-                    Ok(diagram) => {
-                        println!("Converted diagram:");
-                        println!("  Color: {}", diagram.color);
-                        println!("  Size: {:?}", diagram.size);
-                        println!("  Top box grid: {:?}", diagram.top.grid);
-                        println!("  Top box title: {:?}", diagram.top.title);
-                        println!("  Top box has {} child boxes", diagram.top.boxes.len());
-                    }
-                    Err(e) => {
-                        eprintln!("Error: {}", e);
-                        std::process::exit(1);
-                    }
+            } else if args.validate {
+                // For --validate, validate and then print AST
+                if let Err(e) = diagramy::validation::validate(&doc) {
+                    eprintln!("Validation error: {}", e);
+                    std::process::exit(1);
                 }
-            } else if args.render {
-                // Convert AST to elaboration diagram
-                let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
-                    Ok(diagram) => diagram,
-                    Err(e) => {
-                        eprintln!("Error: {}", e);
-                        std::process::exit(1);
-                    }
-                };
+                println!("{:#?}", doc);
+            } else {
+                // For all other modes (convert, render, default), validate first
+                if let Err(e) = diagramy::validation::validate(&doc) {
+                    eprintln!("Validation error: {}", e);
+                    std::process::exit(1);
+                }
 
-                // Convert elaboration diagram to renderable diagram
-                let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
-                dbg!(&diagram);
-
-                // Determine output filename
-                let output_file = args.output.unwrap_or_else(|| {
-                    let input_path = Path::new(&args.file);
-                    let stem = input_path.file_stem().unwrap().to_str().unwrap();
-                    format!("{}.svg", stem)
-                });
-
-                // Render to SVG
-                let (width, height) = elab_diagram.size;
-                match diagram.render_to_svg(&output_file, width, height, args.font_size) {
-                    Ok(_) => {
-                        println!("Rendered diagram to: {}", output_file);
-
-                        // Open the file if requested
-                        if args.open {
-                            match open_file(&output_file) {
-                                Ok(_) => println!("Opened {}", output_file),
-                                Err(e) => eprintln!("Warning: {}", e),
-                            }
+                if args.convert {
+                    // Test the conversion function
+                    match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
+                        Ok(diagram) => {
+                            println!("Converted diagram:");
+                            println!("  Color: {}", diagram.color);
+                            println!("  Size: {:?}", diagram.size);
+                            println!("  Top box grid: {:?}", diagram.top.grid);
+                            println!("  Top box title: {:?}", diagram.top.title);
+                            println!("  Top box has {} child boxes", diagram.top.boxes.len());
+                        }
+                        Err(e) => {
+                            eprintln!("Error: {}", e);
+                            std::process::exit(1);
                         }
                     }
-                    Err(e) => {
-                        eprintln!("Error rendering diagram: {}", e);
-                        std::process::exit(1);
+                } else if args.render {
+                    // Convert AST to elaboration diagram
+                    let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
+                        Ok(diagram) => diagram,
+                        Err(e) => {
+                            eprintln!("Error: {}", e);
+                            std::process::exit(1);
+                        }
+                    };
+
+                    // Convert elaboration diagram to renderable diagram
+                    let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
+                    dbg!(&diagram);
+
+                    // Determine output filename
+                    let output_file = args.output.unwrap_or_else(|| {
+                        let input_path = Path::new(&args.file);
+                        let stem = input_path.file_stem().unwrap().to_str().unwrap();
+                        format!("{}.svg", stem)
+                    });
+
+                    // Render to SVG
+                    let (width, height) = elab_diagram.size;
+                    match diagram.render_to_svg(&output_file, width, height, args.font_size) {
+                        Ok(_) => {
+                            println!("Rendered diagram to: {}", output_file);
+
+                            // Open the file if requested
+                            if args.open {
+                                match open_file(&output_file) {
+                                    Ok(_) => println!("Opened {}", output_file),
+                                    Err(e) => eprintln!("Warning: {}", e),
+                                }
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("Error rendering diagram: {}", e);
+                            std::process::exit(1);
+                        }
                     }
+                } else {
+                    dbg!(&doc);
                 }
-            } else {
-                dbg!(&doc);
             }
         }
         Err(e) => {

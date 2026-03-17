@@ -11,6 +11,7 @@ use std::collections::HashMap;
 pub mod elaboration;
 pub mod diagram;
 pub mod ast;
+pub mod validation;
 // TODO: Update imports for new AST
 // use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
 
