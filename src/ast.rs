@@ -115,14 +115,14 @@ impl BoxItem {
 pub enum BoxInst {
     WithBody {
         id: Option<String>,
-        coords: Coords,
+        coords: Option<Coords>,
         dim: Dim,
         body: BoxBody,
         span: Span,
     },
     Reference {
         id: Option<String>,
-        coords: Coords,
+        coords: Option<Coords>,
         dim: Dim,
         def_name: String,
         location: (usize, usize), // (line, column) - deprecated, use span instead

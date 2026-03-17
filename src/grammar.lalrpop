@@ -50,11 +50,13 @@ BoxItem: BoxItem = {
 };
 
 BoxInst: BoxInst = {
-    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dim>)?> <body:BoxBody> <rr:@R> => {
+    // Box with body (has braces) - requires "is" keyword
+    <ll:@L> "box" <id:Ident?> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> "is" <body:BoxBody> <rr:@R> => {
         let dim = dim.unwrap_or(Dim { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
         BoxInst::WithBody { id, coords, dim, body, span: Span::from_offsets(source, ll, rr) }
     },
-    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dim>)?> <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
+    // Box reference (ends with identifier) - requires "is" keyword
+    <ll:@L> "box" <id:Ident?> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> "is" <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
         let dim = dim.unwrap_or(Dim { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
         BoxInst::Reference { id, coords, dim, def_name, location: (l, r), span: Span::from_offsets(source, ll, rr) }
     },

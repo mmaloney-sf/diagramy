@@ -1,5 +1,6 @@
 use std::sync::Arc;
 use std::collections::HashMap;
+use std::collections::HashSet;
 use crate::ast;
 
 #[derive(Debug)]
@@ -116,6 +117,24 @@ fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
     (line, col)
 }
 
+/// Find the next free grid position
+/// Returns (row, col) in 1-based indexing
+fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize)) -> (i32, i32) {
+    let (grid_rows, grid_cols) = grid;
+
+    // Scan from (1,1) to (1,n), then (2,1) to (2,n), etc.
+    for row in 1..=(grid_rows as i32) {
+        for col in 1..=(grid_cols as i32) {
+            if !occupied.contains(&(row, col)) {
+                return (row, col);
+            }
+        }
+    }
+
+    // If no free position found, return (1, 1) as fallback
+    (1, 1)
+}
+
 /// Convert an ast::BoxBody into a BoxDef, processing all items
 fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast::BoxDef>, source: &str, filename: &str) -> Result<BoxDef, String> {
     let mut grid = (1, 1); // default grid
@@ -149,28 +168,59 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
         }
     }
 
-    // Second pass: process box instances
+    // Second pass: process box instances with auto-positioning
+    // Track occupied grid cells for auto-positioning
+    let mut occupied: HashSet<(i32, i32)> = HashSet::new();
+
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
             match box_inst {
                 ast::BoxInst::WithBody { id: _, coords, dim, body, .. } => {
+                    // Determine position (auto-position if coords is None)
+                    let (row, col) = if let Some(c) = coords {
+                        (c.row, c.col)
+                    } else {
+                        find_next_free_position(&occupied, grid)
+                    };
+
+                    // Mark occupied cells (including cells occupied by dim)
+                    for r in row..(row + dim.height) {
+                        for c in col..(col + dim.width) {
+                            occupied.insert((r, c));
+                        }
+                    }
+
                     // Recursively convert the nested box body
                     let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
                     boxes.push(Box {
                         def: Arc::new(nested_def),
                         // Convert from 1-based to 0-based indexing
-                        pos: ((coords.row - 1) as usize, (coords.col - 1) as usize),
+                        pos: ((row - 1) as usize, (col - 1) as usize),
                         dim: (dim.height as usize, dim.width as usize),
                     });
                 }
                 ast::BoxInst::Reference { id: _, coords, dim, def_name, location: _, span } => {
+                    // Determine position (auto-position if coords is None)
+                    let (row, col) = if let Some(c) = coords {
+                        (c.row, c.col)
+                    } else {
+                        find_next_free_position(&occupied, grid)
+                    };
+
+                    // Mark occupied cells (including cells occupied by dim)
+                    for r in row..(row + dim.height) {
+                        for c in col..(col + dim.width) {
+                            occupied.insert((r, c));
+                        }
+                    }
+
                     // Look up the referenced box definition
                     if let Some(referenced_def) = box_def_map.get(def_name) {
                         let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;
                         boxes.push(Box {
                             def: Arc::new(nested_def),
                             // Convert from 1-based to 0-based indexing
-                            pos: ((coords.row - 1) as usize, (coords.col - 1) as usize),
+                            pos: ((row - 1) as usize, (col - 1) as usize),
                             dim: (dim.height as usize, dim.width as usize),
                         });
                     } else {

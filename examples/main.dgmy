@@ -9,18 +9,18 @@ diagram {
 box top {
     grid: 3x3
 
-    box core0 at (2, 2) {
+    box core0 at (2, 2) is {
         color: green
         text: "Core 1"
     }
 
-    box core1 at (2, 3) {
+    box core1 at (2, 3) is {
         color: green
         text: "Core 2"
     }
 
-    box ecc0 at (1, 1) ECC
-    box ecc1 at (2, 1) ECC
+    box ecc0 at (1, 1) is ECC
+    box ecc1 at (2, 1) is ECC
 }
 
 box ECC {
@@ -28,14 +28,14 @@ box ECC {
 
     grid: 3x4
 
-    box dataRam at (1, 1) {
+    box dataRam at (1, 1) is {
         text: "Data"
               "RAM"
     }
-    box tagRam at (3, 1) {
+    box tagRam at (3, 1) is {
         text: "Tag RAM"
     }
-    box errorBank at (1, 4) {
+    box errorBank at (1, 4) is {
         text: "Error"
               "Bank"
         color: red

@@ -251,9 +251,15 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
         if let BoxItem::BoxInst(box_inst) = item {
             let span = box_inst.span();
             let start = span.start();
-            let (coords, dim) = match box_inst {
+            let (coords_opt, dim) = match box_inst {
                 crate::ast::BoxInst::WithBody { coords, dim, .. } => (coords, dim),
                 crate::ast::BoxInst::Reference { coords, dim, .. } => (coords, dim),
+            };
+
+            // Skip validation if coords is None (auto-positioning will be done during elaboration)
+            let coords = match coords_opt {
+                Some(c) => c,
+                None => continue,
             };
 
             // Check if position is within grid bounds (1-based indexing)
