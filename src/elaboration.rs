@@ -130,14 +130,24 @@ fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
 }
 
 /// Find the next free grid position that can fit a box with the given dimensions
+/// Starts scanning from the position FOLLOWING last_pos
 /// Returns Some((row, col)) in 1-based indexing, or None if no position found
-fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize), dim: (i32, i32)) -> Option<(i32, i32)> {
+fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize), dim: (i32, i32), last_pos: (i32, i32)) -> Option<(i32, i32)> {
     let (grid_rows, grid_cols) = grid;
     let (dim_height, dim_width) = dim;
+    let (last_row, last_col) = last_pos;
 
-    // Scan from (1,1) to (1,n), then (2,1) to (2,n), etc.
-    for row in 1..=(grid_rows as i32) {
-        for col in 1..=(grid_cols as i32) {
+    // Calculate the starting position (next position after last_pos)
+    let (start_row, start_col) = if last_col >= grid_cols as i32 {
+        (last_row + 1, 1)
+    } else {
+        (last_row, last_col + 1)
+    };
+
+    // Scan from start position to end of grid
+    for row in start_row..=(grid_rows as i32) {
+        let col_start = if row == start_row { start_col } else { 1 };
+        for col in col_start..=(grid_cols as i32) {
             // Check if the box would fit within grid bounds
             let end_row = row + dim_height - 1;
             let end_col = col + dim_width - 1;
@@ -223,6 +233,8 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     // Second pass: process box instances with auto-positioning
     // Track occupied grid cells for auto-positioning
     let mut occupied: HashSet<(i32, i32)> = HashSet::new();
+    // Track the last position for auto-positioning
+    let mut last_pos = (1, 0); // Start before (1, 1)
 
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
@@ -232,7 +244,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
                     } else {
-                        match find_next_free_position(&occupied, grid, (dim.height, dim.width)) {
+                        match find_next_free_position(&occupied, grid, (dim.height, dim.width), last_pos) {
                             Some(pos) => pos,
                             None => {
                                 let start = span.start();
@@ -243,6 +255,9 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                             }
                         }
                     };
+
+                    // Update last position
+                    last_pos = (row, col);
 
                     // Check for overlaps and mark occupied cells (including cells occupied by dim)
                     for r in row..(row + dim.height) {
@@ -272,7 +287,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
                     } else {
-                        match find_next_free_position(&occupied, grid, (dim.height, dim.width)) {
+                        match find_next_free_position(&occupied, grid, (dim.height, dim.width), last_pos) {
                             Some(pos) => pos,
                             None => {
                                 let start = span.start();
@@ -283,6 +298,9 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                             }
                         }
                     };
+
+                    // Update last position
+                    last_pos = (row, col);
 
                     // Check for overlaps and mark occupied cells (including cells occupied by dim)
                     for r in row..(row + dim.height) {

@@ -545,6 +545,57 @@ fn validate_port_bounds(port: &Port, body: &BoxBody, filename: &str) -> Result<(
     Ok(())
 }
 
+/// Find the next free grid position that can fit a box with the given dimensions
+/// Starts scanning from the position FOLLOWING last_pos
+/// Returns Some((row, col)) in 1-based indexing, or None if no position found
+fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (i32, i32), dim: (i32, i32), last_pos: (i32, i32)) -> Option<(i32, i32)> {
+    let (grid_rows, grid_cols) = grid;
+    let (dim_height, dim_width) = dim;
+    let (last_row, last_col) = last_pos;
+
+    // Calculate the starting position (next position after last_pos)
+    let (start_row, start_col) = if last_col >= grid_cols {
+        (last_row + 1, 1)
+    } else {
+        (last_row, last_col + 1)
+    };
+
+    // Scan from start position to end of grid
+    for row in start_row..=grid_rows {
+        let col_start = if row == start_row { start_col } else { 1 };
+        for col in col_start..=grid_cols {
+            // Check if the box would fit within grid bounds
+            let end_row = row + dim_height - 1;
+            let end_col = col + dim_width - 1;
+
+            if end_row > grid_rows || end_col > grid_cols {
+                continue; // Box doesn't fit within grid bounds at this position
+            }
+
+            // Check if all cells needed by this box are free
+            let mut all_free = true;
+            for r in row..=end_row {
+                for c in col..=end_col {
+                    if occupied.contains(&(r, c)) {
+                        all_free = false;
+                        break;
+                    }
+                }
+                if !all_free {
+                    break;
+                }
+            }
+
+            if all_free {
+                return Some((row, col));
+            }
+        }
+    }
+
+    // If no free position found, return None
+    None
+}
+
 /// Validate that a port is not inside any child boxes (excluding margins)
 fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str) -> Result<(), String> {
     use crate::ast::{BoxItem, BoxInst, Prop};
@@ -562,9 +613,10 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
 
     let (grid_height, grid_width) = grid;
 
-    // Track auto-positioning: boxes without explicit coords fill the grid in row-major order
-    let mut auto_row = 1;
-    let mut auto_col = 1;
+    // Track occupied cells for auto-positioning
+    let mut occupied: HashSet<(i32, i32)> = HashSet::new();
+    // Track the last position for auto-positioning
+    let mut last_pos = (1, 0); // Start before (1, 1)
 
     // Check each child box
     for item in &body.items {
@@ -579,16 +631,26 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
             let (child_row, child_col) = if let Some(coords) = coords_opt {
                 (coords.row, coords.col)
             } else {
-                // Auto-positioned box
-                let pos = (auto_row, auto_col);
-                // Advance auto-position for next box
-                auto_col += dimensions.width;
-                if auto_col > grid_width {
-                    auto_col = 1;
-                    auto_row += dimensions.height;
+                // Auto-positioned box - find next free position
+                match find_next_free_position(&occupied, grid, (dimensions.height, dimensions.width), last_pos) {
+                    Some(pos) => pos,
+                    None => {
+                        // No free space - skip this box for validation purposes
+                        // (elaboration will catch this error)
+                        continue;
+                    }
                 }
-                pos
             };
+
+            // Update last position
+            last_pos = (child_row, child_col);
+
+            // Mark occupied cells
+            for r in child_row..(child_row + dimensions.height) {
+                for c in child_col..(child_col + dimensions.width) {
+                    occupied.insert((r, c));
+                }
+            }
 
             // Convert grid coordinates to fractional coordinates
             // Child box position is 1-based, convert to 0-based
