@@ -156,16 +156,29 @@ fn main() {
                 println!("{:#?}", doc);
             } else if args.convert {
                 // Test the conversion function
-                let diagram = diagramy::elaboration::from_ast(&doc);
-                println!("Converted diagram:");
-                println!("  Color: {}", diagram.color);
-                println!("  Size: {:?}", diagram.size);
-                println!("  Top box grid: {:?}", diagram.top.grid);
-                println!("  Top box title: {:?}", diagram.top.title);
-                println!("  Top box has {} child boxes", diagram.top.boxes.len());
+                match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
+                    Ok(diagram) => {
+                        println!("Converted diagram:");
+                        println!("  Color: {}", diagram.color);
+                        println!("  Size: {:?}", diagram.size);
+                        println!("  Top box grid: {:?}", diagram.top.grid);
+                        println!("  Top box title: {:?}", diagram.top.title);
+                        println!("  Top box has {} child boxes", diagram.top.boxes.len());
+                    }
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        std::process::exit(1);
+                    }
+                }
             } else if args.render {
                 // Convert AST to elaboration diagram
-                let elab_diagram = diagramy::elaboration::from_ast(&doc);
+                let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
+                    Ok(diagram) => diagram,
+                    Err(e) => {
+                        eprintln!("Error: {}", e);
+                        std::process::exit(1);
+                    }
+                };
 
                 // Convert elaboration diagram to renderable diagram
                 let diagram = diagramy::diagram::from_elaboration(&elab_diagram);

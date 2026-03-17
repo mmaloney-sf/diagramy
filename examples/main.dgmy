@@ -3,7 +3,7 @@ version = 0.1.0
 diagram {
     size: (800, 600)
     color: blue
-    title: "Hello"
+    title: "main.dgmy"
 }
 
 box top {
@@ -17,5 +17,28 @@ box top {
     box core at (2, 1) {
         color: green
         text: "Core 2"
+    }
+
+    box ecc0 at (0, 0) ECC
+    box ecc1 at (0, 0) ECC
+}
+
+box ECC {
+    title: "ECC"
+    color: blue
+
+    grid: (4, 3)
+
+    box dataRam at (0, 0) {
+        title: "Data"
+               "RAM"
+    }
+    box tagRam at (0, 2) {
+        title: "Tag RAM"
+    }
+    box errorBank at (3, 0) {
+        title: "Error" 
+               "Bank"
+        color: red
     }
 }

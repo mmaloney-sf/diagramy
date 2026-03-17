@@ -41,14 +41,16 @@ pub enum BoxInst {
         id: String,
         coords: Coords,
         def_name: String,
+        location: (usize, usize), // (line, column)
     },
 }
 
 #[derive(Debug, Clone)]
 pub enum Prop {
     PropIdent { key: String, value: String },
-    PropString { key: String, value: String },
+    PropString { key: String, value: Vec<String> },
     PropNumber { key: String, value: i32 },
+    PropFrac { key: String, value: f64 },
     PropCoords { key: String, value: Coords },
 }
 
