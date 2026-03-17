@@ -9,13 +9,13 @@ diagram {
 box top {
     grid: 2x2
 
-    box core0 at (0, 0) dim 1x2 {
+    box core0 at (1, 1) dim 1x2 {
         color: green
         text: "Core 0"
         grid: 1x2
     }
 
-    box core1 at (1, 1) {
+    box core1 at (2, 2) {
         color: green
         text: "Core 1"
     }

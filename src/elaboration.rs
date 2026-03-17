@@ -151,7 +151,8 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
                     boxes.push(Box {
                         def: Arc::new(nested_def),
-                        pos: (coords.row as usize, coords.col as usize),
+                        // Convert from 1-based to 0-based indexing
+                        pos: ((coords.row - 1) as usize, (coords.col - 1) as usize),
                         dim: (dim.height as usize, dim.width as usize),
                     });
                 }
@@ -161,7 +162,8 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;
                         boxes.push(Box {
                             def: Arc::new(nested_def),
-                            pos: (coords.row as usize, coords.col as usize),
+                            // Convert from 1-based to 0-based indexing
+                            pos: ((coords.row - 1) as usize, (coords.col - 1) as usize),
                             dim: (dim.height as usize, dim.width as usize),
                         });
                     } else {

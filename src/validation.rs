@@ -187,7 +187,7 @@ fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dimensions> {
     None
 }
 
-/// Validate that all child box positions are within grid bounds and unique
+/// Validate that all child box positions are within grid bounds and don't overlap
 fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
     // Get the grid size if it exists
     let grid_size = match get_grid_size(body) {
@@ -195,40 +195,63 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
         None => return Ok(()), // No grid, no position validation needed
     };
 
-    // Collect all box positions
-    let mut positions: HashSet<(i32, i32)> = HashSet::new();
+    // Track which cells are occupied
+    let mut occupied_cells: HashSet<(i32, i32)> = HashSet::new();
 
     for item in &body.items {
         if let BoxItem::BoxInst(box_inst) = item {
-            let coords = match box_inst {
-                crate::ast::BoxInst::WithBody { coords, .. } => coords,
-                crate::ast::BoxInst::Reference { coords, .. } => coords,
+            let (coords, dim) = match box_inst {
+                crate::ast::BoxInst::WithBody { coords, dim, .. } => (coords, dim),
+                crate::ast::BoxInst::Reference { coords, dim, .. } => (coords, dim),
             };
 
-            // Check if position is within grid bounds
-            if coords.row < 0 || coords.row >= grid_size.height {
+            // Check if position is within grid bounds (1-based indexing)
+            if coords.row < 1 || coords.row > grid_size.height {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [0, {})",
+                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [1, {}]",
                     coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
                 ));
             }
 
-            if coords.col < 0 || coords.col >= grid_size.width {
+            if coords.col < 1 || coords.col > grid_size.width {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [0, {})",
+                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [1, {}]",
                     coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
                 ));
             }
 
-            // Check for duplicate positions
-            let pos = (coords.row, coords.col);
-            if positions.contains(&pos) {
+            // Check if box with dim fits within grid bounds (1-based indexing)
+            // For 1-based indexing, a box at (1, 1) with dim 1x2 occupies cells (1, 1) and (1, 2)
+            let end_row = coords.row + dim.height - 1;
+            let end_col = coords.col + dim.width - 1;
+
+            if end_row > grid_size.height {
                 return Err(format!(
-                    "Duplicate box position ({}, {}). Each box must have a unique position within its parent",
-                    coords.row, coords.col
+                    "Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
+                    coords.row, coords.col, dim.height, dim.width, end_row, grid_size.height
                 ));
             }
-            positions.insert(pos);
+
+            if end_col > grid_size.width {
+                return Err(format!(
+                    "Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
+                    coords.row, coords.col, dim.height, dim.width, end_col, grid_size.width
+                ));
+            }
+
+            // Check for overlapping cells
+            for row in coords.row..=end_row {
+                for col in coords.col..=end_col {
+                    let cell = (row, col);
+                    if occupied_cells.contains(&cell) {
+                        return Err(format!(
+                            "Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
+                            coords.row, coords.col, dim.height, dim.width, row, col
+                        ));
+                    }
+                    occupied_cells.insert(cell);
+                }
+            }
         }
     }
 
