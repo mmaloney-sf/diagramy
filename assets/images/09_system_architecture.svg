@@ -1,72 +1,21 @@
-<svg height="800" viewBox="0 0 800 800" width="800" xmlns="http://www.w3.org/2000/svg">
+<svg height="1200" viewBox="0 0 800 1200" width="800" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
-<rect fill="transparent" height="706" rx="10" ry="10" stroke="#333" stroke-width="3" width="706" x="47" y="47"/>
-<rect fill="transparent" height="424" rx="10" ry="10" stroke="#333" stroke-dasharray="18,9" stroke-width="3" width="424" x="70" y="70"/>
-<rect fill="#DEE8ED" height="340" rx="8.5" ry="8.5" stroke="#333" stroke-width="1.7" width="170" x="91" y="112"/>
-<rect fill="transparent" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="154" x="99" y="123"/>
-<rect fill="transparent" height="91" rx="3.45" ry="3.45" stroke="#333" stroke-width="0.69" width="69" x="99" y="236"/>
-<rect fill="transparent" height="91" rx="3.45" ry="3.45" stroke="#333" stroke-width="0.69" width="69" x="184" y="236"/>
-<rect fill="transparent" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="154" x="99" y="349"/>
-<rect fill="#DEE8ED" height="340" rx="8.5" ry="8.5" stroke="#333" stroke-width="1.7" width="170" x="303" y="112"/>
-<rect fill="transparent" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="154" x="311" y="123"/>
-<rect fill="transparent" height="91" rx="3.45" ry="3.45" stroke="#333" stroke-width="0.69" width="69" x="311" y="236"/>
-<rect fill="transparent" height="91" rx="3.45" ry="3.45" stroke="#333" stroke-width="0.69" width="69" x="396" y="236"/>
-<rect fill="transparent" height="91" rx="4.55" ry="4.55" stroke="#333" stroke-width="0.91" width="154" x="311" y="349"/>
-<rect fill="#DEE8E8" height="424" rx="9.45" ry="9.45" stroke="#333" stroke-width="1.89" width="189" x="540" y="70"/>
-<rect fill="#DEE8E3" height="189" rx="9.45" ry="9.45" stroke="#333" stroke-width="1.89" width="189" x="70" y="540"/>
-<rect fill="transparent" height="76" rx="3.8" ry="3.8" stroke="#333" stroke-width="0.76" width="153" x="88" y="549"/>
-<rect fill="transparent" height="76" rx="3.8" ry="3.8" stroke="#333" stroke-width="0.76" width="153" x="88" y="643"/>
-<rect fill="#DEE8E3" height="189" rx="9.45" ry="9.45" stroke="#333" stroke-width="1.89" width="189" x="305" y="540"/>
-<rect fill="transparent" height="76" rx="3.8" ry="3.8" stroke="#333" stroke-width="0.76" width="153" x="323" y="549"/>
-<rect fill="transparent" height="76" rx="3.8" ry="3.8" stroke="#333" stroke-width="0.76" width="153" x="323" y="643"/>
-<rect fill="#E8E8DE" height="189" rx="9.45" ry="9.45" stroke="#333" stroke-width="1.89" width="189" x="540" y="540"/>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="176" y="175">
+<rect fill="#DEE8ED" height="1106" rx="10" ry="10" stroke="#333" stroke-width="3" width="706" x="47" y="47"/>
+<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.96" width="636" x="82" y="83"/>
+<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.83" width="283" x="82" y="451"/>
+<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.83" width="283" x="435" y="451"/>
+<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.96" width="636" x="82" y="819"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="400" y="239">
 Control Unit
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="133" y="288">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="223" y="606">
 ALU
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="218" y="288">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="576" y="606">
 FPU
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="176" y="401">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="400" y="975">
 Cache L1
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="388" y="175">
-Control Unit
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="345" y="288">
-ALU
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="430" y="288">
-FPU
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="388" y="401">
-Cache L1
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="634" y="282">
-L2 Cache
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="634" y="295">
-Shared
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="164" y="594">
-RAM
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="164" y="688">
-Controller
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="399" y="594">
-RAM
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="399" y="688">
-Controller
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="634" y="634">
-I/O
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="634" y="647">
-Controller
 </text>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="400" y="37">
 Computer System Architecture

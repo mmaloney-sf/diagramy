@@ -4,4 +4,11 @@ build:
 install:
 	cargo install --locked --path .
 
-.PHONY: build install
+assets: build
+	@mkdir -p assets/images
+	@for file in examples/*.dgmy; do \
+		basename=$$(basename $$file .dgmy); \
+		./target/release/dgmy $$file -o assets/images/$$basename.svg; \
+	done
+
+.PHONY: build install assets

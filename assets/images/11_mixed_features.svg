@@ -1,64 +1,21 @@
-<svg height="600" viewBox="0 0 900 600" width="900" xmlns="http://www.w3.org/2000/svg">
+<svg height="900" viewBox="0 0 900 900" width="900" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
-<rect fill="transparent" height="506" rx="10" ry="10" stroke="#333" stroke-width="3" width="806" x="47" y="47"/>
-<rect fill="#DEE8ED" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="778" x="60" y="59"/>
-<rect fill="#E8DEDD" height="228" rx="10" ry="10" stroke="#333" stroke-width="2.28" width="242" x="60" y="185"/>
-<rect fill="#DEE8E3" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="108" x="328" y="185"/>
-<rect fill="#E8E8DE" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="108" x="462" y="185"/>
-<rect fill="#DEE8E8" height="228" rx="10" ry="10" stroke="#333" stroke-dasharray="13.68,6.84" stroke-width="2.28" width="242" x="596" y="185"/>
-<rect fill="transparent" height="92" rx="4.6" ry="4.6" stroke="#333" stroke-width="0.92" width="97" x="608" y="196"/>
-<rect fill="transparent" height="92" rx="4.6" ry="4.6" stroke="#333" stroke-width="0.92" width="97" x="729" y="196"/>
-<rect fill="transparent" height="92" rx="4.6" ry="4.6" stroke="#333" stroke-width="0.92" width="97" x="608" y="310"/>
-<rect fill="transparent" height="92" rx="4.6" ry="4.6" stroke="#333" stroke-width="0.92" width="97" x="729" y="310"/>
-<rect fill="transparent" height="102" rx="5.1" ry="5.1" stroke="transparent" stroke-width="0" width="242" x="60" y="437"/>
-<rect fill="#E3DEE8" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="108" x="328" y="311"/>
-<rect fill="#E8E3DE" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="108" x="462" y="311"/>
-<rect fill="#E8DEE3" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="108" x="328" y="437"/>
-<rect fill="#DEE8E8" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="108" x="462" y="437"/>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="17" text-anchor="middle" x="449" y="119">
-System Header
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="181" y="292">
-Large
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="181" y="306">
-Component
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="181" y="320">
-(2x2)
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="382" y="243">
-Small
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="516" y="243">
-Small
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="656" y="249">
+<rect fill="#DEE8E8" height="806" rx="10" ry="10" stroke="#333" stroke-dasharray="18,9" stroke-width="3" width="806" x="47" y="47"/>
+<rect fill="transparent" height="323" rx="10" ry="10" stroke="#333" stroke-width="3" width="323" x="87" y="87"/>
+<rect fill="transparent" height="323" rx="10" ry="10" stroke="#333" stroke-width="3" width="323" x="490" y="87"/>
+<rect fill="transparent" height="323" rx="10" ry="10" stroke="#333" stroke-width="3" width="323" x="87" y="490"/>
+<rect fill="transparent" height="323" rx="10" ry="10" stroke="#333" stroke-width="3" width="323" x="490" y="490"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="248" y="255">
 Input
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="777" y="249">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="651" y="255">
 Process
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="656" y="363">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="248" y="658">
 Output
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="777" y="363">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="651" y="658">
 Control
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="181" y="495">
-Footer Label
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="382" y="369">
-Box
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="516" y="369">
-Box
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="382" y="495">
-Box
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="516" y="495">
-Box
 </text>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="450" y="37">
 Mixed Features Demo
