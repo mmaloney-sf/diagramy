@@ -71,7 +71,7 @@ Port: Port = {
 };
 
 Coords: Coords = {
-    "(" <x:Num> "," <y:Num> ")" => Coords { x, y },
+    "(" <row:Num> "," <col:Num> ")" => Coords { row, col },
 };
 
 String: String = {

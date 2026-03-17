@@ -61,6 +61,6 @@ pub struct Port {
 
 #[derive(Debug, Clone)]
 pub struct Coords {
-    pub x: i32,
-    pub y: i32,
+    pub row: i32,
+    pub col: i32,
 }

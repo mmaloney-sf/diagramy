@@ -77,9 +77,10 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
     let top_box_def = convert_ast_box_body(&top_ast_def.body, &box_def_map, source, filename)?;
 
     // Calculate size from width and grid aspect ratio
+    // grid is now (rows, cols), so aspect_ratio = rows / cols
     let width = width.unwrap_or(800); // default width
-    let (grid_x, grid_y) = top_box_def.grid;
-    let aspect_ratio = grid_y as f64 / grid_x as f64;
+    let (grid_rows, grid_cols) = top_box_def.grid;
+    let aspect_ratio = grid_rows as f64 / grid_cols as f64;
     let height = (width as f64 * aspect_ratio) as usize;
     let size = (width, height);
 
@@ -124,7 +125,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
         if let ast::BoxItem::Prop(prop) = item {
             match prop {
                 ast::Prop::PropCoords { key, value } if key == "grid" => {
-                    grid = (value.x as usize, value.y as usize);
+                    grid = (value.row as usize, value.col as usize);
                 }
                 ast::Prop::PropString { key, value } if key == "title" || key == "text" => {
                     title = Some(value.join("\n"));
@@ -149,7 +150,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
                     boxes.push(Box {
                         def: Arc::new(nested_def),
-                        pos: (coords.x as usize, coords.y as usize),
+                        pos: (coords.row as usize, coords.col as usize),
                     });
                 }
                 ast::BoxInst::Reference { id: _, coords, def_name, location } => {
@@ -158,7 +159,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;
                         boxes.push(Box {
                             def: Arc::new(nested_def),
-                            pos: (coords.x as usize, coords.y as usize),
+                            pos: (coords.row as usize, coords.col as usize),
                         });
                     } else {
                         // Error: referenced box definition not found

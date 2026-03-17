@@ -25,7 +25,7 @@ pub struct Diagram {
 /// A box in the diagram with absolute position and size
 #[derive(Debug)]
 pub struct DiagramBox {
-    /// Absolute position (x, y) in the diagram coordinate space
+    /// Absolute position in the diagram coordinate space
     pub pos: (usize, usize),
     /// Absolute size (width, height) in the diagram coordinate space
     pub size: (usize, usize),
@@ -384,7 +384,7 @@ fn flatten_boxes(
         (0, 0, 0, 0)
     };
 
-    let (grid_cols, grid_rows) = box_def.grid;
+    let (grid_rows, grid_cols) = box_def.grid;
 
     // Calculate cell size based on parent dimensions and grid
     // Subtract padding from available space
@@ -395,12 +395,12 @@ fn flatten_boxes(
 
     // Process all child boxes
     for child_box in &box_def.boxes {
-        let (grid_x, grid_y) = child_box.pos;
+        let (grid_row, grid_col) = child_box.pos;
 
         // Calculate absolute position
         // Add padding to position to account for the title and side padding
-        let abs_x = parent_x + padding_left + (grid_x * cell_width);
-        let abs_y = parent_y + padding_top + (grid_y * cell_height);
+        let abs_x = parent_x + padding_left + (grid_col * cell_width);
+        let abs_y = parent_y + padding_top + (grid_row * cell_height);
 
         // For now, assume each box takes one grid cell
         // TODO: Support boxes that span multiple cells

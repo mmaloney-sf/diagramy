@@ -135,7 +135,7 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
     match key.as_str() {
         "grid" => {
             if !matches!(prop, Prop::PropCoords { .. }) {
-                return Err(format!("Property 'grid' must be coordinates (x, y), got {:?}", prop));
+                return Err(format!("Property 'grid' must be coordinates (row, col), got {:?}", prop));
             }
         }
         "title" | "text" => {
@@ -204,26 +204,26 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
             };
 
             // Check if position is within grid bounds
-            if coords.x < 0 || coords.x >= grid_size.x {
+            if coords.row < 0 || coords.row >= grid_size.row {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is ({}, {}), so x must be in range [0, {})",
-                    coords.x, coords.y, grid_size.x, grid_size.y, grid_size.x
+                    "Box position ({}, {}) is out of bounds. Grid size is ({}, {}), so row must be in range [0, {})",
+                    coords.row, coords.col, grid_size.row, grid_size.col, grid_size.row
                 ));
             }
 
-            if coords.y < 0 || coords.y >= grid_size.y {
+            if coords.col < 0 || coords.col >= grid_size.col {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is ({}, {}), so y must be in range [0, {})",
-                    coords.x, coords.y, grid_size.x, grid_size.y, grid_size.y
+                    "Box position ({}, {}) is out of bounds. Grid size is ({}, {}), so col must be in range [0, {})",
+                    coords.row, coords.col, grid_size.row, grid_size.col, grid_size.col
                 ));
             }
 
             // Check for duplicate positions
-            let pos = (coords.x, coords.y);
+            let pos = (coords.row, coords.col);
             if positions.contains(&pos) {
                 return Err(format!(
                     "Duplicate box position ({}, {}). Each box must have a unique position within its parent",
-                    coords.x, coords.y
+                    coords.row, coords.col
                 ));
             }
             positions.insert(pos);
