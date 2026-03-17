@@ -35,11 +35,13 @@ pub enum BoxInst {
     WithBody {
         id: Option<String>,
         coords: Coords,
+        dim: Option<Dimensions>,
         body: BoxBody,
     },
     Reference {
         id: Option<String>,
         coords: Coords,
+        dim: Option<Dimensions>,
         def_name: String,
         location: (usize, usize), // (line, column)
     },

@@ -1,6 +1,6 @@
 // Validation for the AST
 
-use crate::ast::{Document, Prop, BoxBody, BoxItem, Coords};
+use crate::ast::{Document, Prop, BoxBody, BoxItem};
 use std::collections::HashSet;
 
 // Valid colors from the color table in lib.rs
@@ -136,8 +136,8 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
     // Validate property types
     match key.as_str() {
         "grid" => {
-            if !matches!(prop, Prop::PropCoords { .. }) {
-                return Err(format!("Property 'grid' must be coordinates (row, col), got {:?}", prop));
+            if !matches!(prop, Prop::PropDim { .. }) {
+                return Err(format!("Property 'grid' must be dimensions (heightxwidth), got {:?}", prop));
             }
         }
         "title" | "text" => {
@@ -176,9 +176,9 @@ fn validate_color(color: &str) -> Result<(), String> {
 }
 
 /// Extract grid size from box properties
-fn get_grid_size(body: &BoxBody) -> Option<Coords> {
+fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dimensions> {
     for item in &body.items {
-        if let BoxItem::Prop(Prop::PropCoords { key, value }) = item {
+        if let BoxItem::Prop(Prop::PropDim { key, value }) = item {
             if key == "grid" {
                 return Some(value.clone());
             }
@@ -206,17 +206,17 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
             };
 
             // Check if position is within grid bounds
-            if coords.row < 0 || coords.row >= grid_size.row {
+            if coords.row < 0 || coords.row >= grid_size.height {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is ({}, {}), so row must be in range [0, {})",
-                    coords.row, coords.col, grid_size.row, grid_size.col, grid_size.row
+                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [0, {})",
+                    coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
                 ));
             }
 
-            if coords.col < 0 || coords.col >= grid_size.col {
+            if coords.col < 0 || coords.col >= grid_size.width {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is ({}, {}), so col must be in range [0, {})",
-                    coords.row, coords.col, grid_size.row, grid_size.col, grid_size.col
+                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [0, {})",
+                    coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
                 ));
             }
 

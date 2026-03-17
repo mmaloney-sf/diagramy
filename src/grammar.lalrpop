@@ -50,11 +50,11 @@ BoxItem: BoxItem = {
 };
 
 BoxInst: BoxInst = {
-    "box" <id:Ident?> "at" <coords:Coords> <body:BoxBody> => {
-        BoxInst::WithBody { id, coords, body }
+    "box" <id:Ident?> "at" <coords:Coords> <dim:Dimensions?> <body:BoxBody> => {
+        BoxInst::WithBody { id, coords, dim, body }
     },
-    "box" <id:Ident?> "at" <coords:Coords> <l:@L> <def_name:Ident> <r:@R> => {
-        BoxInst::Reference { id, coords, def_name, location: (l, r) }
+    "box" <id:Ident?> "at" <coords:Coords> <dim:Dimensions?> <l:@L> <def_name:Ident> <r:@R> => {
+        BoxInst::Reference { id, coords, dim, def_name, location: (l, r) }
     },
 };
 

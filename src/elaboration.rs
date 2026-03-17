@@ -124,8 +124,8 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::Prop(prop) = item {
             match prop {
-                ast::Prop::PropCoords { key, value } if key == "grid" => {
-                    grid = (value.row as usize, value.col as usize);
+                ast::Prop::PropDim { key, value } if key == "grid" => {
+                    grid = (value.height as usize, value.width as usize);
                 }
                 ast::Prop::PropString { key, value } if key == "title" || key == "text" => {
                     title = Some(value.join("\n"));
@@ -145,7 +145,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
             match box_inst {
-                ast::BoxInst::WithBody { id: _, coords, body } => {
+                ast::BoxInst::WithBody { id: _, coords, dim: _, body } => {
                     // Recursively convert the nested box body
                     let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
                     boxes.push(Box {
@@ -153,7 +153,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         pos: (coords.row as usize, coords.col as usize),
                     });
                 }
-                ast::BoxInst::Reference { id: _, coords, def_name, location } => {
+                ast::BoxInst::Reference { id: _, coords, dim: _, def_name, location } => {
                     // Look up the referenced box definition
                     if let Some(referenced_def) = box_def_map.get(def_name) {
                         let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;

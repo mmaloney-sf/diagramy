@@ -7,7 +7,7 @@ diagram {
 }
 
 box top {
-    grid: (3, 3)
+    grid: 3x3
 
     box core0 at (1, 1) {
         color: green
@@ -27,7 +27,7 @@ box ECC {
     title: "ECC"
     color: blue
 
-    grid: (3, 4)
+    grid: 3x4
 
     box dataRam at (0, 0) {
         title: "Data"
