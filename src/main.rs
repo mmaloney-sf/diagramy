@@ -161,14 +161,14 @@ fn main() {
                 println!("{:#?}", doc);
             } else if args.validate {
                 // For --validate, validate and then print AST
-                if let Err(e) = diagramy::validation::validate(&doc) {
+                if let Err(e) = diagramy::validation::validate(&doc, &input, &args.file) {
                     eprintln!("Validation error: {}", e);
                     std::process::exit(1);
                 }
                 println!("{:#?}", doc);
             } else {
                 // For all other modes (convert, render, default), validate first
-                if let Err(e) = diagramy::validation::validate(&doc) {
+                if let Err(e) = diagramy::validation::validate(&doc, &input, &args.file) {
                     eprintln!("Validation error: {}", e);
                     std::process::exit(1);
                 }

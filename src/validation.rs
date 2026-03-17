@@ -17,20 +17,20 @@ const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top"];
 const VALID_BOX_PROPS: &[&str] = &["grid", "title", "color", "text", "margin"];
 
 /// Validate the entire document
-pub fn validate(doc: &Document) -> Result<(), String> {
+pub fn validate(doc: &Document, _source: &str, filename: &str) -> Result<(), String> {
     // Validate diagram properties
-    validate_diagram_props(&doc.diagram.props)?;
+    validate_diagram_props(&doc.diagram.props, filename)?;
 
     // Validate all box definitions
     for box_def in &doc.box_defs {
-        validate_box_body(&box_def.body)?;
+        validate_box_body(&box_def.body, filename)?;
     }
 
     Ok(())
 }
 
 /// Validate diagram-level properties
-fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
+fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> {
     for prop in props {
         let key = match prop {
             Prop::PropIdent { key, .. } => key,
@@ -44,7 +44,8 @@ fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
         // Check if property is known
         if !VALID_DIAGRAM_PROPS.contains(&key.as_str()) {
             return Err(format!(
-                "Unknown diagram property: '{}'. Valid properties are: {}",
+                "{}: Unknown diagram property: '{}'. Valid properties are: {}",
+                filename,
                 key,
                 VALID_DIAGRAM_PROPS.join(", ")
             ));
@@ -54,24 +55,24 @@ fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
         match key.as_str() {
             "width" => {
                 if !matches!(prop, Prop::PropNumber { .. }) {
-                    return Err(format!("Property 'width' must be a number, got {:?}", prop));
+                    return Err(format!("{}: Property 'width' must be a number, got {:?}", filename, prop));
                 }
             }
             "color" => {
                 if let Prop::PropIdent { value, .. } = prop {
-                    validate_color(value)?;
+                    validate_color(value, filename)?;
                 } else {
-                    return Err(format!("Property 'color' must be an identifier, got {:?}", prop));
+                    return Err(format!("{}: Property 'color' must be an identifier, got {:?}", filename, prop));
                 }
             }
             "title" => {
                 if !matches!(prop, Prop::PropString { .. }) {
-                    return Err(format!("Property 'title' must be a string, got {:?}", prop));
+                    return Err(format!("{}: Property 'title' must be a string, got {:?}", filename, prop));
                 }
             }
             "top" => {
                 if !matches!(prop, Prop::PropIdent { .. }) {
-                    return Err(format!("Property 'top' must be an identifier, got {:?}", prop));
+                    return Err(format!("{}: Property 'top' must be an identifier, got {:?}", filename, prop));
                 }
             }
             _ => {}
@@ -82,16 +83,16 @@ fn validate_diagram_props(props: &[Prop]) -> Result<(), String> {
 }
 
 /// Validate box body (recursively validates nested boxes)
-fn validate_box_body(body: &BoxBody) -> Result<(), String> {
+fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
     // First validate properties
     for item in &body.items {
         match item {
-            BoxItem::Prop(prop) => validate_box_prop(prop)?,
+            BoxItem::Prop(prop) => validate_box_prop(prop, filename)?,
             BoxItem::BoxInst(box_inst) => {
                 // Recursively validate nested boxes
                 match box_inst {
                     crate::ast::BoxInst::WithBody { body, .. } => {
-                        validate_box_body(body)?;
+                        validate_box_body(body, filename)?;
                     }
                     crate::ast::BoxInst::Reference { .. } => {
                         // References are validated during elaboration
@@ -105,16 +106,16 @@ fn validate_box_body(body: &BoxBody) -> Result<(), String> {
     }
 
     // Validate box positions if this box has a grid
-    validate_box_positions(body)?;
+    validate_box_positions(body, filename)?;
 
     // Validate that no two boxes have the same name
-    validate_unique_box_names(body)?;
+    validate_unique_box_names(body, filename)?;
 
     Ok(())
 }
 
 /// Validate a box-level property
-fn validate_box_prop(prop: &Prop) -> Result<(), String> {
+fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
     let key = match prop {
         Prop::PropIdent { key, .. } => key,
         Prop::PropString { key, .. } => key,
@@ -127,7 +128,8 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
     // Check if property is known
     if !VALID_BOX_PROPS.contains(&key.as_str()) {
         return Err(format!(
-            "Unknown box property: '{}'. Valid properties are: {}",
+            "{}: Unknown box property: '{}'. Valid properties are: {}",
+            filename,
             key,
             VALID_BOX_PROPS.join(", ")
         ));
@@ -137,19 +139,19 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
     match key.as_str() {
         "grid" => {
             if !matches!(prop, Prop::PropDim { .. }) {
-                return Err(format!("Property 'grid' must be dimensions (heightxwidth), got {:?}", prop));
+                return Err(format!("{}: Property 'grid' must be dimensions (heightxwidth), got {:?}", filename, prop));
             }
         }
         "title" | "text" => {
             if !matches!(prop, Prop::PropString { .. }) {
-                return Err(format!("Property '{}' must be a string, got {:?}", key, prop));
+                return Err(format!("{}: Property '{}' must be a string, got {:?}", filename, key, prop));
             }
         }
         "color" => {
             if let Prop::PropIdent { value, .. } = prop {
-                validate_color(value)?;
+                validate_color(value, filename)?;
             } else {
-                return Err(format!("Property 'color' must be an identifier, got {:?}", prop));
+                return Err(format!("{}: Property 'color' must be an identifier, got {:?}", filename, prop));
             }
         }
         "margin" => {
@@ -157,12 +159,13 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
                 Prop::PropNumber { value, .. } => *value as f64,
                 Prop::PropFrac { value, .. } => *value,
                 _ => {
-                    return Err(format!("Property 'margin' must be a number, got {:?}", prop));
+                    return Err(format!("{}: Property 'margin' must be a number, got {:?}", filename, prop));
                 }
             };
             if margin_value < 0.0 || margin_value > 0.5 {
                 return Err(format!(
-                    "Property 'margin' must be between 0.0 and 0.5, got {}",
+                    "{}: Property 'margin' must be between 0.0 and 0.5, got {}",
+                    filename,
                     margin_value
                 ));
             }
@@ -174,10 +177,11 @@ fn validate_box_prop(prop: &Prop) -> Result<(), String> {
 }
 
 /// Validate that a color is in the valid color table
-fn validate_color(color: &str) -> Result<(), String> {
+fn validate_color(color: &str, filename: &str) -> Result<(), String> {
     if !VALID_COLORS.contains(&color) {
         return Err(format!(
-            "Unknown color: '{}'. Valid colors are: {}",
+            "{}: Unknown color: '{}'. Valid colors are: {}",
+            filename,
             color,
             VALID_COLORS.join(", ")
         ));
@@ -198,7 +202,7 @@ fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dimensions> {
 }
 
 /// Validate that all child box positions are within grid bounds and don't overlap
-fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
+fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> {
     // Get the grid size if it exists
     let grid_size = match get_grid_size(body) {
         Some(grid) => grid,
@@ -218,15 +222,15 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
             // Check if position is within grid bounds (1-based indexing)
             if coords.row < 1 || coords.row > grid_size.height {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [1, {}]",
-                    coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
+                    "{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [1, {}]",
+                    filename, coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
                 ));
             }
 
             if coords.col < 1 || coords.col > grid_size.width {
                 return Err(format!(
-                    "Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [1, {}]",
-                    coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
+                    "{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [1, {}]",
+                    filename, coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
                 ));
             }
 
@@ -237,15 +241,15 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
 
             if end_row > grid_size.height {
                 return Err(format!(
-                    "Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
-                    coords.row, coords.col, dim.height, dim.width, end_row, grid_size.height
+                    "{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
+                    filename, coords.row, coords.col, dim.height, dim.width, end_row, grid_size.height
                 ));
             }
 
             if end_col > grid_size.width {
                 return Err(format!(
-                    "Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
-                    coords.row, coords.col, dim.height, dim.width, end_col, grid_size.width
+                    "{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
+                    filename, coords.row, coords.col, dim.height, dim.width, end_col, grid_size.width
                 ));
             }
 
@@ -255,8 +259,8 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
                     let cell = (row, col);
                     if occupied_cells.contains(&cell) {
                         return Err(format!(
-                            "Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                            coords.row, coords.col, dim.height, dim.width, row, col
+                            "{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
+                            filename, coords.row, coords.col, dim.height, dim.width, row, col
                         ));
                     }
                     occupied_cells.insert(cell);
@@ -269,7 +273,7 @@ fn validate_box_positions(body: &BoxBody) -> Result<(), String> {
 }
 
 /// Validate that no two boxes have the same name within a parent
-fn validate_unique_box_names(body: &BoxBody) -> Result<(), String> {
+fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), String> {
     let mut names: HashSet<String> = HashSet::new();
 
     for item in &body.items {
@@ -283,8 +287,8 @@ fn validate_unique_box_names(body: &BoxBody) -> Result<(), String> {
             if let Some(name) = id {
                 if names.contains(name) {
                     return Err(format!(
-                        "Duplicate box name '{}'. Each box must have a unique name within its parent",
-                        name
+                        "{}: Duplicate box name '{}'. Each box must have a unique name within its parent",
+                        filename, name
                     ));
                 }
                 names.insert(name.clone());

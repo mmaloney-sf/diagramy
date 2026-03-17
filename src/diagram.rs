@@ -37,9 +37,6 @@ pub struct DiagramBox {
     pub has_children: bool,
 }
 
-// Scale factor for border radius relative to font size
-const BORDER_RADIUS_SCALE: f64 = 10.0;
-
 /// RGB color representation
 #[derive(Debug, Clone, Copy)]
 pub struct RgbColor {
@@ -147,13 +144,9 @@ impl Diagram {
             svg_doc = svg_doc.add(background);
         }
 
-        // Calculate border radius based on font size
-        let scale = font_size as f64 / 18.0;
-        let border_radius = (BORDER_RADIUS_SCALE * scale) as usize;
-
         // First pass: Render all box rectangles
         for diagram_box in &self.boxes {
-            svg_doc = render_box_rectangle(svg_doc, diagram_box, border_radius)?;
+            svg_doc = render_box_rectangle(svg_doc, diagram_box)?;
         }
 
         // Second pass: Render all box titles on top
@@ -196,7 +189,6 @@ impl Diagram {
 fn render_box_rectangle(
     mut svg_doc: SvgDocument,
     diagram_box: &DiagramBox,
-    border_radius: usize,
 ) -> Result<SvgDocument, String> {
     let (x, y) = diagram_box.pos;
     let (width, height) = diagram_box.size;
@@ -208,6 +200,15 @@ fn render_box_rectangle(
         "transparent"
     };
 
+    // Calculate stroke width proportional to box size
+    // Use the smaller dimension to ensure consistent appearance
+    let min_dimension = width.min(height) as f64;
+    let stroke_width = (min_dimension / 100.0).max(0.5).min(4.0);
+
+    // Calculate border radius proportional to box size (linear scaling)
+    // Use the smaller dimension and scale it down
+    let border_radius = (min_dimension / 20.0).max(2.0).min(15.0);
+
     // Create rounded rectangle
     let rect = Rectangle::new()
         .set("x", x)
@@ -218,7 +219,7 @@ fn render_box_rectangle(
         .set("ry", border_radius)
         .set("fill", fill_color)
         .set("stroke", "#333")
-        .set("stroke-width", 2);
+        .set("stroke-width", stroke_width);
 
     svg_doc = svg_doc.add(rect);
     Ok(svg_doc)
@@ -345,9 +346,11 @@ fn flatten_boxes(
 ) {
     // First, add the current box itself (if it has a title or color)
     if box_def.title.is_some() || box_def.color.is_some() {
-        let x = parent_x as f64 / canvas_width as f64;
-        let x_clamped = x.min(1.999).max(0.001);
-        let font_scale = 1.0 - (1.0 - MIN_FONTSIZE) * (2.0 - x_clamped).ln() / 2.0_f64.ln();
+        // Linear scaling based on box width relative to canvas
+        let width_ratio = parent_width as f64 / canvas_width as f64;
+        let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
+        // Scale linearly from MIN_FONTSIZE to 1.0 based on width
+        let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
 
         output.push(DiagramBox {
             pos: (parent_x, parent_y),
@@ -361,10 +364,10 @@ fn flatten_boxes(
 
     // If this box has a title and children, add padding on all sides for the title
     let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
-        // Calculate the font size for this box using logarithmic formula
-        let x = parent_width as f64 / canvas_width as f64;
-        let x_clamped = x.min(1.999).max(0.001);
-        let font_scale = 1.0 - (1.0 - MIN_FONTSIZE) * (2.0 - x_clamped).ln() / 2.0_f64.ln();
+        // Calculate the font size for this box using linear scaling
+        let width_ratio = parent_width as f64 / canvas_width as f64;
+        let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
+        let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
         let scaled_font_size = (DEFAULT_FONT_SIZE as f64 * font_scale) as usize;
 
         // Top padding is font size + extra space
