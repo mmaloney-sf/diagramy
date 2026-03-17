@@ -11,10 +11,10 @@ const VALID_COLORS: &[&str] = &[
 ];
 
 // Valid diagram-level properties
-const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top"];
+const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "text", "top"];
 
 // Valid box-level properties
-const VALID_BOX_PROPS: &[&str] = &["grid", "title", "color", "text", "margin", "borderStyle"];
+const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle"];
 
 // Valid border styles
 const VALID_BORDER_STYLES: &[&str] = &["solid", "none", "dotted", "dashed"];
@@ -72,9 +72,9 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
                     return Err(format!("{}:{}:{}: Property 'color' must be an identifier", filename, start.line(), start.col()));
                 }
             }
-            "title" => {
+            "text" => {
                 if !matches!(prop, Prop::PropString { .. }) {
-                    return Err(format!("{}:{}:{}: Property 'title' must be a string", filename, start.line(), start.col()));
+                    return Err(format!("{}:{}:{}: Property 'text' must be a string", filename, start.line(), start.col()));
                 }
             }
             "top" => {
@@ -118,6 +118,9 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
     // Validate that no two boxes have the same name
     validate_unique_box_names(body, filename)?;
 
+    // Validate that boxes don't have both text property and child boxes
+    validate_text_and_children_conflict(body, filename)?;
+
     Ok(())
 }
 
@@ -153,9 +156,9 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
                 return Err(format!("{}:{}:{}: Property 'grid' must be dimensions (heightxwidth)", filename, start.line(), start.col()));
             }
         }
-        "title" | "text" => {
+        "text" => {
             if !matches!(prop, Prop::PropString { .. }) {
-                return Err(format!("{}:{}:{}: Property '{}' must be a string", filename, start.line(), start.col(), key));
+                return Err(format!("{}:{}:{}: Property 'text' must be a string", filename, start.line(), start.col()));
             }
         }
         "color" => {
@@ -330,6 +333,40 @@ fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), Strin
                 names.insert(name.clone());
             }
         }
+    }
+
+    Ok(())
+}
+
+/// Validate that boxes don't have both text property and child boxes
+fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result<(), String> {
+    // Check if this box has a text property
+    let text_prop = body.items.iter().find_map(|item| {
+        if let BoxItem::Prop(Prop::PropString { key, span, .. }) = item {
+            if key == "text" {
+                return Some(*span);
+            }
+        }
+        None
+    });
+
+    // Check if this box has child boxes
+    let child_box = body.items.iter().find_map(|item| {
+        if let BoxItem::BoxInst(box_inst) = item {
+            return Some(box_inst.span());
+        }
+        None
+    });
+
+    // If both exist, return an error
+    if let (Some(text_span), Some(_child_span)) = (text_prop, child_box) {
+        let text_start = text_span.start();
+        return Err(format!(
+            "{}:{}:{}: Box cannot have both 'text:' property and child boxes. Consider using a box with borderStyle: none to position a label.",
+            filename,
+            text_start.line(),
+            text_start.col()
+        ));
     }
 
     Ok(())

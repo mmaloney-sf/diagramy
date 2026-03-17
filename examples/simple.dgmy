@@ -3,7 +3,7 @@ version = 0.1.0
 diagram {
     width: 400
     color: blue
-    title: "Simple.dgmy"
+    text: "Simple.dgmy"
 }
 
 box top {

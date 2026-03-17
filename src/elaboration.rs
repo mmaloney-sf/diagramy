@@ -46,7 +46,7 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
             ast::Prop::PropNumber { key, value, .. } if key == "width" => {
                 width = Some(*value as usize);
             }
-            ast::Prop::PropString { key, value, .. } if key == "title" => {
+            ast::Prop::PropString { key, value, .. } if key == "text" => {
                 title = Some(value.join("\n"));
             }
             _ => {}
@@ -132,7 +132,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                 ast::Prop::PropDim { key, value, .. } if key == "grid" => {
                     grid = (value.height as usize, value.width as usize);
                 }
-                ast::Prop::PropString { key, value, .. } if key == "title" || key == "text" => {
+                ast::Prop::PropString { key, value, .. } if key == "text" => {
                     title = Some(value.join("\n"));
                 }
                 ast::Prop::PropIdent { key, value, .. } if key == "color" => {

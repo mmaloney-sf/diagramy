@@ -101,16 +101,16 @@ diagram {
     color: grey
 
     box system {
-        title: "System"
+        text: "System"
         color: white
 
         box processor {
-            title: "Processor"
+            text: "Processor"
             color: blue
         }
 
         box memory {
-            title: "Memory"
+            text: "Memory"
             color: green
         }
     }
@@ -193,7 +193,7 @@ diagram {
 
 ```dia
 box <identifier> {
-    title: "<text>"      // Display text (required for visibility)
+    text: "<text>"       // Display text (required for visibility)
     color: <color_name>  // Box fill color (inherits from parent if omitted)
     vertical             // Render title text vertically
     stacked: <N>         // Create 3D stacked effect with N background boxes

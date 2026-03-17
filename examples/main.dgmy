@@ -3,7 +3,7 @@ version = 0.1.0
 diagram {
     width: 800
     color: blue
-    title: "main.dgmy"
+    text: "main.dgmy"
 }
 
 box top {
@@ -24,21 +24,20 @@ box top {
 }
 
 box ECC {
-    title: "ECC"
     color: blue
 
     grid: 3x4
 
     box dataRam at (1, 1) {
-        title: "Data"
-               "RAM"
+        text: "Data"
+              "RAM"
     }
     box tagRam at (3, 1) {
-        title: "Tag RAM"
+        text: "Tag RAM"
     }
     box errorBank at (1, 4) {
-        title: "Error"
-               "Bank"
+        text: "Error"
+              "Bank"
         color: red
     }
 }
