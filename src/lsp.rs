@@ -41,15 +41,22 @@ impl LanguageServer for Backend {
     }
 
     async fn did_open(&self, params: DidOpenTextDocumentParams) {
-        let uri = params.text_document.uri;
+        let uri = params.text_document.uri.clone();
         let text = params.text_document.text;
-        self.documents.write().await.insert(uri, text);
+        self.documents.write().await.insert(uri.clone(), text.clone());
+
+        // Run validation and publish diagnostics
+        self.validate_and_publish_diagnostics(uri, text).await;
     }
 
     async fn did_change(&self, params: DidChangeTextDocumentParams) {
-        let uri = params.text_document.uri;
+        let uri = params.text_document.uri.clone();
         if let Some(change) = params.content_changes.into_iter().next() {
-            self.documents.write().await.insert(uri, change.text);
+            let text = change.text;
+            self.documents.write().await.insert(uri.clone(), text.clone());
+
+            // Run validation and publish diagnostics
+            self.validate_and_publish_diagnostics(uri, text).await;
         }
     }
 
@@ -188,6 +195,111 @@ impl LanguageServer for Backend {
 
         Ok(None)
     }
+}
+
+impl Backend {
+    /// Validate the document and publish diagnostics
+    async fn validate_and_publish_diagnostics(&self, uri: Url, text: String) {
+        let mut diagnostics = Vec::new();
+
+        // Parse the document
+        let parser = diagramy::grammar::DocumentParser::new();
+        let doc = match parser.parse(&text, &text) {
+            Ok(d) => d,
+            Err(e) => {
+                // Parse error - create a diagnostic
+                let error_msg = format!("{}", e);
+
+                // Try to extract line/column from error message if possible
+                // For now, just report at position 0:0
+                diagnostics.push(Diagnostic {
+                    range: Range {
+                        start: Position { line: 0, character: 0 },
+                        end: Position { line: 0, character: 0 },
+                    },
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    code: None,
+                    code_description: None,
+                    source: Some("diagramy".to_string()),
+                    message: error_msg,
+                    related_information: None,
+                    tags: None,
+                    data: None,
+                });
+
+                self.client.publish_diagnostics(uri, diagnostics, None).await;
+                return;
+            }
+        };
+
+        // Run validation
+        let filename = uri.path();
+        if let Err(e) = diagramy::validation::validate(&doc, &text, filename) {
+            // Validation error - parse the error message to extract position
+            // Error format: "filename:line:col: message"
+            if let Some(diagnostic) = parse_validation_error(&e) {
+                diagnostics.push(diagnostic);
+            } else {
+                // Fallback: report at position 0:0
+                diagnostics.push(Diagnostic {
+                    range: Range {
+                        start: Position { line: 0, character: 0 },
+                        end: Position { line: 0, character: 0 },
+                    },
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    code: None,
+                    code_description: None,
+                    source: Some("diagramy".to_string()),
+                    message: e,
+                    related_information: None,
+                    tags: None,
+                    data: None,
+                });
+            }
+        }
+
+        // Publish diagnostics
+        self.client.publish_diagnostics(uri, diagnostics, None).await;
+    }
+}
+
+/// Parse a validation error message to extract position and create a diagnostic
+fn parse_validation_error(error: &str) -> Option<Diagnostic> {
+    // Error format: "filename:line:col: message"
+    let parts: Vec<&str> = error.splitn(2, ": ").collect();
+    if parts.len() != 2 {
+        return None;
+    }
+
+    let location_parts: Vec<&str> = parts[0].split(':').collect();
+    if location_parts.len() < 3 {
+        return None;
+    }
+
+    // Extract line and column (1-based in error, need 0-based for LSP)
+    let line = location_parts[location_parts.len() - 2].parse::<u32>().ok()?;
+    let col = location_parts[location_parts.len() - 1].parse::<u32>().ok()?;
+
+    Some(Diagnostic {
+        range: Range {
+            start: Position {
+                line: line.saturating_sub(1),
+                character: col.saturating_sub(1),
+            },
+            end: Position {
+                line: line.saturating_sub(1),
+                character: col.saturating_sub(1) + 10, // Highlight ~10 characters
+            },
+        },
+        severity: Some(DiagnosticSeverity::ERROR),
+        code: None,
+        code_description: None,
+        source: Some("diagramy".to_string()),
+        message: parts[1].to_string(),
+        related_information: None,
+        tags: None,
+        data: None,
+    })
 }
 
 /// Find if the position is on a BoxInst::Reference identifier and return the def_name

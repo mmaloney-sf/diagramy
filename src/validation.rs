@@ -20,7 +20,7 @@ const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderSty
 const VALID_BORDER_STYLES: &[&str] = &["solid", "none", "dotted", "dashed"];
 
 /// Validate the entire document
-pub fn validate(doc: &Document, _source: &str, filename: &str) -> Result<(), String> {
+pub fn validate(doc: &Document, source: &str, filename: &str) -> Result<(), String> {
     // Validate diagram properties
     validate_diagram_props(&doc.diagram.props, filename)?;
 
@@ -28,6 +28,12 @@ pub fn validate(doc: &Document, _source: &str, filename: &str) -> Result<(), Str
     for box_def in &doc.box_defs {
         validate_box_body(&box_def.body, filename)?;
     }
+
+    // Validate that the top: property references an existing box
+    validate_top_property(doc, source, filename)?;
+
+    // Validate that all box references exist
+    validate_box_references(doc, filename)?;
 
     Ok(())
 }
@@ -380,6 +386,77 @@ fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result
         ));
     }
 
+    Ok(())
+}
+
+/// Validate that the top: property references an existing box definition
+fn validate_top_property(doc: &Document, source: &str, filename: &str) -> Result<(), String> {
+    // Find the top: property in diagram props
+    for prop in &doc.diagram.props {
+        if let Prop::PropIdent { key, value, value_location, .. } = prop {
+            if key == "top" {
+                // Check if a box with this name exists
+                let box_exists = doc.box_defs.iter().any(|bd| bd.name == *value);
+                if !box_exists {
+                    // Get the span for the value to report the error at the right location
+                    let value_span = crate::ast::Span::from_offsets(source, value_location.0, value_location.1);
+                    let start = value_span.start();
+                    return Err(format!(
+                        "{}:{}:{}: No such box: {}",
+                        filename,
+                        start.line(),
+                        start.col(),
+                        value
+                    ));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+/// Validate that all box references point to existing box definitions
+fn validate_box_references(doc: &Document, filename: &str) -> Result<(), String> {
+    // Build a set of all box definition names for quick lookup
+    let box_names: HashSet<String> = doc.box_defs.iter().map(|bd| bd.name.clone()).collect();
+
+    // Check all box definitions
+    for box_def in &doc.box_defs {
+        validate_box_body_references(&box_def.body, &box_names, filename)?;
+    }
+
+    Ok(())
+}
+
+/// Recursively validate box references in a box body
+fn validate_box_body_references(
+    body: &BoxBody,
+    box_names: &HashSet<String>,
+    filename: &str,
+) -> Result<(), String> {
+    for item in &body.items {
+        if let BoxItem::BoxInst(box_inst) = item {
+            match box_inst {
+                crate::ast::BoxInst::WithBody { body, .. } => {
+                    // Recursively validate nested box bodies
+                    validate_box_body_references(body, box_names, filename)?;
+                }
+                crate::ast::BoxInst::Reference { def_name, span, .. } => {
+                    // Check if the referenced box exists
+                    if !box_names.contains(def_name) {
+                        let start = span.start();
+                        return Err(format!(
+                            "{}:{}:{}: No such box: {}",
+                            filename,
+                            start.line(),
+                            start.col(),
+                            def_name
+                        ));
+                    }
+                }
+            }
+        }
+    }
     Ok(())
 }
 
