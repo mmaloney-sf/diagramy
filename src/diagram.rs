@@ -10,12 +10,6 @@ const MIN_FONTSIZE: f64 = 0.7;
 // Default base font size
 const DEFAULT_FONT_SIZE: usize = 18;
 
-// Maximum border width (in pixels)
-const MAX_BORDER_WIDTH: f64 = 3.0;
-
-// Maximum border radius (in pixels)
-const MAX_BORDER_RADIUS: f64 = 10.0;
-
 // Margin around the top-level box (in pixels)
 // Should be large enough to fit the title font (1.5x base font size) plus padding
 const TOP_LEVEL_MARGIN: usize = (DEFAULT_FONT_SIZE as f64 * 1.5) as usize + 20;
@@ -208,26 +202,15 @@ fn render_box_rectangle(
         "transparent"
     };
 
-    // Calculate stroke width proportional to box size
-    // Use the smaller dimension to ensure consistent appearance
-    let min_dimension = width.min(height) as f64;
-    let stroke_width = (min_dimension / 100.0).max(0.5).min(MAX_BORDER_WIDTH);
-
-    // Calculate border radius proportional to box size (linear scaling)
-    // Use the smaller dimension and scale it down
-    let border_radius = (min_dimension / 20.0).max(2.0).min(MAX_BORDER_RADIUS);
-
     // Determine border style (default is "solid")
     let border_style = diagram_box.border_style.as_deref().unwrap_or("solid");
 
-    // Create rounded rectangle with appropriate border styling
+    // Create rectangle with appropriate border styling
     let mut rect = Rectangle::new()
         .set("x", x)
         .set("y", y)
         .set("width", width)
         .set("height", height)
-        .set("rx", border_radius)
-        .set("ry", border_radius)
         .set("fill", fill_color);
 
     // Apply border style
@@ -240,21 +223,21 @@ fn render_box_rectangle(
             // Dotted border
             rect = rect
                 .set("stroke", "#333")
-                .set("stroke-width", stroke_width)
-                .set("stroke-dasharray", format!("{},{}", stroke_width * 2.0, stroke_width * 2.0));
+                .set("stroke-width", 2)
+                .set("stroke-dasharray", "4,4");
         }
         "dashed" => {
             // Dashed border
             rect = rect
                 .set("stroke", "#333")
-                .set("stroke-width", stroke_width)
-                .set("stroke-dasharray", format!("{},{}", stroke_width * 6.0, stroke_width * 3.0));
+                .set("stroke-width", 2)
+                .set("stroke-dasharray", "12,6");
         }
         _ => {
             // Default: solid border
             rect = rect
                 .set("stroke", "#333")
-                .set("stroke-width", stroke_width);
+                .set("stroke-width", 2);
         }
     }
 

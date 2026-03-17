@@ -49,10 +49,6 @@ pub fn map_color(color_name: &str) -> Result<&str, String> {
 
 /* TODO: All rendering code below needs to be updated for new AST
 
-// Scale factor for border radius and padding relative to font size
-// border_radius = BORDER_RADIUS_SCALE * (font_size / 18.0)
-const BORDER_RADIUS_SCALE: f64 = 10.0;
-
 // Build a layout map from the layout section
 // Positions in the layout are relative to parent, so we need to convert them to absolute
 fn build_layout_map(doc: &Document) -> HashMap<String, (i32, i32, i32, i32)> {
@@ -507,10 +503,6 @@ fn render_box_with_layout(
             let x = x + parent_offset_x;
             let y = y + parent_offset_y;
 
-            // Calculate border radius based on font size (base size for font_size=18)
-            let scale = font_size as f64 / 18.0;
-            let border_radius = (BORDER_RADIUS_SCALE * scale) as i32;
-
             // Draw stacked rectangles behind the main box (if stacked > 0)
             // Background boxes stay at layout position, main box shifts down and right
             if stacked_count > 0 {
@@ -529,8 +521,7 @@ fn render_box_with_layout(
                         .set("height", height)
                         .set("fill", svg_color)
                         .set("stroke", "#333")
-                        .set("stroke-width", 2)
-                        .set("rx", border_radius);
+                        .set("stroke-width", 2);
                     doc = doc.add(stacked_rect);
                 }
             }
@@ -545,16 +536,15 @@ fn render_box_with_layout(
                 .set("height", height)
                 .set("fill", svg_color)
                 .set("stroke", "#333")
-                .set("stroke-width", 2)
-                .set("rx", border_radius);
+                .set("stroke-width", 2);
             doc = doc.add(rect);
 
             // Collect title text element (to be rendered later on top of all boxes)
             // Use contrasting color for readability
             // Text is positioned on the main box (which may be offset if stacked)
             if let Some(title_text) = title {
-                // Padding scales with border radius (same as font size scaling)
-                let padding = border_radius;
+                // Padding for text
+                let padding = 10;
 
                 // Text goes on the main box, which is offset if stacked
                 let text_base_x = x + main_offset;
@@ -884,7 +874,6 @@ fn render_single_port(
     // Scale port circle with font size (base size for font_size=18)
     let scale = font_size as f64 / 18.0;
     let radius = (8.0 * scale) as i32;
-    let stroke_width = (2.0 * scale) as i32;
 
     // Only draw circle with X if style is tieoff
     if is_tieoff {
@@ -896,7 +885,7 @@ fn render_single_port(
             .set("r", radius)
             .set("fill", "white")
             .set("stroke", "#333")
-            .set("stroke-width", stroke_width);
+            .set("stroke-width", 2);
         doc = doc.add(circle);
 
         // Draw X through it
@@ -906,7 +895,7 @@ fn render_single_port(
             .set("x2", x + radius / 2)
             .set("y2", y + radius / 2)
             .set("stroke", "#333")
-            .set("stroke-width", stroke_width);
+            .set("stroke-width", 2);
         doc = doc.add(line1);
 
         let line2 = Line::new()
@@ -915,7 +904,7 @@ fn render_single_port(
             .set("x2", x + radius / 2)
             .set("y2", y - radius / 2)
             .set("stroke", "#333")
-            .set("stroke-width", stroke_width);
+            .set("stroke-width", 2);
         doc = doc.add(line2);
     }
 
@@ -1002,10 +991,6 @@ fn render_arrows(
     mut doc: SvgDocument,
     font_size: i32,
 ) -> SvgDocument {
-    // Scale stroke width with font size (base size for font_size=18)
-    let scale = font_size as f64 / 18.0;
-    let stroke_width = (2.0 * scale) as i32;
-
     for arrow in arrows {
         if let (Some(&(x1, y1)), Some(&(x2, y2))) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
             // Check if destination port has tieoff style (has x-circle)
@@ -1017,7 +1002,7 @@ fn render_arrows(
             let path = Path::new()
                 .set("d", path_data)
                 .set("stroke", "#333")
-                .set("stroke-width", stroke_width)
+                .set("stroke-width", 2)
                 .set("fill", "none")
                 .set("marker-end", "url(#arrowhead)");
             doc = doc.add(path);
