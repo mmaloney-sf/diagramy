@@ -167,7 +167,7 @@ impl Prop {
 #[derive(Debug, Clone)]
 pub struct Port {
     pub name: String,
-    pub coords: Coords,
+    pub coords: CoordsFrac,
     pub props: Vec<Prop>,
     pub span: Span,
 }

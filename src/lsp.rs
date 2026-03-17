@@ -693,11 +693,15 @@ fn check_box_body_hover(
                     return Some(hover);
                 }
             }
-            BoxItem::Port(_) => {
-                // Port hover not implemented yet
+            BoxItem::Port(port) => {
+                if let Some(hover) = check_port_hover(port, text, line, col) {
+                    return Some(hover);
+                }
             }
-            BoxItem::Arrow(_) => {
-                // Arrow hover not implemented yet
+            BoxItem::Arrow(arrow) => {
+                if let Some(hover) = check_arrow_hover(arrow, text, line, col) {
+                    return Some(hover);
+                }
             }
         }
     }
@@ -777,6 +781,75 @@ fn check_box_inst_hover(
         let word = &line_text[col_idx..col_idx.min(col_idx + 2)];
         if word == "is" {
             return Some("The `is` keyword introduces the box's definition.\nThe definition may be given as the name of a box definition or inline inside curly braces.".to_string());
+        }
+    }
+
+    None
+}
+
+/// Check if hovering over a port
+fn check_port_hover(
+    port: &diagramy::ast::Port,
+    _text: &str,
+    line: usize,
+    col: usize,
+) -> Option<String> {
+    let span = port.span;
+    let start = span.start();
+    let end = span.end();
+
+    if !is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
+        return None;
+    }
+
+    // Check if hovering over the "port" keyword
+    if line == start.line() && col >= start.col() && col < start.col() + 4 {
+        return Some("The `port` keyword defines a connection point on a box.\nPorts can be connected with arrows.".to_string());
+    }
+
+    // Check if hovering over the coords
+    let coords_span = port.coords.span;
+    let coords_start = coords_span.start();
+    let coords_end = coords_span.end();
+    if is_position_in_span(line, col, coords_start.line(), coords_start.col(), coords_end.line(), coords_end.col()) {
+        return Some("Fractional coordinates specify a position as a (row, col) pair.\nValues range from (0.0, 0.0) at the upper-left corner to (HEIGHT, WIDTH) at the lower-right corner of the box.".to_string());
+    }
+
+    // Check if hovering over "at" keyword
+    if line == coords_start.line() && col >= coords_start.col().saturating_sub(4) && col < coords_start.col() {
+        return Some("The `at` keyword specifies the position of the port on the box.".to_string());
+    }
+
+    None
+}
+
+/// Check if hovering over an arrow
+fn check_arrow_hover(
+    arrow: &diagramy::ast::Arrow,
+    text: &str,
+    line: usize,
+    col: usize,
+) -> Option<String> {
+    let span = arrow.span;
+    let start = span.start();
+    let end = span.end();
+
+    if !is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
+        return None;
+    }
+
+    // Check if hovering over the "arrow" keyword
+    if line == start.line() && col >= start.col() && col < start.col() + 5 {
+        return Some("The `arrow` keyword defines a connection between two ports.\nArrows are rendered with arrowheads pointing to the destination port.".to_string());
+    }
+
+    // Check if hovering over "to" keyword
+    // This is approximate - we look for "to" in the line
+    let line_text = text.lines().nth(line - 1)?;
+    if let Some(to_pos) = line_text.find(" to ") {
+        let to_col = to_pos + 2; // +1 for 0-based to 1-based, +1 for space before "to"
+        if col >= to_col && col < to_col + 2 {
+            return Some("The `to` keyword specifies the destination port for the arrow.".to_string());
         }
     }
 

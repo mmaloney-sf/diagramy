@@ -531,26 +531,12 @@ fn flatten_boxes(
 
     // Process ports for this box
     for port in &box_def.ports {
-        // Calculate absolute position based on scaled coordinates
+        // Calculate absolute position based on fractional coordinates
         // Port coordinates are (row, col) where row is y and col is x
-        // (0, 0) is upper-left of the box and (grid.height, grid.width) is lower-right
-        // Scale the coordinates to the actual box dimensions
-        let (grid_height, grid_width) = box_def.grid;
-
-        // Scale coordinates: map from (0, 0)-(grid_height, grid_width) to (0, 0)-(parent_height, parent_width)
-        let scale_x = if grid_width > 0 {
-            parent_width as f64 / grid_width as f64
-        } else {
-            1.0
-        };
-        let scale_y = if grid_height > 0 {
-            parent_height as f64 / grid_height as f64
-        } else {
-            1.0
-        };
-
-        let abs_x = parent_x + (port.coords.1 as f64 * scale_x) as usize; // col is x
-        let abs_y = parent_y + (port.coords.0 as f64 * scale_y) as usize; // row is y
+        // Fractional coordinates: (0.0, 0.0) is upper-left, (HEIGHT, WIDTH) is lower-right
+        // Map fractional coordinates to actual box dimensions
+        let abs_x = parent_x + (port.coords.1 * parent_width as f64) as usize; // col is x
+        let abs_y = parent_y + (port.coords.0 * parent_height as f64) as usize; // row is y
 
         ports_output.push(DiagramPort {
             name: port.name.clone(),

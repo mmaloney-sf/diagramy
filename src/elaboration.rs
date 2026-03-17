@@ -26,7 +26,7 @@ pub struct BoxDef {
 #[derive(Debug, Clone)]
 pub struct Port {
     pub name: String,
-    pub coords: (i32, i32), // Integer coordinates
+    pub coords: (f64, f64), // Fractional coordinates
 }
 
 #[derive(Debug, Clone)]
