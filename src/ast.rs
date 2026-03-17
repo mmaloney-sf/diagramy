@@ -83,6 +83,7 @@ pub struct Diagram {
 #[derive(Debug, Clone)]
 pub struct BoxDef {
     pub name: String,
+    pub name_location: (usize, usize), // byte offsets of the name identifier
     pub body: BoxBody,
     pub span: Span,
 }
@@ -140,7 +141,7 @@ impl BoxInst {
 
 #[derive(Debug, Clone)]
 pub enum Prop {
-    PropIdent { key: String, value: String, span: Span },
+    PropIdent { key: String, value: String, value_location: (usize, usize), span: Span },
     PropString { key: String, value: Vec<String>, span: Span },
     PropNumber { key: String, value: i32, span: Span },
     PropFrac { key: String, value: f64, span: Span },

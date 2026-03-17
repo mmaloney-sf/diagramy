@@ -6,6 +6,7 @@ diagram {
     width: 700
     color: white
     text: "Network Topology"
+    top: top
 }
 
 // Define a server rack

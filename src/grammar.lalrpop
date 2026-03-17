@@ -26,7 +26,7 @@ Diagram: Diagram = {
 };
 
 BoxDef: BoxDef = {
-    <ll:@L> "box" <name:Ident> <body:BoxBody> <rr:@R> => BoxDef { name, body, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> "box" <l:@L> <name:Ident> <r:@R> <body:BoxBody> <rr:@R> => BoxDef { name, name_location: (l, r), body, span: Span::from_offsets(source, ll, rr) },
 };
 
 BoxBody: BoxBody = {
@@ -53,7 +53,7 @@ BoxInst: BoxInst = {
 };
 
 Prop: Prop = {
-    <ll:@L> <key:Ident> ":" <value:Ident> <rr:@R> => Prop::PropIdent { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <l:@L> <value:Ident> <r:@R> <rr:@R> => Prop::PropIdent { key, value, value_location: (l, r), span: Span::from_offsets(source, ll, rr) },
     <ll:@L> <key:Ident> ":" <value:String+> <rr:@R> => Prop::PropString { key, value, span: Span::from_offsets(source, ll, rr) },
     <ll:@L> <key:Ident> ":" <value:Frac> <rr:@R> => Prop::PropFrac { key, value, span: Span::from_offsets(source, ll, rr) },
     <ll:@L> <key:Ident> ":" <value:Num> <rr:@R> => Prop::PropNumber { key, value, span: Span::from_offsets(source, ll, rr) },

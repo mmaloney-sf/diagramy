@@ -5,6 +5,7 @@ diagram {
     width: 400
     color: grey
     text: "Simple Grid Layout"
+    top: top
 }
 
 // The top-level box defines a 2x2 grid
