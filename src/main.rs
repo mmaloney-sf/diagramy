@@ -1,4 +1,6 @@
 use std::fs;
+use std::path::Path;
+use std::process::Command;
 use clap::Parser;
 use diagramy::grammar;
 use lalrpop_util::ParseError;
@@ -16,23 +18,25 @@ struct Args {
     #[arg(long)]
     parse: bool,
 
-    /* TODO: Not yet implemented
-    /// Scale factor for output (default: from layout or 1.0)
+    /// Convert AST to diagram and print (for testing)
+    #[arg(long)]
+    convert: bool,
+
+    /// Render the diagram to an SVG file
+    #[arg(long)]
+    render: bool,
+
+    /// Open the rendered SVG file after creation (requires --render)
+    #[arg(long)]
+    open: bool,
+
+    /// Output SVG filename (default: input filename with .svg extension)
     #[arg(short, long)]
-    scale: Option<f64>,
-
-    /// Use white background instead of transparent
-    #[arg(long)]
-    no_transparent: bool,
-
-    /// Background color (e.g., red, blue, #FFFFFF). If not set, uses transparent or white (with --no-transparent)
-    #[arg(long)]
-    background: Option<String>,
+    output: Option<String>,
 
     /// Font size for text labels (default: 18)
     #[arg(long, default_value = "18")]
-    font_size: i32,
-    */
+    font_size: usize,
 }
 
 // Helper function to convert byte offset to line and column
@@ -53,6 +57,34 @@ fn get_line_col(input: &str, location: usize) -> (usize, usize) {
     }
 
     (line, col)
+}
+
+/// Find the appropriate command to open files on this system
+fn find_open_command() -> Option<&'static str> {
+    // Check for 'open' (macOS)
+    if Command::new("which").arg("open").output().ok()?.status.success() {
+        return Some("open");
+    }
+
+    // Check for 'xdg-open' (Linux)
+    if Command::new("which").arg("xdg-open").output().ok()?.status.success() {
+        return Some("xdg-open");
+    }
+
+    None
+}
+
+/// Open a file with the system's default application
+fn open_file(path: &str) -> Result<(), String> {
+    let cmd = find_open_command()
+        .ok_or_else(|| "Could not find 'open' or 'xdg-open' command on system".to_string())?;
+
+    Command::new(cmd)
+        .arg(path)
+        .spawn()
+        .map_err(|e| format!("Failed to open file: {}", e))?;
+
+    Ok(())
 }
 
 // Print detailed parse error information
@@ -99,6 +131,12 @@ where
 fn main() {
     let args = Args::parse();
 
+    // Validate arguments
+    if args.open && !args.render {
+        eprintln!("Error: --open requires --render");
+        std::process::exit(1);
+    }
+
     // Read the input file
     let input = match fs::read_to_string(&args.file) {
         Ok(content) => content,
@@ -116,6 +154,49 @@ fn main() {
         Ok(doc) => {
             if args.parse {
                 println!("{:#?}", doc);
+            } else if args.convert {
+                // Test the conversion function
+                let diagram = diagramy::elaboration::from_ast(&doc);
+                println!("Converted diagram:");
+                println!("  Color: {}", diagram.color);
+                println!("  Size: {:?}", diagram.size);
+                println!("  Top box grid: {:?}", diagram.top.grid);
+                println!("  Top box title: {:?}", diagram.top.title);
+                println!("  Top box has {} child boxes", diagram.top.boxes.len());
+            } else if args.render {
+                // Convert AST to elaboration diagram
+                let elab_diagram = diagramy::elaboration::from_ast(&doc);
+
+                // Convert elaboration diagram to renderable diagram
+                let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
+                dbg!(&diagram);
+
+                // Determine output filename
+                let output_file = args.output.unwrap_or_else(|| {
+                    let input_path = Path::new(&args.file);
+                    let stem = input_path.file_stem().unwrap().to_str().unwrap();
+                    format!("{}.svg", stem)
+                });
+
+                // Render to SVG
+                let (width, height) = elab_diagram.size;
+                match diagram.render_to_svg(&output_file, width, height, args.font_size) {
+                    Ok(_) => {
+                        println!("Rendered diagram to: {}", output_file);
+
+                        // Open the file if requested
+                        if args.open {
+                            match open_file(&output_file) {
+                                Ok(_) => println!("Opened {}", output_file),
+                                Err(e) => eprintln!("Warning: {}", e),
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error rendering diagram: {}", e);
+                        std::process::exit(1);
+                    }
+                }
             } else {
                 dbg!(&doc);
             }

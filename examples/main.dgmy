@@ -1,11 +1,21 @@
 version = 0.1.0
 
 diagram {
+    size: (800, 600)
+    color: blue
+    title: "Hello"
 }
 
 box top {
     grid: (3, 3)
+
     box core at (1, 1) {
-        text: "Core"
+        color: green
+        text: "Core 1"
+    }
+
+    box core at (2, 1) {
+        color: green
+        text: "Core 2"
     }
 }
