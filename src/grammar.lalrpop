@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords, Dimensions, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, Prop, Port, Coords, Dim, Span};
 
 grammar(source: &str);
 
@@ -50,12 +50,12 @@ BoxItem: BoxItem = {
 };
 
 BoxInst: BoxInst = {
-    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <body:BoxBody> <rr:@R> => {
-        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
+    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dim>)?> <body:BoxBody> <rr:@R> => {
+        let dim = dim.unwrap_or(Dim { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
         BoxInst::WithBody { id, coords, dim, body, span: Span::from_offsets(source, ll, rr) }
     },
-    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dimensions>)?> <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
-        let dim = dim.unwrap_or(Dimensions { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
+    <ll:@L> "box" <id:Ident?> "at" <coords:Coords> <dim:("dim" <Dim>)?> <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
+        let dim = dim.unwrap_or(Dim { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
         BoxInst::Reference { id, coords, dim, def_name, location: (l, r), span: Span::from_offsets(source, ll, rr) }
     },
 };
@@ -66,7 +66,7 @@ Prop: Prop = {
     <ll:@L> <key:Ident> ":" <value:Frac> <rr:@R> => Prop::PropFrac { key, value, span: Span::from_offsets(source, ll, rr) },
     <ll:@L> <key:Ident> ":" <value:Num> <rr:@R> => Prop::PropNumber { key, value, span: Span::from_offsets(source, ll, rr) },
     <ll:@L> <key:Ident> ":" <value:Coords> <rr:@R> => Prop::PropCoords { key, value, span: Span::from_offsets(source, ll, rr) },
-    <ll:@L> <key:Ident> ":" <value:Dimensions> <rr:@R> => Prop::PropDim { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <value:Dim> <rr:@R> => Prop::PropDim { key, value, span: Span::from_offsets(source, ll, rr) },
 };
 
 Port: Port = {
@@ -97,11 +97,11 @@ Frac: f64 = {
     r"[0-9]+\.[0-9]+" => f64::from_str(<>).unwrap(),
 };
 
-Dimensions: Dimensions = {
+Dim: Dim = {
     <ll:@L> <s:r"[0-9]+x[0-9]+"> <rr:@R> => {
         let parts: Vec<&str> = s.split('x').collect();
         let height = i32::from_str(parts[0]).unwrap();
         let width = i32::from_str(parts[1]).unwrap();
-        Dimensions { height, width, span: Span::from_offsets(source, ll, rr) }
+        Dim { height, width, span: Span::from_offsets(source, ll, rr) }
     },
 };

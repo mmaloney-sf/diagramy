@@ -225,7 +225,7 @@ fn validate_color(color: &str, filename: &str, span: crate::ast::Span) -> Result
 }
 
 /// Extract grid size from box properties
-fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dimensions> {
+fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dim> {
     for item in &body.items {
         if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
             if key == "grid" {

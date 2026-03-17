@@ -116,14 +116,14 @@ pub enum BoxInst {
     WithBody {
         id: Option<String>,
         coords: Coords,
-        dim: Dimensions,
+        dim: Dim,
         body: BoxBody,
         span: Span,
     },
     Reference {
         id: Option<String>,
         coords: Coords,
-        dim: Dimensions,
+        dim: Dim,
         def_name: String,
         location: (usize, usize), // (line, column) - deprecated, use span instead
         span: Span,
@@ -146,7 +146,7 @@ pub enum Prop {
     PropNumber { key: String, value: i32, span: Span },
     PropFrac { key: String, value: f64, span: Span },
     PropCoords { key: String, value: Coords, span: Span },
-    PropDim { key: String, value: Dimensions, span: Span },
+    PropDim { key: String, value: Dim, span: Span },
 }
 
 impl Prop {
@@ -176,7 +176,7 @@ pub struct Coords {
 }
 
 #[derive(Debug, Clone)]
-pub struct Dimensions {
+pub struct Dim {
     pub height: i32,
     pub width: i32,
     pub span: Span,
