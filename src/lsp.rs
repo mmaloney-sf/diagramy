@@ -511,7 +511,19 @@ fn format_box_def_info(box_def: &diagramy::ast::BoxDef) -> String {
     if child_box_count > 0 {
         result.push_str(&format!("\n- children: {child_box_count}"));
     } else if let Some(text) = text_content {
-        result.push_str(&format!("\n- text:     {text}"));
+        // Split multi-line text and align each line
+        let lines: Vec<&str> = text.split('\n').collect();
+        if lines.len() == 1 {
+            result.push_str(&format!("\n- text:     {text}"));
+        } else {
+            result.push_str("\n- text:     ");
+            for (i, line) in lines.iter().enumerate() {
+                if i > 0 {
+                    result.push_str("\n            "); // Align with first line (12 spaces)
+                }
+                result.push_str(line);
+            }
+        }
     }
 
     result
