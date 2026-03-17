@@ -7,6 +7,10 @@ edition = "2021"
 name = "dgmy"
 path = "src/main.rs"
 
+[[bin]]
+name = "dgmy-lsp"
+path = "src/lsp.rs"
+
 [build-dependencies]
 lalrpop = "0.20"
 
@@ -15,3 +19,5 @@ clap = { version = "=4.5.20", features = ["derive"] }
 lalrpop-util = { version = "0.20", features = ["lexer"] }
 regex = "1"
 svg = "0.18"
+tokio = { version = "1.50.0", features = ["full"] }
+tower-lsp = "0.20.0"
