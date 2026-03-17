@@ -11,7 +11,7 @@ const VALID_COLORS: &[&str] = &[
 ];
 
 // Valid diagram-level properties
-const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "text", "top"];
+const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "text", "top", "version"];
 
 // Valid box-level properties
 const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle"];
@@ -80,6 +80,11 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
             "top" => {
                 if !matches!(prop, Prop::PropIdent { .. }) {
                     return Err(format!("{}:{}:{}: Property 'top' must be an identifier", filename, start.line(), start.col()));
+                }
+            }
+            "version" => {
+                if !matches!(prop, Prop::PropString { .. }) {
+                    return Err(format!("{}:{}:{}: Property 'version' must be a string", filename, start.line(), start.col()));
                 }
             }
             _ => {}

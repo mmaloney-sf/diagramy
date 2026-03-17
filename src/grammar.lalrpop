@@ -16,19 +16,9 @@ match {
 }
 
 pub Document: Document = {
-    <ll:@L> <v:Version> <d:Diagram> <defs:BoxDef*> <rr:@R> => {
-        // Assert version is 0.1.0
-        assert_eq!(v, "0.1.0", "Unsupported version: {}. Expected version 0.1.0", v);
-        Document { version: v, diagram: d, box_defs: defs, span: Span::from_offsets(source, ll, rr) }
+    <ll:@L> <d:Diagram> <defs:BoxDef*> <rr:@R> => {
+        Document { diagram: d, box_defs: defs, span: Span::from_offsets(source, ll, rr) }
     },
-};
-
-Version: String = {
-    "version" "=" <v:VersionNumber> => v,
-};
-
-VersionNumber: String = {
-    r"[0-9]+\.[0-9]+\.[0-9]+" => <>.to_string(),
 };
 
 Diagram: Diagram = {

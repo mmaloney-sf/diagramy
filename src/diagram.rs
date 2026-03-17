@@ -10,6 +10,12 @@ const MIN_FONTSIZE: f64 = 0.7;
 // Default base font size
 const DEFAULT_FONT_SIZE: usize = 18;
 
+// Maximum border width (in pixels)
+const MAX_BORDER_WIDTH: f64 = 3.0;
+
+// Maximum border radius (in pixels)
+const MAX_BORDER_RADIUS: f64 = 10.0;
+
 // Margin around the top-level box (in pixels)
 // Should be large enough to fit the title font (1.5x base font size) plus padding
 const TOP_LEVEL_MARGIN: usize = (DEFAULT_FONT_SIZE as f64 * 1.5) as usize + 20;
@@ -205,11 +211,11 @@ fn render_box_rectangle(
     // Calculate stroke width proportional to box size
     // Use the smaller dimension to ensure consistent appearance
     let min_dimension = width.min(height) as f64;
-    let stroke_width = (min_dimension / 100.0).max(0.5).min(4.0);
+    let stroke_width = (min_dimension / 100.0).max(0.5).min(MAX_BORDER_WIDTH);
 
     // Calculate border radius proportional to box size (linear scaling)
     // Use the smaller dimension and scale it down
-    let border_radius = (min_dimension / 20.0).max(2.0).min(15.0);
+    let border_radius = (min_dimension / 20.0).max(2.0).min(MAX_BORDER_RADIUS);
 
     // Determine border style (default is "solid")
     let border_style = diagram_box.border_style.as_deref().unwrap_or("solid");

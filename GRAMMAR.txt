@@ -2,7 +2,7 @@
 // Document
 ////////////////////////////////////////
 
-    Document := Version Diagram BoxDef*
+    Document := Diagram BoxDef*
 
 
 ////////////////////////////////////////
@@ -52,8 +52,6 @@
 // Extra
 ////////////////////////////////////////
 
-    Version := "version" "=" VersionNumber
-    VersionNumber := [0-9]+ "." [0-9]+ "." [0-9]+
     Coords := "(" Num "," Num ")"
 
 

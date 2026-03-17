@@ -69,7 +69,6 @@ fn offset_to_line_col(source: &str, offset: usize) -> LineCol {
 
 #[derive(Debug, Clone)]
 pub struct Document {
-    pub version: String,
     pub diagram: Diagram,
     pub box_defs: Vec<BoxDef>,
     pub span: Span,

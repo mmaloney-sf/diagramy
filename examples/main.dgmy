@@ -1,6 +1,5 @@
-version = 0.1.0
-
 diagram {
+    version: "0.1.0"
     width: 800
     color: blue
     text: "main.dgmy"
