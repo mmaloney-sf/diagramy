@@ -207,25 +207,27 @@ impl Backend {
         let doc = match parser.parse(&text, &text) {
             Ok(d) => d,
             Err(e) => {
-                // Parse error - create a diagnostic
-                let error_msg = format!("{}", e);
-
-                // Try to extract line/column from error message if possible
-                // For now, just report at position 0:0
-                diagnostics.push(Diagnostic {
-                    range: Range {
-                        start: Position { line: 0, character: 0 },
-                        end: Position { line: 0, character: 0 },
-                    },
-                    severity: Some(DiagnosticSeverity::ERROR),
-                    code: None,
-                    code_description: None,
-                    source: Some("diagramy".to_string()),
-                    message: error_msg,
-                    related_information: None,
-                    tags: None,
-                    data: None,
-                });
+                // Parse error - convert to diagnostic with proper line/column
+                if let Some(diagnostic) = parse_error_to_diagnostic(&e, &text) {
+                    diagnostics.push(diagnostic);
+                } else {
+                    // Fallback: report at position 0:0
+                    let error_msg = format!("{}", e);
+                    diagnostics.push(Diagnostic {
+                        range: Range {
+                            start: Position { line: 0, character: 0 },
+                            end: Position { line: 0, character: 0 },
+                        },
+                        severity: Some(DiagnosticSeverity::ERROR),
+                        code: None,
+                        code_description: None,
+                        source: Some("diagramy".to_string()),
+                        message: error_msg,
+                        related_information: None,
+                        tags: None,
+                        data: None,
+                    });
+                }
 
                 self.client.publish_diagnostics(uri, diagnostics, None).await;
                 return;
@@ -260,6 +262,238 @@ impl Backend {
 
         // Publish diagnostics
         self.client.publish_diagnostics(uri, diagnostics, None).await;
+    }
+}
+
+/// Convert byte offset to line and column (1-based)
+fn get_line_col(input: &str, location: usize) -> (usize, usize) {
+    let mut line = 1;
+    let mut col = 1;
+
+    for (i, ch) in input.chars().enumerate() {
+        if i >= location {
+            break;
+        }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
+    }
+
+    (line, col)
+}
+
+/// Convert a parse error to a diagnostic with proper line/column numbers
+fn parse_error_to_diagnostic(
+    error: &lalrpop_util::ParseError<usize, lalrpop_util::lexer::Token, &str>,
+    text: &str,
+) -> Option<Diagnostic> {
+    use lalrpop_util::ParseError;
+
+    match error {
+        ParseError::InvalidToken { location } => {
+            let (line, col) = get_line_col(text, *location);
+
+            // Check if the invalid token is a semicolon
+            if let Some(line_text) = text.lines().nth(line - 1) {
+                if let Some(ch) = line_text.chars().nth(col - 1) {
+                    if ch == ';' {
+                        return Some(Diagnostic {
+                            range: Range {
+                                start: Position {
+                                    line: (line - 1) as u32,
+                                    character: (col - 1) as u32,
+                                },
+                                end: Position {
+                                    line: (line - 1) as u32,
+                                    character: col as u32,
+                                },
+                            },
+                            severity: Some(DiagnosticSeverity::ERROR),
+                            code: None,
+                            code_description: None,
+                            source: Some("diagramy".to_string()),
+                            message: "Remove the semicolon".to_string(),
+                            related_information: None,
+                            tags: None,
+                            data: None,
+                        });
+                    }
+                }
+            }
+
+            Some(Diagnostic {
+                range: Range {
+                    start: Position {
+                        line: (line - 1) as u32,
+                        character: (col - 1) as u32,
+                    },
+                    end: Position {
+                        line: (line - 1) as u32,
+                        character: (col + 5) as u32,
+                    },
+                },
+                severity: Some(DiagnosticSeverity::ERROR),
+                code: None,
+                code_description: None,
+                source: Some("diagramy".to_string()),
+                message: "Invalid token".to_string(),
+                related_information: None,
+                tags: None,
+                data: None,
+            })
+        }
+        ParseError::UnrecognizedEof { location, expected } => {
+            let (line, col) = get_line_col(text, *location);
+            let message = if expected.is_empty() {
+                "Unexpected end of file".to_string()
+            } else {
+                format!("Unexpected end of file. Expected one of: {}", expected.join(", "))
+            };
+
+            Some(Diagnostic {
+                range: Range {
+                    start: Position {
+                        line: (line - 1) as u32,
+                        character: (col - 1) as u32,
+                    },
+                    end: Position {
+                        line: (line - 1) as u32,
+                        character: col as u32,
+                    },
+                },
+                severity: Some(DiagnosticSeverity::ERROR),
+                code: None,
+                code_description: None,
+                source: Some("diagramy".to_string()),
+                message,
+                related_information: None,
+                tags: None,
+                data: None,
+            })
+        }
+        ParseError::UnrecognizedToken { token: (start, tok, _end), expected } => {
+            let (line, col) = get_line_col(text, *start);
+            let token_str = tok.to_string();
+
+            // Check if the token is a semicolon
+            if token_str == ";" {
+                return Some(Diagnostic {
+                    range: Range {
+                        start: Position {
+                            line: (line - 1) as u32,
+                            character: (col - 1) as u32,
+                        },
+                        end: Position {
+                            line: (line - 1) as u32,
+                            character: col as u32,
+                        },
+                    },
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    code: None,
+                    code_description: None,
+                    source: Some("diagramy".to_string()),
+                    message: "Remove the semicolon".to_string(),
+                    related_information: None,
+                    tags: None,
+                    data: None,
+                });
+            }
+
+            let message = if expected.is_empty() {
+                format!("Unrecognized token `{}`", token_str)
+            } else {
+                format!("Unrecognized token `{}`. Expected one of: {}", token_str, expected.join(", "))
+            };
+
+            Some(Diagnostic {
+                range: Range {
+                    start: Position {
+                        line: (line - 1) as u32,
+                        character: (col - 1) as u32,
+                    },
+                    end: Position {
+                        line: (line - 1) as u32,
+                        character: (col + token_str.len() - 1) as u32,
+                    },
+                },
+                severity: Some(DiagnosticSeverity::ERROR),
+                code: None,
+                code_description: None,
+                source: Some("diagramy".to_string()),
+                message,
+                related_information: None,
+                tags: None,
+                data: None,
+            })
+        }
+        ParseError::ExtraToken { token: (start, tok, _end) } => {
+            let (line, col) = get_line_col(text, *start);
+            let token_str = tok.to_string();
+
+            // Check if the token is a semicolon
+            if token_str == ";" {
+                return Some(Diagnostic {
+                    range: Range {
+                        start: Position {
+                            line: (line - 1) as u32,
+                            character: (col - 1) as u32,
+                        },
+                        end: Position {
+                            line: (line - 1) as u32,
+                            character: col as u32,
+                        },
+                    },
+                    severity: Some(DiagnosticSeverity::ERROR),
+                    code: None,
+                    code_description: None,
+                    source: Some("diagramy".to_string()),
+                    message: "Remove the semicolon".to_string(),
+                    related_information: None,
+                    tags: None,
+                    data: None,
+                });
+            }
+
+            Some(Diagnostic {
+                range: Range {
+                    start: Position {
+                        line: (line - 1) as u32,
+                        character: (col - 1) as u32,
+                    },
+                    end: Position {
+                        line: (line - 1) as u32,
+                        character: (col + token_str.len() - 1) as u32,
+                    },
+                },
+                severity: Some(DiagnosticSeverity::ERROR),
+                code: None,
+                code_description: None,
+                source: Some("diagramy".to_string()),
+                message: format!("Extra token `{}`", token_str),
+                related_information: None,
+                tags: None,
+                data: None,
+            })
+        }
+        ParseError::User { error } => {
+            Some(Diagnostic {
+                range: Range {
+                    start: Position { line: 0, character: 0 },
+                    end: Position { line: 0, character: 0 },
+                },
+                severity: Some(DiagnosticSeverity::ERROR),
+                code: None,
+                code_description: None,
+                source: Some("diagramy".to_string()),
+                message: error.to_string(),
+                related_information: None,
+                tags: None,
+                data: None,
+            })
+        }
     }
 }
 
