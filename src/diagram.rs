@@ -255,7 +255,9 @@ fn render_box_title(
         // Position the text based on whether the box has children
         if diagram_box.has_children {
             // Box has children: position title in upper left
-            let padding = 10;
+            // Calculate padding based on box size (matches border radius calculation)
+            let min_dimension = width.min(height) as f64;
+            let padding = (min_dimension / 20.0).max(2.0).min(15.0) as usize;
             let start_x = x + padding;
             let start_y = y + scaled_font_size + padding;
 
@@ -364,24 +366,17 @@ fn flatten_boxes(
 
     // If this box has a title and children, add padding on all sides for the title
     let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
-        // Calculate the font size for this box using linear scaling
-        let width_ratio = parent_width as f64 / canvas_width as f64;
-        let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
-        let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
-        let scaled_font_size = (DEFAULT_FONT_SIZE as f64 * font_scale) as usize;
-
-        // Top padding is font size + extra space
-        let top = scaled_font_size + 20;
-        // Side and bottom padding is a fixed amount
-        let side = 10;
+        // Calculate padding based on box size (matches border radius calculation)
+        let min_dimension = parent_width.min(parent_height) as f64;
+        let padding = (min_dimension / 20.0).max(2.0).min(15.0) as usize;
 
         // Apply margin scaling if specified
         let margin_scale = box_def.margin.unwrap_or(1.0);
         (
-            (top as f64 * margin_scale) as usize,
-            (side as f64 * margin_scale) as usize,
-            (side as f64 * margin_scale) as usize,
-            (side as f64 * margin_scale) as usize,
+            (padding as f64 * margin_scale) as usize,
+            (padding as f64 * margin_scale) as usize,
+            (padding as f64 * margin_scale) as usize,
+            (padding as f64 * margin_scale) as usize,
         )
     } else {
         (0, 0, 0, 0)
