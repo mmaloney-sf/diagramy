@@ -21,6 +21,7 @@ pub struct BoxDef {
     pub boxes: Vec<Box>,
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
+    pub routed_arrow_paths: Vec<Vec<(f64, f64)>>, // Routed paths in fractional coordinates
 }
 
 #[derive(Debug, Clone)]
@@ -43,7 +44,7 @@ pub struct Box {
 }
 
 /// Convert an ast::Document into a diagram::Diagram
-pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<ElaboratedDiagram, String> {
+pub fn from_ast(doc: &ast::Document, source: &str, filename: &str, debug_dir: Option<&str>) -> Result<ElaboratedDiagram, String> {
     // Extract diagram-level properties
     let mut color = String::from("transparent");
     let mut width: Option<usize> = None;
@@ -89,7 +90,7 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str) -> Result<Ela
     };
 
     // Convert the top box definition
-    let top_box_def = convert_ast_box_body(&top_ast_def.body, &box_def_map, source, filename)?;
+    let top_box_def = convert_ast_box_body(&top_ast_def.body, &box_def_map, source, filename, debug_dir, "top")?;
 
     // Calculate size from width and grid aspect ratio
     // grid is now (rows, cols), so aspect_ratio = rows / cols
@@ -181,7 +182,7 @@ fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize),
 }
 
 /// Convert an ast::BoxBody into a BoxDef, processing all items
-fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast::BoxDef>, source: &str, filename: &str) -> Result<BoxDef, String> {
+fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast::BoxDef>, source: &str, filename: &str, debug_dir: Option<&str>, box_name: &str) -> Result<BoxDef, String> {
     let mut grid = (1, 1); // default grid
     let mut title: Option<String> = None;
     let mut color: Option<String> = None;
@@ -274,7 +275,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     }
 
                     // Recursively convert the nested box body
-                    let nested_def = convert_ast_box_body(body, box_def_map, source, filename)?;
+                    let nested_def = convert_ast_box_body(body, box_def_map, source, filename, debug_dir, &format!("{}.inline", box_name))?;
                     boxes.push(Box {
                         def: Arc::new(nested_def),
                         // Convert from 1-based to 0-based indexing
@@ -318,7 +319,7 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
 
                     // Look up the referenced box definition
                     if let Some(referenced_def) = box_def_map.get(def_name) {
-                        let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename)?;
+                        let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename, debug_dir, def_name)?;
                         boxes.push(Box {
                             def: Arc::new(nested_def),
                             // Convert from 1-based to 0-based indexing
@@ -336,6 +337,9 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
         }
     }
 
+    // Route arrows using A* pathfinding
+    let routed_arrow_paths = route_arrows(&arrows, &ports, &boxes, grid, margin, debug_dir, box_name);
+
     Ok(BoxDef {
         grid,
         title,
@@ -345,5 +349,84 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
         boxes,
         ports,
         arrows,
+        routed_arrow_paths,
     })
+}
+
+/// Route arrows using A* pathfinding
+fn route_arrows(
+    arrows: &[Arrow],
+    ports: &[Port],
+    boxes: &[Box],
+    grid: (usize, usize),
+    parent_margin: Option<f64>,
+    debug_dir: Option<&str>,
+    box_name: &str,
+) -> Vec<Vec<(f64, f64)>> {
+    use crate::routing::{ArrowRouter, BoundingBox, Point};
+
+    // Build port map
+    let mut port_map: HashMap<String, Point> = HashMap::new();
+    for port in ports {
+        port_map.insert(port.name.clone(), (port.coords.0, port.coords.1));
+    }
+
+    // Build bounding boxes for child boxes
+    let mut bounding_boxes = Vec::new();
+    for child_box in boxes {
+        let (row, col) = child_box.pos;
+        let (height, width) = child_box.dim;
+
+        // Box at position (row, col) with dimensions (height, width)
+        // Add +1 to both row and col
+
+        // Get margin from parent box
+        // Margin is a scale factor (default 0.1 = 10% of cell size)
+        // In fractional coordinates, 10% of a 1.0 cell = 0.1 units
+        let margin_scale = parent_margin.unwrap_or(0.1);
+        let margin = margin_scale * 0.1;
+
+        let min_row = (row - height + 1) as f64 + margin;
+        let min_col = (col - width + 1) as f64 + margin;
+        let max_row = (row + 1) as f64 - margin;
+        let max_col = (col + 1) as f64 - margin;
+
+        eprintln!("Child box at ({}, {}) with dim ({}x{}): bbox min=({}, {}), max=({}, {})",
+                 row, col, height, width, min_row, min_col, max_row, max_col);
+
+        bounding_boxes.push(BoundingBox {
+            min: (min_row, min_col),
+            max: (max_row, max_col),
+        });
+    }
+
+    // Create router
+    let mut router = ArrowRouter::new(
+        grid.1 as f64, // grid width
+        grid.0 as f64, // grid height
+        bounding_boxes,
+    );
+
+    // Set debug directory if provided
+    if let Some(dir) = debug_dir {
+        router.set_debug_dir(dir, box_name);
+    }
+
+    // Route each arrow
+    let mut routed_paths = Vec::new();
+    for arrow in arrows {
+        if let (Some(&start), Some(&end)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
+            if let Some(path) = router.route(start, end) {
+                routed_paths.push(path.points);
+            } else {
+                // Fallback to straight line if routing fails
+                routed_paths.push(vec![start, end]);
+            }
+        } else {
+            // Port not found, push empty path
+            routed_paths.push(Vec::new());
+        }
+    }
+
+    routed_paths
 }

@@ -20,6 +20,7 @@ pub struct Diagram {
     pub boxes: Vec<DiagramBox>,
     pub ports: Vec<DiagramPort>,
     pub arrows: Vec<DiagramArrow>,
+    pub routed_paths: Vec<Vec<(usize, usize)>>, // Routed arrow paths in pixel coordinates
     pub title: Option<String>,
     pub color: Option<String>,
 }
@@ -173,7 +174,7 @@ impl Diagram {
         }
 
         // Third pass: Render arrows (before ports so ports appear on top)
-        svg_doc = render_arrows(svg_doc, &self.arrows, &self.ports)?;
+        svg_doc = render_arrows(svg_doc, &self.arrows, &self.ports, &self.routed_paths)?;
 
         // Fourth pass: Render ports as small circles
         for port in &self.ports {
@@ -423,13 +424,47 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     // Collect all arrows from the top-level box
     collect_arrows(&elab_diagram.top, &mut arrows);
 
+    // Collect routed paths and convert to pixel coordinates
+    let routed_paths = convert_routed_paths(
+        &elab_diagram.top,
+        top_x,
+        top_y,
+        top_width,
+        top_height,
+    );
+
     Diagram {
         boxes,
         ports,
         arrows,
+        routed_paths,
         title: elab_diagram.title.clone(),
         color: Some(elab_diagram.color.clone()),
     }
+}
+
+/// Convert routed paths from fractional to pixel coordinates
+fn convert_routed_paths(
+    box_def: &elaboration::BoxDef,
+    parent_x: usize,
+    parent_y: usize,
+    parent_width: usize,
+    parent_height: usize,
+) -> Vec<Vec<(usize, usize)>> {
+    let (grid_height, grid_width) = box_def.grid;
+
+    box_def.routed_arrow_paths.iter().map(|path| {
+        path.iter().map(|(row, col)| {
+            // Scale fractional coordinates to pixel coordinates
+            let frac_y = row / grid_height as f64;
+            let frac_x = col / grid_width as f64;
+
+            let abs_x = parent_x + (frac_x * parent_width as f64) as usize;
+            let abs_y = parent_y + (frac_y * parent_height as f64) as usize;
+
+            (abs_x, abs_y)
+        }).collect()
+    }).collect()
 }
 
 /// Recursively flatten hierarchical boxes into absolute-positioned boxes
@@ -585,11 +620,12 @@ fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocume
     Ok(svg_doc)
 }
 
-/// Render arrows connecting ports
+/// Render arrows connecting ports using routed paths
 fn render_arrows(
     mut svg_doc: SvgDocument,
     arrows: &[DiagramArrow],
     ports: &[DiagramPort],
+    routed_paths: &[Vec<(usize, usize)>],
 ) -> Result<SvgDocument, String> {
     // Build a map of port names to positions
     let mut port_map = std::collections::HashMap::new();
@@ -615,25 +651,46 @@ fn render_arrows(
     let defs = Definitions::new().add(marker);
     svg_doc = svg_doc.add(defs);
 
-    // TODO: Use A* pathfinding for arrow routing
-    // For now, render simple straight lines
+    // Render each arrow using routed paths
+    for (i, arrow) in arrows.iter().enumerate() {
+        // Check if we have a routed path for this arrow
+        if i < routed_paths.len() && !routed_paths[i].is_empty() {
+            // Use routed path
+            let path = &routed_paths[i];
+            let mut path_data = String::new();
 
-    // Render each arrow
-    for arrow in arrows {
-        if let (Some(&from_pos), Some(&to_pos)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
-            let (x1, y1) = from_pos;
-            let (x2, y2) = to_pos;
+            for (j, &(x, y)) in path.iter().enumerate() {
+                if j == 0 {
+                    path_data.push_str(&format!("M {} {} ", x, y));
+                } else {
+                    path_data.push_str(&format!("L {} {} ", x, y));
+                }
+            }
 
-            let line = Line::new()
-                .set("x1", x1)
-                .set("y1", y1)
-                .set("x2", x2)
-                .set("y2", y2)
+            let path_elem = svg::node::element::Path::new()
+                .set("d", path_data)
                 .set("stroke", "#333")
                 .set("stroke-width", 2)
+                .set("fill", "none")
                 .set("marker-end", "url(#arrowhead)");
+            svg_doc = svg_doc.add(path_elem);
+        } else {
+            // Fallback to straight line if no routed path
+            if let (Some(&from_pos), Some(&to_pos)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
+                let (x1, y1) = from_pos;
+                let (x2, y2) = to_pos;
 
-            svg_doc = svg_doc.add(line);
+                let line = Line::new()
+                    .set("x1", x1)
+                    .set("y1", y1)
+                    .set("x2", x2)
+                    .set("y2", y2)
+                    .set("stroke", "#333")
+                    .set("stroke-width", 2)
+                    .set("marker-end", "url(#arrowhead)");
+
+                svg_doc = svg_doc.add(line);
+            }
         }
     }
 

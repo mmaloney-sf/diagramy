@@ -37,6 +37,10 @@ struct Args {
     /// Font size for text labels (default: 18)
     #[arg(long, default_value = "18")]
     font_size: usize,
+
+    /// Debug directory for routing SVGs
+    #[arg(long)]
+    debug: Option<String>,
 }
 
 // Helper function to convert byte offset to line and column
@@ -196,7 +200,7 @@ fn main() {
 
                 if args.convert {
                     // Test the conversion function
-                    match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
+                    match diagramy::elaboration::from_ast(&doc, &input, &args.file, args.debug.as_deref()) {
                         Ok(diagram) => {
                             println!("Converted diagram:");
                             println!("  Color: {}", diagram.color);
@@ -213,7 +217,7 @@ fn main() {
                 } else {
                     // Default behavior: render to SVG
                     // Convert AST to elaboration diagram
-                    let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file) {
+                    let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file, args.debug.as_deref()) {
                         Ok(diagram) => diagram,
                         Err(e) => {
                             eprintln!("Error: {}", e);
