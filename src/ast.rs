@@ -115,28 +115,34 @@ impl BoxItem {
 
 #[derive(Debug, Clone)]
 pub enum BoxInst {
-    WithBody {
-        id: Option<String>,
-        coords: Option<Coords>,
-        dim: Dim,
-        body: BoxBody,
-        span: Span,
-    },
-    Reference {
-        id: Option<String>,
-        coords: Option<Coords>,
-        dim: Dim,
-        def_name: String,
-        location: (usize, usize), // (line, column) - deprecated, use span instead
-        span: Span,
-    },
+    WithBody(WithBody),
+    Reference(Reference),
+}
+
+#[derive(Debug, Clone)]
+pub struct WithBody {
+    pub id: Option<String>,
+    pub coords: Option<Coords>,
+    pub dim: Dim,
+    pub body: BoxBody,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct Reference {
+    pub id: Option<String>,
+    pub coords: Option<Coords>,
+    pub dim: Dim,
+    pub def_name: String,
+    pub location: (usize, usize), // (line, column) - deprecated, use span instead
+    pub span: Span,
 }
 
 impl BoxInst {
     pub fn span(&self) -> Span {
         match self {
-            BoxInst::WithBody { span, .. } => *span,
-            BoxInst::Reference { span, .. } => *span,
+            BoxInst::WithBody(with_body) => with_body.span,
+            BoxInst::Reference(reference) => reference.span,
         }
     }
 }

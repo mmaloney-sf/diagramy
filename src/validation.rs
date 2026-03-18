@@ -109,10 +109,10 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
             BoxItem::BoxInst(box_inst) => {
                 // Recursively validate nested boxes
                 match box_inst {
-                    crate::ast::BoxInst::WithBody { body, .. } => {
-                        validate_box_body(body, filename)?;
+                    crate::ast::BoxInst::WithBody(with_body) => {
+                        validate_box_body(&with_body.body, filename)?;
                     }
-                    crate::ast::BoxInst::Reference { .. } => {
+                    crate::ast::BoxInst::Reference(_) => {
                         // References are validated during elaboration
                     }
                 }
@@ -286,8 +286,8 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
             let span = box_inst.span();
             let start = span.start();
             let (coords_opt, dim) = match box_inst {
-                crate::ast::BoxInst::WithBody { coords, dim, .. } => (coords, dim),
-                crate::ast::BoxInst::Reference { coords, dim, .. } => (coords, dim),
+                crate::ast::BoxInst::WithBody(with_body) => (&with_body.coords, &with_body.dim),
+                crate::ast::BoxInst::Reference(reference) => (&reference.coords, &reference.dim),
             };
 
             // Determine actual position (explicit or auto-positioned)
@@ -371,8 +371,8 @@ fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), Strin
             let span = box_inst.span();
             let start = span.start();
             let id = match box_inst {
-                crate::ast::BoxInst::WithBody { id, .. } => id.as_ref(),
-                crate::ast::BoxInst::Reference { id, .. } => id.as_ref(),
+                crate::ast::BoxInst::WithBody(with_body) => with_body.id.as_ref(),
+                crate::ast::BoxInst::Reference(reference) => reference.id.as_ref(),
             };
 
             // Only check named boxes
@@ -490,8 +490,8 @@ fn validate_no_name_conflicts(body: &BoxBody, filename: &str) -> Result<(), Stri
             BoxItem::BoxInst(box_inst) => {
                 let span = box_inst.span();
                 let id = match box_inst {
-                    crate::ast::BoxInst::WithBody { id, .. } => id.as_ref(),
-                    crate::ast::BoxInst::Reference { id, .. } => id.as_ref(),
+                    crate::ast::BoxInst::WithBody(with_body) => with_body.id.as_ref(),
+                    crate::ast::BoxInst::Reference(reference) => reference.id.as_ref(),
                 };
 
                 if let Some(name) = id {
@@ -592,20 +592,20 @@ fn validate_box_body_references(
     for item in &body.items {
         if let BoxItem::BoxInst(box_inst) = item {
             match box_inst {
-                crate::ast::BoxInst::WithBody { body, .. } => {
+                crate::ast::BoxInst::WithBody(with_body) => {
                     // Recursively validate nested box bodies
-                    validate_box_body_references(body, box_names, filename)?;
+                    validate_box_body_references(&with_body.body, box_names, filename)?;
                 }
-                crate::ast::BoxInst::Reference { def_name, span, .. } => {
+                crate::ast::BoxInst::Reference(reference) => {
                     // Check if the referenced box exists
-                    if !box_names.contains(def_name) {
-                        let start = span.start();
+                    if !box_names.contains(&reference.def_name) {
+                        let start = reference.span.start();
                         return Err(format!(
                             "{}:{}:{}: No such box: {}",
                             filename,
                             start.line(),
                             start.col(),
-                            def_name
+                            reference.def_name
                         ));
                     }
                 }
@@ -763,8 +763,8 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
         if let BoxItem::BoxInst(box_inst) = item {
             // Get position and dimensions of the child box
             let (coords_opt, dimensions) = match box_inst {
-                BoxInst::WithBody { coords, dim, .. } => (coords.as_ref(), dim),
-                BoxInst::Reference { coords, dim, .. } => (coords.as_ref(), dim),
+                BoxInst::WithBody(with_body) => (with_body.coords.as_ref(), &with_body.dim),
+                BoxInst::Reference(reference) => (reference.coords.as_ref(), &reference.dim),
             };
 
             // Determine actual position (explicit or auto-positioned)

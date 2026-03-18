@@ -564,19 +564,19 @@ fn search_box_body_for_reference(
     for item in &body.items {
         if let BoxItem::BoxInst(inst) = item {
             match inst {
-                BoxInst::Reference { def_name, location, .. } => {
+                BoxInst::Reference(reference) => {
                     // Use the location field which contains byte offsets of just the identifier
-                    let ident_span = diagramy::ast::Span::from_offsets(text, location.0, location.1);
+                    let ident_span = diagramy::ast::Span::from_offsets(text, reference.location.0, reference.location.1);
                     let start = ident_span.start();
                     let end = ident_span.end();
 
                     if is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
-                        return Some(def_name.clone());
+                        return Some(reference.def_name.clone());
                     }
                 }
-                BoxInst::WithBody { body, .. } => {
+                BoxInst::WithBody(with_body) => {
                     // Recursively search nested bodies
-                    if let Some(name) = search_box_body_for_reference(body, text, line, col) {
+                    if let Some(name) = search_box_body_for_reference(&with_body.body, text, line, col) {
                         return Some(name);
                     }
                 }
@@ -683,20 +683,20 @@ fn check_box_body_for_reference_hover(
     for item in &body.items {
         if let BoxItem::BoxInst(inst) = item {
             match inst {
-                BoxInst::Reference { def_name, location, .. } => {
-                    let ident_span = diagramy::ast::Span::from_offsets(text, location.0, location.1);
+                BoxInst::Reference(reference) => {
+                    let ident_span = diagramy::ast::Span::from_offsets(text, reference.location.0, reference.location.1);
                     let start = ident_span.start();
                     let end = ident_span.end();
 
                     if is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
                         // Find the box definition
-                        if let Some(box_def) = doc.box_defs.iter().find(|bd| bd.name == *def_name) {
+                        if let Some(box_def) = doc.box_defs.iter().find(|bd| bd.name == reference.def_name) {
                             return Some(format_box_def_info(box_def));
                         }
                     }
                 }
-                BoxInst::WithBody { body, .. } => {
-                    if let Some(hover) = check_box_body_for_reference_hover(body, doc, text, line, col) {
+                BoxInst::WithBody(with_body) => {
+                    if let Some(hover) = check_box_body_for_reference_hover(&with_body.body, doc, text, line, col) {
                         return Some(hover);
                     }
                 }
@@ -967,14 +967,14 @@ fn check_box_inst_hover(
 
     // Get coords and dim from the instance
     let (coords, dim) = match inst {
-        BoxInst::WithBody { coords, dim, body, .. } => {
+        BoxInst::WithBody(with_body) => {
             // Check nested body recursively
-            if let Some(hover) = check_box_body_hover(body, text, line, col) {
+            if let Some(hover) = check_box_body_hover(&with_body.body, text, line, col) {
                 return Some(hover);
             }
-            (coords, dim)
+            (&with_body.coords, &with_body.dim)
         }
-        BoxInst::Reference { coords, dim, .. } => (coords, dim),
+        BoxInst::Reference(reference) => (&reference.coords, &reference.dim),
     };
 
     // Check if hovering over coords

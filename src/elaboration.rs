@@ -150,10 +150,7 @@ fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
 
 /// Process an inline box instance (WithBody variant)
 fn process_inline_box(
-    coords: &Option<ast::Coords>,
-    dim: &ast::Dim,
-    body: &ast::BoxBody,
-    span: &crate::ast::Span,
+    with_body: &ast::WithBody,
     box_def_map: &HashMap<String, &ast::BoxDef>,
     source: &str,
     filename: &str,
@@ -164,16 +161,21 @@ fn process_inline_box(
     last_pos: &mut (i32, i32),
 ) -> Result<Box, String> {
     // Determine position (auto-position if coords is None)
-    let (row, col) = if let Some(c) = coords {
+    let (row, col) = if let Some(c) = &with_body.coords {
         (c.row, c.col)
     } else {
-        match find_next_free_position(occupied, grid, (dim.height, dim.width), *last_pos) {
+        match find_next_free_position(
+            occupied,
+            grid,
+            (with_body.dim.height, with_body.dim.width),
+            *last_pos,
+        ) {
             Some(pos) => pos,
             None => {
-                let start = span.start();
+                let start = with_body.span.start();
                 return Err(format!(
                     "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
-                    filename, start.line(), start.col(), dim.height, dim.width, grid.0, grid.1
+                    filename, start.line(), start.col(), with_body.dim.height, with_body.dim.width, grid.0, grid.1
                 ));
             }
         }
@@ -183,13 +185,13 @@ fn process_inline_box(
     *last_pos = (row, col);
 
     // Check for overlaps and mark occupied cells (including cells occupied by dim)
-    for r in row..(row + dim.height) {
-        for c in col..(col + dim.width) {
+    for r in row..(row + with_body.dim.height) {
+        for c in col..(col + with_body.dim.width) {
             if occupied.contains(&(r, c)) {
-                let start = span.start();
+                let start = with_body.span.start();
                 return Err(format!(
                     "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                    filename, start.line(), start.col(), row, col, dim.height, dim.width, r, c
+                    filename, start.line(), start.col(), row, col, with_body.dim.height, with_body.dim.width, r, c
                 ));
             }
             occupied.insert((r, c));
@@ -198,7 +200,7 @@ fn process_inline_box(
 
     // Recursively convert the nested box body
     let nested_def = convert_ast_box_body(
-        body,
+        &with_body.body,
         box_def_map,
         source,
         filename,
@@ -210,16 +212,13 @@ fn process_inline_box(
         def: Arc::new(nested_def),
         // Convert from 1-based to 0-based indexing
         pos: ((row - 1) as usize, (col - 1) as usize),
-        dim: (dim.height as usize, dim.width as usize),
+        dim: (with_body.dim.height as usize, with_body.dim.width as usize),
     })
 }
 
 /// Process a box reference (Reference variant)
 fn process_box_reference(
-    coords: &Option<ast::Coords>,
-    dim: &ast::Dim,
-    def_name: &str,
-    span: &crate::ast::Span,
+    reference: &ast::Reference,
     box_def_map: &HashMap<String, &ast::BoxDef>,
     source: &str,
     filename: &str,
@@ -229,16 +228,21 @@ fn process_box_reference(
     last_pos: &mut (i32, i32),
 ) -> Result<Box, String> {
     // Determine position (auto-position if coords is None)
-    let (row, col) = if let Some(c) = coords {
+    let (row, col) = if let Some(c) = &reference.coords {
         (c.row, c.col)
     } else {
-        match find_next_free_position(occupied, grid, (dim.height, dim.width), *last_pos) {
+        match find_next_free_position(
+            occupied,
+            grid,
+            (reference.dim.height, reference.dim.width),
+            *last_pos,
+        ) {
             Some(pos) => pos,
             None => {
-                let start = span.start();
+                let start = reference.span.start();
                 return Err(format!(
                     "{}:{}:{}: Cannot auto-position box '{}' with dim {}x{}. No free space available in {}x{} grid",
-                    filename, start.line(), start.col(), def_name, dim.height, dim.width, grid.0, grid.1
+                    filename, start.line(), start.col(), reference.def_name, reference.dim.height, reference.dim.width, grid.0, grid.1
                 ));
             }
         }
@@ -248,13 +252,13 @@ fn process_box_reference(
     *last_pos = (row, col);
 
     // Check for overlaps and mark occupied cells (including cells occupied by dim)
-    for r in row..(row + dim.height) {
-        for c in col..(col + dim.width) {
+    for r in row..(row + reference.dim.height) {
+        for c in col..(col + reference.dim.width) {
             if occupied.contains(&(r, c)) {
-                let start = span.start();
+                let start = reference.span.start();
                 return Err(format!(
                     "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                    filename, start.line(), start.col(), row, col, dim.height, dim.width, r, c
+                    filename, start.line(), start.col(), row, col, reference.dim.height, reference.dim.width, r, c
                 ));
             }
             occupied.insert((r, c));
@@ -262,14 +266,14 @@ fn process_box_reference(
     }
 
     // Look up the referenced box definition
-    let referenced_def = box_def_map.get(def_name).ok_or_else(|| {
-        let start = span.start();
+    let referenced_def = box_def_map.get(&reference.def_name).ok_or_else(|| {
+        let start = reference.span.start();
         format!(
             "{}:{}:{}: No such box: {}",
             filename,
             start.line(),
             start.col(),
-            def_name
+            reference.def_name
         )
     })?;
 
@@ -279,14 +283,14 @@ fn process_box_reference(
         source,
         filename,
         debug_dir,
-        def_name,
+        &reference.def_name,
     )?;
 
     Ok(Box {
         def: Arc::new(nested_def),
         // Convert from 1-based to 0-based indexing
         pos: ((row - 1) as usize, (col - 1) as usize),
-        dim: (dim.height as usize, dim.width as usize),
+        dim: (reference.dim.height as usize, reference.dim.width as usize),
     })
 }
 
@@ -427,28 +431,35 @@ fn convert_ast_box_body(
 
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
-            let box_result = match box_inst {
-                ast::BoxInst::WithBody { id: _, coords, dim, body, span, } => 
-                    process_inline_box(
-                    coords,
-                    dim,
-                    body,
-                    span,
-                    box_def_map,
-                    source,
-                    filename,
-                    debug_dir,
-                    box_name,
-                    grid,
-                    &mut occupied,
-                    &mut last_pos,
-                ),
-                ast::BoxInst::Reference { id: _, coords, dim, def_name, location: _, span, } => process_box_reference(
-                    coords, dim, def_name, span, box_def_map, source, filename, debug_dir,
-                    grid, &mut occupied, &mut last_pos,
-                ),
-            };
-            boxes.push(box_result?);
+            match box_inst {
+                ast::BoxInst::WithBody(with_body) => {
+                    let box_def = process_inline_box(
+                        with_body,
+                        box_def_map,
+                        source,
+                        filename,
+                        debug_dir,
+                        box_name,
+                        grid,
+                        &mut occupied,
+                        &mut last_pos,
+                    )?;
+                    boxes.push(box_def);
+                }
+                ast::BoxInst::Reference(reference) => {
+                    let box_def = process_box_reference(
+                        reference,
+                        box_def_map,
+                        source,
+                        filename,
+                        debug_dir,
+                        grid,
+                        &mut occupied,
+                        &mut last_pos,
+                    )?;
+                    boxes.push(box_def);
+                }
+            }
         }
     }
 
