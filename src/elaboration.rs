@@ -497,7 +497,7 @@ impl<'ast> Elaborator<'ast> {
         ports: &[Port],
         boxes: &[Box],
         grid: (usize, usize),
-        _parent_margin: Option<f64>,
+        parent_margin: Option<f64>,
         box_name: &str,
     ) -> Vec<RoutedArrowPath> {
         use crate::routing::{ArrowRouter, BoundingBox};
@@ -524,20 +524,36 @@ impl<'ast> Elaborator<'ast> {
                     // Port coordinates are relative to the child box's grid
                     // We need to scale and offset them to the parent's coordinate system
 
+                    // IMPORTANT: Account for the margin that will be applied to the child box during rendering
+                    // The margin is based on cell size, not box size (see diagram.rs flatten_boxes)
+                    // Margin is applied as: margin_x = cell_width * margin_factor
+                    // This shrinks the child box, so ports need to be adjusted accordingly
+
+                    let margin_factor = parent_margin.unwrap_or(0.1);
+
+                    // Calculate margin in parent grid cells
+                    // Each cell is 1.0 units in the parent grid
+                    let margin_in_cells = margin_factor;
+
+                    // The child box's effective position and size after margin
+                    let effective_child_row = (child_row as f64) + margin_in_cells;
+                    let effective_child_col = (child_col as f64) + margin_in_cells;
+                    let effective_child_height = (child_height as f64) - (2.0 * margin_in_cells);
+                    let effective_child_width = (child_width as f64) - (2.0 * margin_in_cells);
+
                     let child_grid = child_box.def.grid;
                     let (child_grid_rows, child_grid_cols) = child_grid;
 
                     // Port coordinates in child's fractional grid coordinates
                     let (port_row_in_child, port_col_in_child) = child_port.coords;
 
-                    // Scale port coordinates from child's grid to child's cell span
-                    // Child box spans child_height x child_width cells in parent grid
-                    let port_row_in_cells = port_row_in_child * (child_height as f64) / (child_grid_rows as f64);
-                    let port_col_in_cells = port_col_in_child * (child_width as f64) / (child_grid_cols as f64);
+                    // Scale port coordinates from child's grid to child's effective cell span (after margin)
+                    let port_row_in_cells = port_row_in_child * effective_child_height / (child_grid_rows as f64);
+                    let port_col_in_cells = port_col_in_child * effective_child_width / (child_grid_cols as f64);
 
-                    // Offset by child box position in parent grid
-                    let port_row_in_parent = (child_row as f64) + port_row_in_cells;
-                    let port_col_in_parent = (child_col as f64) + port_col_in_cells;
+                    // Offset by child box's effective position in parent grid (after margin)
+                    let port_row_in_parent = effective_child_row + port_row_in_cells;
+                    let port_col_in_parent = effective_child_col + port_col_in_cells;
 
                     // Add to port map with qualified name
                     let qualified_name = format!("{}.{}", child_id, child_port.name);

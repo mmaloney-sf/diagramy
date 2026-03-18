@@ -9,6 +9,7 @@ diagram {
     width: 1200
     color: white
     title: "Digital Signal Processor Architecture"
+    cheatPorts: true
 }
 
 box processor {
