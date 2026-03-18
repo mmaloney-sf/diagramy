@@ -1,0 +1,25 @@
+// Example 14: Ports and Arrows
+// Demonstrates how to define ports and connect them with arrows.
+// Ports are positioned using fractional coordinates relative to the grid.
+// Arrows automatically route between ports using orthogonal pathfinding (A* algorithm)
+// to avoid obstacles (child boxes). This example shows an arrow routing around
+// two boxes positioned in the grid.
+diagram {
+    version: "0.1.0"
+    width: 600
+    color: white
+    title: "Ports and Arrows"
+}
+
+box Top {
+    grid: 3x3
+
+    box at (2, 1) is { text : "A" }
+    box at (2, 3) is { text : "C" }
+
+    port a at (0.0, 0.15)
+    port b at (2.8, 2.9)
+
+    arrow a to b
+}
+

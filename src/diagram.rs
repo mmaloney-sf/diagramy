@@ -22,7 +22,7 @@ pub struct Diagram {
     pub boxes: Vec<DiagramBox>,
     pub ports: Vec<DiagramPort>,
     pub arrows: Vec<DiagramArrow>,
-    pub routed_paths: Vec<Vec<(usize, usize)>>, // Routed arrow paths in pixel coordinates
+    pub routed_paths: Vec<Vec<(f64, f64)>>, // Routed arrow paths in pixel coordinates
     pub title: Option<String>,
     pub color: Option<String>,
 }
@@ -31,7 +31,7 @@ pub struct Diagram {
 #[derive(Debug)]
 pub struct DiagramPort {
     pub name: String,
-    pub pos: (usize, usize), // Absolute position
+    pub pos: (f64, f64), // Absolute position
 }
 
 /// An arrow in the diagram connecting two ports
@@ -45,9 +45,9 @@ pub struct DiagramArrow {
 #[derive(Debug)]
 pub struct DiagramBox {
     /// Absolute position in the diagram coordinate space
-    pub pos: (usize, usize),
+    pub pos: (f64, f64),
     /// Absolute size (width, height) in the diagram coordinate space
-    pub size: (usize, usize),
+    pub size: (f64, f64),
     pub title: Option<String>,
     pub color: Option<String>,
     /// Font scale factor based on width relative to parent
@@ -316,18 +316,18 @@ fn render_box_title(
         let lines: Vec<&str> = title.split('\n').collect();
 
         // Calculate padding based on box size (matches border radius calculation)
-        let min_dimension = width.min(height) as f64;
-        let padding = (min_dimension / 20.0).max(2.0).min(15.0) as usize;
+        let min_dimension = width.min(height);
+        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
 
         // Calculate available space for text
         let available_width = if diagram_box.has_children {
             // For boxes with children, text is left-aligned with padding on both sides
-            width.saturating_sub(2 * padding)
+            width - (2.0 * padding)
         } else {
             // For boxes without children, text is centered but still needs padding
-            width.saturating_sub(2 * padding)
+            width - (2.0 * padding)
         };
-        let available_height = height.saturating_sub(2 * padding);
+        let available_height = height - (2.0 * padding);
 
         // Estimate text dimensions and calculate scaling factor
         // Average character width is approximately 0.6 * font_size for Arial
@@ -340,20 +340,20 @@ fn render_box_title(
             .unwrap_or(0);
 
         // Calculate required width for the widest line
-        let estimated_text_width = (max_line_chars as f64 * scaled_font_size as f64 * CHAR_WIDTH_RATIO) as usize;
+        let estimated_text_width = max_line_chars as f64 * scaled_font_size as f64 * CHAR_WIDTH_RATIO;
 
         // Calculate required height for all lines
-        let estimated_text_height = lines.len() * scaled_font_size;
+        let estimated_text_height = lines.len() as f64 * scaled_font_size as f64;
 
         // Calculate scaling factors needed to fit within available space
-        let width_scale = if estimated_text_width > available_width && estimated_text_width > 0 {
-            available_width as f64 / estimated_text_width as f64
+        let width_scale = if estimated_text_width > available_width && estimated_text_width > 0.0 {
+            available_width / estimated_text_width
         } else {
             1.0
         };
 
-        let height_scale = if estimated_text_height > available_height && estimated_text_height > 0 {
-            available_height as f64 / estimated_text_height as f64
+        let height_scale = if estimated_text_height > available_height && estimated_text_height > 0.0 {
+            available_height / estimated_text_height
         } else {
             1.0
         };
@@ -366,11 +366,11 @@ fn render_box_title(
         if diagram_box.has_children {
             // Box has children: position title in upper left
             let start_x = x + padding;
-            let start_y = y + final_font_size + padding;
+            let start_y = y + final_font_size as f64 + padding;
 
             // Render each line separately
             for (i, line) in lines.iter().enumerate() {
-                let line_y = start_y + (i * final_font_size);
+                let line_y = start_y + (i as f64 * final_font_size as f64);
                 let text = Text::new(*line)
                     .set("x", start_x)
                     .set("y", line_y)
@@ -383,16 +383,16 @@ fn render_box_title(
             }
         } else {
             // Box has no children: center the text
-            let center_x = x + width / 2;
-            let center_y = y + height / 2;
+            let center_x = x + width / 2.0;
+            let center_y = y + height / 2.0;
 
             // Calculate total height of all lines
-            let total_height = lines.len() * final_font_size;
-            let start_y = center_y - (total_height / 2) + final_font_size;
+            let total_height = lines.len() as f64 * final_font_size as f64;
+            let start_y = center_y - (total_height / 2.0) + final_font_size as f64;
 
             // Render each line centered
             for (i, line) in lines.iter().enumerate() {
-                let line_y = start_y + (i * final_font_size);
+                let line_y = start_y + (i as f64 * final_font_size as f64);
                 let text = Text::new(*line)
                     .set("x", center_x)
                     .set("y", line_y)
@@ -419,17 +419,17 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     // Calculate absolute positions for all boxes
     // Add margin around the top-level box
     let (canvas_width, canvas_height) = elab_diagram.size;
-    let margin = TOP_LEVEL_MARGIN;
+    let margin = TOP_LEVEL_MARGIN as f64;
 
     // The top-level box starts at (margin, margin) and has reduced size
     let top_x = margin;
     let top_y = margin;
-    let top_width = canvas_width.saturating_sub(2 * margin);
-    let top_height = canvas_height.saturating_sub(2 * margin);
+    let top_width = (canvas_width as f64) - (2.0 * margin);
+    let top_height = (canvas_height as f64) - (2.0 * margin);
 
     // Store top box dimensions for scaling calculations
-    let top_box_width = top_width as f64;
-    let top_box_height = top_height as f64;
+    let top_box_width = top_width;
+    let top_box_height = top_height;
 
     // Process the top-level box
     flatten_boxes(
@@ -438,7 +438,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
         top_y,
         top_width,
         top_height,
-        canvas_width, // canvas width for font scaling
+        canvas_width as f64, // canvas width for font scaling
         top_box_width,
         top_box_height,
         &mut boxes,
@@ -472,23 +472,23 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
 /// Recursively collect and convert routed paths from fractional to pixel coordinates
 fn collect_routed_paths(
     box_def: &elaboration::BoxDef,
-    parent_x: usize,
-    parent_y: usize,
-    parent_width: usize,
-    parent_height: usize,
-    output: &mut Vec<Vec<(usize, usize)>>,
+    parent_x: f64,
+    parent_y: f64,
+    parent_width: f64,
+    parent_height: f64,
+    output: &mut Vec<Vec<(f64, f64)>>,
 ) {
     let (grid_height, grid_width) = box_def.grid;
 
     // Convert routed paths from this box
     for path in &box_def.routed_arrow_paths {
-        let pixel_path: Vec<(usize, usize)> = path.iter().map(|(row, col)| {
+        let pixel_path: Vec<(f64, f64)> = path.iter().map(|(row, col)| {
             // Scale fractional coordinates to pixel coordinates
             let frac_y = row / grid_height as f64;
             let frac_x = col / grid_width as f64;
 
-            let abs_x = parent_x + (frac_x * parent_width as f64) as usize;
-            let abs_y = parent_y + (frac_y * parent_height as f64) as usize;
+            let abs_x = parent_x + (frac_x * parent_width);
+            let abs_y = parent_y + (frac_y * parent_height);
 
             (abs_x, abs_y)
         }).collect();
@@ -501,13 +501,13 @@ fn collect_routed_paths(
         let (child_row, child_col) = child_box.pos;
         let (child_height, child_width) = child_box.dim;
 
-        let cell_width = parent_width as f64 / grid_width as f64;
-        let cell_height = parent_height as f64 / grid_height as f64;
+        let cell_width = parent_width / grid_width as f64;
+        let cell_height = parent_height / grid_height as f64;
 
-        let child_x = parent_x + (child_col as f64 * cell_width) as usize;
-        let child_y = parent_y + (child_row as f64 * cell_height) as usize;
-        let child_pixel_width = (child_width as f64 * cell_width) as usize;
-        let child_pixel_height = (child_height as f64 * cell_height) as usize;
+        let child_x = parent_x + (child_col as f64 * cell_width);
+        let child_y = parent_y + (child_row as f64 * cell_height);
+        let child_pixel_width = child_width as f64 * cell_width;
+        let child_pixel_height = child_height as f64 * cell_height;
 
         collect_routed_paths(
             &child_box.def,
@@ -523,11 +523,11 @@ fn collect_routed_paths(
 /// Recursively flatten hierarchical boxes into absolute-positioned boxes
 fn flatten_boxes(
     box_def: &elaboration::BoxDef,
-    parent_x: usize,
-    parent_y: usize,
-    parent_width: usize,
-    parent_height: usize,
-    canvas_width: usize,
+    parent_x: f64,
+    parent_y: f64,
+    parent_width: f64,
+    parent_height: f64,
+    canvas_width: f64,
     top_box_width: f64,
     top_box_height: f64,
     output: &mut Vec<DiagramBox>,
@@ -537,14 +537,14 @@ fn flatten_boxes(
     // Boxes with children should always be rendered to show their border
     if box_def.title.is_some() || box_def.color.is_some() || !box_def.boxes.is_empty() {
         // Linear scaling based on box width relative to canvas
-        let width_ratio = parent_width as f64 / canvas_width as f64;
+        let width_ratio = parent_width / canvas_width;
         let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
         // Scale linearly from MIN_FONTSIZE to 1.0 based on width
         let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
 
         // Calculate scaling factors relative to top box
-        let horizontal_scaling = parent_width as f64 / top_box_width;
-        let vertical_scaling = parent_height as f64 / top_box_height;
+        let horizontal_scaling = parent_width / top_box_width;
+        let vertical_scaling = parent_height / top_box_height;
 
         output.push(DiagramBox {
             pos: (parent_x, parent_y),
@@ -562,29 +562,29 @@ fn flatten_boxes(
     // If this box has a title and children, add padding on all sides for the title
     let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
         // Calculate padding based on box size (matches border radius calculation)
-        let min_dimension = parent_width.min(parent_height) as f64;
-        let padding = (min_dimension / 20.0).max(2.0).min(15.0) as usize;
+        let min_dimension = parent_width.min(parent_height);
+        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
 
         // Apply margin scaling if specified
         let margin_scale = box_def.margin.unwrap_or(1.0);
         (
-            (padding as f64 * margin_scale) as usize,
-            (padding as f64 * margin_scale) as usize,
-            (padding as f64 * margin_scale) as usize,
-            (padding as f64 * margin_scale) as usize,
+            padding * margin_scale,
+            padding * margin_scale,
+            padding * margin_scale,
+            padding * margin_scale,
         )
     } else {
-        (0, 0, 0, 0)
+        (0.0, 0.0, 0.0, 0.0)
     };
 
     let (grid_rows, grid_cols) = box_def.grid;
 
     // Calculate cell size based on parent dimensions and grid
     // Subtract padding from available space
-    let available_width = parent_width.saturating_sub(padding_left + padding_right);
-    let available_height = parent_height.saturating_sub(padding_top + padding_bottom);
-    let cell_width = available_width / grid_cols;
-    let cell_height = available_height / grid_rows;
+    let available_width = parent_width - (padding_left + padding_right);
+    let available_height = parent_height - (padding_top + padding_bottom);
+    let cell_width = available_width / grid_cols as f64;
+    let cell_height = available_height / grid_rows as f64;
 
     // Process all child boxes
     for child_box in &box_def.boxes {
@@ -593,23 +593,23 @@ fn flatten_boxes(
 
         // Calculate absolute position
         // Add padding to position to account for the title and side padding
-        let abs_x = parent_x + padding_left + (grid_col * cell_width);
-        let abs_y = parent_y + padding_top + (grid_row * cell_height);
+        let abs_x = parent_x + padding_left + (grid_col as f64 * cell_width);
+        let abs_y = parent_y + padding_top + (grid_row as f64 * cell_height);
 
         // Box spans multiple cells based on dim field
-        let box_width = cell_width * span_width;
-        let box_height = cell_height * span_height;
+        let box_width = cell_width * span_width as f64;
+        let box_height = cell_height * span_height as f64;
 
         // Use margin from box definition, defaulting to 0.1 (10%)
         // Margin is based on cell size (not box size) to ensure uniform margins regardless of dim
         let margin_factor = box_def.margin.unwrap_or(0.1);
-        let margin_x = (cell_width as f64 * margin_factor) as usize;
-        let margin_y = (cell_height as f64 * margin_factor) as usize;
+        let margin_x = cell_width * margin_factor;
+        let margin_y = cell_height * margin_factor;
 
         let final_x = abs_x + margin_x;
         let final_y = abs_y + margin_y;
-        let final_width = box_width.saturating_sub(2 * margin_x);
-        let final_height = box_height.saturating_sub(2 * margin_y);
+        let final_width = box_width - (2.0 * margin_x);
+        let final_height = box_height - (2.0 * margin_y);
 
         // Recursively process this box and its children
         // Use the box with margins for child positioning
@@ -640,8 +640,8 @@ fn flatten_boxes(
         let frac_x = port.coords.1 / grid_width as f64;
 
         // Map to actual box dimensions
-        let abs_x = parent_x + (frac_x * parent_width as f64) as usize; // col is x
-        let abs_y = parent_y + (frac_y * parent_height as f64) as usize; // row is y
+        let abs_x = parent_x + (frac_x * parent_width); // col is x
+        let abs_y = parent_y + (frac_y * parent_height); // row is y
 
         ports_output.push(DiagramPort {
             name: port.name.clone(),
@@ -688,7 +688,7 @@ fn render_arrows(
     mut svg_doc: SvgDocument,
     arrows: &[DiagramArrow],
     ports: &[DiagramPort],
-    routed_paths: &[Vec<(usize, usize)>],
+    routed_paths: &[Vec<(f64, f64)>],
 ) -> Result<SvgDocument, String> {
     // Build a map of port names to positions
     let mut port_map = std::collections::HashMap::new();
@@ -849,8 +849,8 @@ fn render_debug_overlay(
         let (box_width, box_height) = diagram_box.size;
 
         // Position label at top-left corner of the box
-        let label_x = x + 5;
-        let label_y = y + 15;
+        let label_x = x + 5.0;
+        let label_y = y + 15.0;
 
         let label = Text::new(format!("Box #{}", i))
             .set("x", label_x)
@@ -883,8 +883,8 @@ fn render_debug_overlay(
         let (x, y) = port.pos;
 
         // Position label slightly offset from the port
-        let label_x = x + 10;
-        let label_y = y - 5;
+        let label_x = x + 10.0;
+        let label_y = y - 5.0;
 
         let label = Text::new(format!("Port #{}", i))
             .set("x", label_x)
