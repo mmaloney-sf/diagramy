@@ -97,8 +97,8 @@ box processor {
             color: orange
         }
 
-        port irq_in at (0.0, 0.5)
-        port irq_out at (3.0, 0.5)
+        port irq_in at (0.0, 1.5)
+        port irq_out at (3.0, 1.5)
 
         arrow irq_in to irq_out
     }

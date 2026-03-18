@@ -588,10 +588,21 @@ fn collect_routed_paths(
         let cell_width = available_width / grid_width as f64;
         let cell_height = available_height / grid_height as f64;
 
-        let child_x = parent_x + padding_left + (child_col as f64 * cell_width);
-        let child_y = parent_y + padding_top + (child_row as f64 * cell_height);
-        let child_pixel_width = child_width as f64 * cell_width;
-        let child_pixel_height = child_height as f64 * cell_height;
+        let abs_x = parent_x + padding_left + (child_col as f64 * cell_width);
+        let abs_y = parent_y + padding_top + (child_row as f64 * cell_height);
+
+        let box_width = cell_width * child_width as f64;
+        let box_height = cell_height * child_height as f64;
+
+        // Apply margin (same logic as flatten_boxes)
+        let margin_factor = box_def.margin.unwrap_or(0.1);
+        let margin_x = cell_width * margin_factor;
+        let margin_y = cell_height * margin_factor;
+
+        let child_x = abs_x + margin_x;
+        let child_y = abs_y + margin_y;
+        let child_pixel_width = box_width - (2.0 * margin_x);
+        let child_pixel_height = box_height - (2.0 * margin_y);
 
         collect_routed_paths(
             &child_box.def,
