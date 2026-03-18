@@ -3,7 +3,7 @@
 use crate::routing::{debug, ArrowRouter};
 
 use super::types::{ArrowPath, BoundingBox, Point};
-use svg::node::element::{Circle, Line, Path as SvgPath, Rectangle, Text};
+use svg::node::element::{Line, Path as SvgPath, Rectangle, Text};
 use svg::Document as SvgDocument;
 
 impl ArrowRouter {
@@ -25,6 +25,7 @@ impl ArrowRouter {
                 path,
                 self.grid_width,
                 self.grid_height,
+                self.grid_resolution,
                 &self.obstacle_boxes,
                 debug_dir,
                 box_name,
@@ -42,17 +43,21 @@ pub fn generate_routing_debug_svg(
     path: Option<&ArrowPath>,
     grid_width: u64,
     grid_height: u64,
+    grid_resolution: i32,
     bounding_boxes: &[BoundingBox],
     debug_dir: &str,
     box_name: &str,
 ) {
     // Scale factor to convert integral coordinates to pixels
-    // GRID_RESOLUTION is 0.1, so we need to scale by 10.0 to get back to fractional units
-    const SCALE: f64 = 10.0; // 100.0 pixels per unit * 0.1 units per grid cell = 10 pixels per grid cell
+    // We want 100 pixels per original grid square
+    // grid_resolution routable squares per original grid square
+    // So: 100 / grid_resolution pixels per routable square
+    const PIXELS_PER_ORIGINAL_SQUARE: f64 = 100.0;
+    let scale = PIXELS_PER_ORIGINAL_SQUARE / grid_resolution as f64;
 
     // Calculate SVG dimensions
-    let svg_width = (grid_width as f64 * 100.0) as usize;
-    let svg_height = (grid_height as f64 * 100.0) as usize;
+    let svg_width = (grid_width as f64 * PIXELS_PER_ORIGINAL_SQUARE) as usize;
+    let svg_height = (grid_height as f64 * PIXELS_PER_ORIGINAL_SQUARE) as usize;
 
     let mut svg_doc = SvgDocument::new()
         .set("width", svg_width)
@@ -70,41 +75,43 @@ pub fn generate_routing_debug_svg(
         .set("stroke-width", 2);
     svg_doc = svg_doc.add(parent_rect);
 
-    // Draw grid lines (1x1 squares)
+    // Draw grid lines
+    // Draw fine grid lines for routable squares and bold lines for original grid squares
+
     // Vertical grid lines
-    let mut x = SCALE;
-    while x < svg_width as f64 {
+    for i in 1..(grid_width as i32 * grid_resolution) {
+        let x = (i as f64 * scale) as i32;
+        let is_original_grid = i % grid_resolution == 0;
         let line = Line::new()
-            .set("x1", x as i32)
+            .set("x1", x)
             .set("y1", 0)
-            .set("x2", x as i32)
+            .set("x2", x)
             .set("y2", svg_height)
-            .set("stroke", "#cccccc")
-            .set("stroke-width", 1);
+            .set("stroke", if is_original_grid { "#888888" } else { "#dddddd" })
+            .set("stroke-width", if is_original_grid { 2 } else { 1 });
         svg_doc = svg_doc.add(line);
-        x += SCALE;
     }
 
     // Horizontal grid lines
-    let mut y = SCALE;
-    while y < svg_height as f64 {
+    for i in 1..(grid_height as i32 * grid_resolution) {
+        let y = (i as f64 * scale) as i32;
+        let is_original_grid = i % grid_resolution == 0;
         let line = Line::new()
             .set("x1", 0)
-            .set("y1", y as i32)
+            .set("y1", y)
             .set("x2", svg_width)
-            .set("y2", y as i32)
-            .set("stroke", "#cccccc")
-            .set("stroke-width", 1);
+            .set("y2", y)
+            .set("stroke", if is_original_grid { "#888888" } else { "#dddddd" })
+            .set("stroke-width", if is_original_grid { 2 } else { 1 });
         svg_doc = svg_doc.add(line);
-        y += SCALE;
     }
 
     // Draw bounding boxes (obstacles)
     for bbox in bounding_boxes {
-        let x = (bbox.min.1 as f64 * SCALE) as i32;
-        let y = (bbox.min.0 as f64 * SCALE) as i32;
-        let width = ((bbox.max.1 - bbox.min.1) as f64 * SCALE) as i32;
-        let height = ((bbox.max.0 - bbox.min.0) as f64 * SCALE) as i32;
+        let x = (bbox.min.1 as f64 * scale) as i32;
+        let y = (bbox.min.0 as f64 * scale) as i32;
+        let width = ((bbox.max.1 - bbox.min.1) as f64 * scale) as i32;
+        let height = ((bbox.max.0 - bbox.min.0) as f64 * scale) as i32;
 
         let rect = Rectangle::new()
             .set("x", x)
@@ -117,48 +124,48 @@ pub fn generate_routing_debug_svg(
         svg_doc = svg_doc.add(rect);
     }
 
-    // Draw start point (green circle)
-    let start_x = (start.1 as f64 * SCALE) as i32;
-    let start_y = (start.0 as f64 * SCALE) as i32;
-    let start_circle = Circle::new()
-        .set("cx", start_x)
-        .set("cy", start_y)
-        .set("r", 8)
+    // Draw start point (fill grid square)
+    let start_x = (start.1 as f64 * scale) as i32;
+    let start_y = (start.0 as f64 * scale) as i32;
+    let start_rect = Rectangle::new()
+        .set("x", start_x)
+        .set("y", start_y)
+        .set("width", scale as i32)
+        .set("height", scale as i32)
         .set("fill", "#00ff00")
-        .set("stroke", "#008800")
-        .set("stroke-width", 2);
-    svg_doc = svg_doc.add(start_circle);
+        .set("stroke", "none");
+    svg_doc = svg_doc.add(start_rect);
 
     // Add "START" label
     let start_label = Text::new("START")
-        .set("x", start_x)
-        .set("y", start_y + 20)
+        .set("x", start_x + (scale as i32) / 2)
+        .set("y", start_y + (scale as i32) / 2 + 4)
         .set("text-anchor", "middle")
         .set("font-family", "Arial, sans-serif")
-        .set("font-size", 12)
+        .set("font-size", 8)
         .set("font-weight", "bold")
         .set("fill", "#008800");
     svg_doc = svg_doc.add(start_label);
 
-    // Draw end point (blue circle)
-    let end_x = (end.1 as f64 * SCALE) as i32;
-    let end_y = (end.0 as f64 * SCALE) as i32;
-    let end_circle = Circle::new()
-        .set("cx", end_x)
-        .set("cy", end_y)
-        .set("r", 8)
+    // Draw end point (fill grid square)
+    let end_x = (end.1 as f64 * scale) as i32;
+    let end_y = (end.0 as f64 * scale) as i32;
+    let end_rect = Rectangle::new()
+        .set("x", end_x)
+        .set("y", end_y)
+        .set("width", scale as i32)
+        .set("height", scale as i32)
         .set("fill", "#0000ff")
-        .set("stroke", "#000088")
-        .set("stroke-width", 2);
-    svg_doc = svg_doc.add(end_circle);
+        .set("stroke", "none");
+    svg_doc = svg_doc.add(end_rect);
 
     // Add "END" label
     let end_label = Text::new("END")
-        .set("x", end_x)
-        .set("y", end_y + 20)
+        .set("x", end_x + (scale as i32) / 2)
+        .set("y", end_y + (scale as i32) / 2 + 4)
         .set("text-anchor", "middle")
         .set("font-family", "Arial, sans-serif")
-        .set("font-size", 12)
+        .set("font-size", 8)
         .set("font-weight", "bold")
         .set("fill", "#000088");
     svg_doc = svg_doc.add(end_label);
@@ -168,8 +175,8 @@ pub fn generate_routing_debug_svg(
         let mut path_data = String::new();
 
         for (i, point) in arrow_path.points.iter().enumerate() {
-            let px = (point.1 as f64 * SCALE) as i32;
-            let py = (point.0 as f64 * SCALE) as i32;
+            let px = (point.1 as f64 * scale) as i32;
+            let py = (point.0 as f64 * scale) as i32;
 
             if i == 0 {
                 path_data.push_str(&format!("M {} {} ", px, py));

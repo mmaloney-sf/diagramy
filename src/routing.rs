@@ -12,6 +12,7 @@ use std::collections::{BinaryHeap, HashMap};
 pub struct ArrowRouter {
     grid_width: u64,
     grid_height: u64,
+    grid_resolution: i32,
     obstacle_boxes: Vec<BoundingBox>,
     routed_paths: Vec<ArrowPath>,
     debug_dir: Option<String>,
@@ -23,6 +24,7 @@ impl ArrowRouter {
         ArrowRouter {
             grid_width: grid_width as u64,
             grid_height: grid_height as u64,
+            grid_resolution: 10, // 10 routable grid squares per original grid square
             obstacle_boxes: bounding_boxes,
             routed_paths: Vec::new(),
             debug_dir: None,
@@ -39,8 +41,8 @@ impl ArrowRouter {
     /// Takes fractional coordinates and discretizes them immediately
     pub fn route(&mut self, start: (f64, f64), end: (f64, f64)) -> Option<ArrowPath> {
         // Discretize to integral coordinates
-        let start_point = Self::discretize(start);
-        let end_point = Self::discretize(end);
+        let start_point = self.discretize(start);
+        let end_point = self.discretize(end);
 
         let path = self.find_path(start_point, end_point);
 
@@ -55,10 +57,9 @@ impl ArrowRouter {
     }
 
     /// Discretize a continuous point to integral grid coordinates
-    fn discretize(point: (f64, f64)) -> Point {
-        const GRID_RESOLUTION: f64 = 0.1; // 10 cells per unit
-        let row = (point.0 / GRID_RESOLUTION).round() as i32;
-        let col = (point.1 / GRID_RESOLUTION).round() as i32;
+    fn discretize(&self, point: (f64, f64)) -> Point {
+        let row = (point.0 * self.grid_resolution as f64).round() as i32;
+        let col = (point.1 * self.grid_resolution as f64).round() as i32;
         (row, col)
     }
 
@@ -96,8 +97,8 @@ impl ArrowRouter {
                 // we can only move in the direction away from that boundary
                 if current.direction == Direction::None {
                     // This is the first move from start
-                    let grid_height_i32 = self.grid_height as i32;
-                    let grid_width_i32 = self.grid_width as i32;
+                    let grid_height_i32 = (self.grid_height as i32) * self.grid_resolution;
+                    let grid_width_i32 = (self.grid_width as i32) * self.grid_resolution;
 
                     let is_on_row_boundary = current.position.0 == 0
                         || current.position.0 == grid_height_i32;
@@ -213,9 +214,9 @@ impl ArrowRouter {
     /// Check if a point is within the grid bounds
     fn is_in_bounds(&self, point: Point) -> bool {
         point.0 >= 0
-            && point.0 <= self.grid_height as i32
+            && point.0 <= (self.grid_height as i32) * self.grid_resolution
             && point.1 >= 0
-            && point.1 <= self.grid_width as i32
+            && point.1 <= (self.grid_width as i32) * self.grid_resolution
     }
 
     /// Check if a point is inside any bounding box
