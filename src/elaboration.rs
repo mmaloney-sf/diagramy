@@ -8,6 +8,7 @@ pub struct ElaboratedDiagram {
     pub color: String,
     pub size: (usize, usize),
     pub title: Option<String>,
+    pub cheat_ports: bool,
     pub top: Arc<BoxDef>,
 }
 
@@ -55,6 +56,7 @@ pub struct Arrow {
 
 #[derive(Debug)]
 pub struct Box {
+    pub id: Option<String>, // Optional identifier for the box instance
     pub def: Arc<BoxDef>,
     pub pos: (usize, usize),
     pub dim: (usize, usize), // (height, width) - number of grid cells to span
@@ -64,6 +66,7 @@ pub struct Box {
 struct Elaborator<'ast> {
     filename: String,
     debug_dir: Option<String>,
+    cheat_ports: bool,
     box_def_map: HashMap<String, &'ast ast::BoxDef>,
 }
 
@@ -82,6 +85,7 @@ pub fn from_ast(
     let mut elaborator = Elaborator {
         filename: filename.to_string(),
         debug_dir: debug_dir.map(|s| s.to_string()),
+        cheat_ports: false, // Will be set from diagram properties
         box_def_map,
     };
 
@@ -99,6 +103,7 @@ impl<'ast> Elaborator<'ast> {
         let mut width: Option<usize> = None;
         let mut title: Option<String> = None;
         let mut top_name: Option<String> = None;
+        let mut cheat_ports = false;
 
         for prop in &doc.diagram.props {
             match prop {
@@ -107,6 +112,10 @@ impl<'ast> Elaborator<'ast> {
                 }
                 ast::Prop::PropIdent(p) if p.key == "top" => {
                     top_name = Some(p.value.clone());
+                }
+                ast::Prop::PropIdent(p) if p.key == "cheatPorts" => {
+                    cheat_ports = p.value == "true";
+                    self.cheat_ports = cheat_ports;
                 }
                 ast::Prop::PropNumber(p) if p.key == "width" => {
                     width = Some(p.value as usize);
@@ -153,6 +162,7 @@ impl<'ast> Elaborator<'ast> {
             color,
             size,
             title,
+            cheat_ports,
             top: Arc::new(top_box_def),
         })
     }
@@ -211,6 +221,7 @@ impl<'ast> Elaborator<'ast> {
         )?;
 
         Ok(Box {
+            id: with_body.id.clone(),
             def: Arc::new(nested_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
@@ -282,6 +293,7 @@ impl<'ast> Elaborator<'ast> {
         )?;
 
         Ok(Box {
+            id: reference.id.clone(),
             def: Arc::new(nested_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
@@ -485,15 +497,53 @@ impl<'ast> Elaborator<'ast> {
         ports: &[Port],
         boxes: &[Box],
         grid: (usize, usize),
-        parent_margin: Option<f64>,
+        _parent_margin: Option<f64>,
         box_name: &str,
     ) -> Vec<RoutedArrowPath> {
         use crate::routing::{ArrowRouter, BoundingBox};
 
         // Build port map (using f64 coordinates)
         let mut port_map: HashMap<String, (f64, f64)> = HashMap::new();
+
+        // Add ports from the current box
         for port in ports {
             port_map.insert(port.name.clone(), (port.coords.0, port.coords.1));
+        }
+
+        // Add ports from immediate child boxes (with qualified names like "childbox.portname")
+        for child_box in boxes {
+            if let Some(ref child_id) = child_box.id {
+                // Get child box position and dimensions
+                let (child_row, child_col) = child_box.pos;
+                let (child_height, child_width) = child_box.dim;
+
+                // Add each port from the child box with qualified name
+                for child_port in &child_box.def.ports {
+                    // Calculate the port's position in the parent's coordinate system
+                    // Child box occupies cells from (child_row, child_col) to (child_row + child_height, child_col + child_width)
+                    // Port coordinates are relative to the child box's grid
+                    // We need to scale and offset them to the parent's coordinate system
+
+                    let child_grid = child_box.def.grid;
+                    let (child_grid_rows, child_grid_cols) = child_grid;
+
+                    // Port coordinates in child's fractional grid coordinates
+                    let (port_row_in_child, port_col_in_child) = child_port.coords;
+
+                    // Scale port coordinates from child's grid to child's cell span
+                    // Child box spans child_height x child_width cells in parent grid
+                    let port_row_in_cells = port_row_in_child * (child_height as f64) / (child_grid_rows as f64);
+                    let port_col_in_cells = port_col_in_child * (child_width as f64) / (child_grid_cols as f64);
+
+                    // Offset by child box position in parent grid
+                    let port_row_in_parent = (child_row as f64) + port_row_in_cells;
+                    let port_col_in_parent = (child_col as f64) + port_col_in_cells;
+
+                    // Add to port map with qualified name
+                    let qualified_name = format!("{}.{}", child_id, child_port.name);
+                    port_map.insert(qualified_name, (port_row_in_parent, port_col_in_parent));
+                }
+            }
         }
 
         // Build bounding boxes for child boxes
@@ -505,16 +555,14 @@ impl<'ast> Elaborator<'ast> {
             // Box at position (row, col) with dimensions (height, width)
             // Note: pos is 0-based indexing
 
-            // Get margin from parent box
-            // Margin is a scale factor (default 0.1 = 10% of cell size)
-            // In fractional coordinates, 10% of a 1.0 cell = 0.1 units
-            let margin_scale = parent_margin.unwrap_or(0.1);
-            let margin = margin_scale * 0.1;
+            // Trim GRID_RESOLUTION boxes off the edges of all obstructions
+            // GRID_RESOLUTION = 10 in discretized space = 1.0 in fractional space
+            let trim = 1.0;
 
-            let min_row = row as f64 + margin;
-            let min_col = col as f64 + margin;
-            let max_row = (row + height) as f64 - margin;
-            let max_col = (col + width) as f64 - margin;
+            let min_row = row as f64 + trim;
+            let min_col = col as f64 + trim;
+            let max_row = (row + height) as f64 - trim;
+            let max_col = (col + width) as f64 - trim;
 
             // Store bounding box in fractional coordinates
             // The ArrowRouter will scale these by its grid_resolution
@@ -543,7 +591,38 @@ impl<'ast> Elaborator<'ast> {
         let mut routed_paths = Vec::new();
         for arrow in arrows {
             if let (Some(&start), Some(&end)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
-                if let Some(path) = router.route(start, end) {
+                // Check if cheatPorts is enabled and either start or end is a subport
+                let is_start_subport = arrow.from.contains('.');
+                let is_end_subport = arrow.to.contains('.');
+
+                if self.cheat_ports && (is_start_subport || is_end_subport) {
+                    // Skip routing and use fallback straight line
+                    routed_paths.push(RoutedArrowPath::new(vec![start, end]));
+                    continue;
+                }
+
+                // Determine which child boxes (if any) contain the start and end ports
+                let mut excluded_box_indices = Vec::new();
+
+                // Check if start port is in a child box
+                if is_start_subport {
+                    let child_id = arrow.from.split('.').next().unwrap();
+                    if let Some(idx) = boxes.iter().position(|b| b.id.as_deref() == Some(child_id)) {
+                        excluded_box_indices.push(idx);
+                    }
+                }
+
+                // Check if end port is in a child box
+                if is_end_subport {
+                    let child_id = arrow.to.split('.').next().unwrap();
+                    if let Some(idx) = boxes.iter().position(|b| b.id.as_deref() == Some(child_id)) {
+                        if !excluded_box_indices.contains(&idx) {
+                            excluded_box_indices.push(idx);
+                        }
+                    }
+                }
+
+                if let Some(path) = router.route_with_exclusions(start, end, &excluded_box_indices) {
                     // Convert i32 points back to f64 for storage
                     let f64_points: Vec<(f64, f64)> = path
                         .points

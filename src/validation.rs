@@ -11,7 +11,7 @@ const VALID_COLORS: &[&str] = &[
 ];
 
 // Valid diagram-level properties
-const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top", "version"];
+const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top", "version", "cheatPorts"];
 
 // Valid box-level properties
 const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle", "bold", "debug"];
@@ -91,6 +91,11 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
             "version" => {
                 if !matches!(prop, Prop::PropString(_)) {
                     return Err(format!("{}:{}:{}: Property 'version' must be a string", filename, start.line(), start.col()));
+                }
+            }
+            "cheatPorts" => {
+                if !matches!(prop, Prop::PropIdent(p) if p.value == "true" || p.value == "false") {
+                    return Err(format!("{}:{}:{}: Property 'cheatPorts' must be 'true' or 'false'", filename, start.line(), start.col()));
                 }
             }
             _ => {}

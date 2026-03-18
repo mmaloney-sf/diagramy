@@ -48,11 +48,18 @@ impl ArrowRouter {
     /// Route an arrow from start to end using A* pathfinding
     /// Takes fractional coordinates and discretizes them immediately
     pub fn route(&mut self, start: (f64, f64), end: (f64, f64)) -> Option<ArrowPath> {
+        self.route_with_exclusions(start, end, &[])
+    }
+
+    /// Route an arrow from start to end using A* pathfinding, excluding specified boxes from obstacles
+    /// Takes fractional coordinates and discretizes them immediately
+    /// excluded_box_indices: indices of boxes in obstacle_boxes to exclude from obstacle checking
+    pub fn route_with_exclusions(&mut self, start: (f64, f64), end: (f64, f64), excluded_box_indices: &[usize]) -> Option<ArrowPath> {
         // Discretize to integral coordinates
         let start_point = self.discretize(start);
         let end_point = self.discretize(end);
 
-        let (path, g_scores, h_scores) = self.find_path(start_point, end_point);
+        let (path, g_scores, h_scores) = self.find_path_with_exclusions(start_point, end_point, excluded_box_indices);
 
         // Store scores for debug visualization
         self.last_g_scores = g_scores;
@@ -83,7 +90,13 @@ impl ArrowRouter {
     }
 
     /// A* pathfinding algorithm
+    #[allow(dead_code)]
     fn find_path(&self, start: Point, end: Point) -> (Option<ArrowPath>, HashMap<Point, f64>, HashMap<Point, f64>) {
+        self.find_path_with_exclusions(start, end, &[])
+    }
+
+    /// A* pathfinding algorithm with excluded boxes
+    fn find_path_with_exclusions(&self, start: Point, end: Point, excluded_box_indices: &[usize]) -> (Option<ArrowPath>, HashMap<Point, f64>, HashMap<Point, f64>) {
         let mut open_set = BinaryHeap::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
         let mut g_score: HashMap<Point, f64> = HashMap::new();
@@ -109,7 +122,7 @@ impl ArrowRouter {
             }
 
             // Explore neighbors
-            for (neighbor_point, dir_moved) in self.get_neighbors(current_point) {
+            for (neighbor_point, dir_moved) in self.get_neighbors_with_exclusions(current_point, excluded_box_indices) {
                 // Check if this move is a turn by comparing with the direction from parent to current
                 let is_turn: bool = if let Some(&parent_point) = came_from.get(&current_point) {
                     // Get the direction from parent to current
@@ -160,7 +173,13 @@ impl ArrowRouter {
     }
 
     /// Get neighboring points (4-connected grid)
+    #[allow(dead_code)]
     fn get_neighbors(&self, point: Point) -> Vec<(Point, Direction)> {
+        self.get_neighbors_with_exclusions(point, &[])
+    }
+
+    /// Get neighboring points (4-connected grid) with excluded boxes
+    fn get_neighbors_with_exclusions(&self, point: Point, excluded_box_indices: &[usize]) -> Vec<(Point, Direction)> {
         let mut neighbors = vec![];
         let candidates = &[
             ((point.0 - 1, point.1), Direction::Up),
@@ -174,8 +193,15 @@ impl ArrowRouter {
                 continue;
             }
 
-            // Skip if neighbor is inside a bounding box
-            if let Some(_bbox) = self.find_containing_bounding_box(candidate.0) {
+            // Skip if neighbor is inside a bounding box (except excluded ones)
+            if let Some(bbox_idx) = self.find_containing_bounding_box_index(candidate.0) {
+                if !excluded_box_indices.contains(&bbox_idx) {
+                    continue;
+                }
+            }
+
+            // Skip if neighbor is on an existing routed path
+            if self.is_on_routed_path(candidate.0) {
                 continue;
             }
 
@@ -202,8 +228,24 @@ impl ArrowRouter {
     }
 
     /// Find the bounding box that contains a point, if any
+    #[allow(dead_code)]
     fn find_containing_bounding_box(&self, point: Point) -> Option<&BoundingBox> {
         self.obstacle_boxes.iter().find(|bbox| bbox.contains(point, self.grid_resolution))
+    }
+
+    /// Find the index of the bounding box that contains a point, if any
+    fn find_containing_bounding_box_index(&self, point: Point) -> Option<usize> {
+        self.obstacle_boxes.iter().position(|bbox| bbox.contains(point, self.grid_resolution))
+    }
+
+    /// Check if a point is on any existing routed path
+    fn is_on_routed_path(&self, point: Point) -> bool {
+        for path in &self.routed_paths {
+            if path.points.contains(&point) {
+                return true;
+            }
+        }
+        false
     }
 
     /// Reconstruct the path from the came_from map
