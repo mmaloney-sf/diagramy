@@ -1,10 +1,10 @@
 <svg height="1050" viewBox="0 0 700 1050" width="700" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
-<rect fill="#DEE8ED" height="956" rx="10" ry="10" stroke="#333" stroke-width="3" width="606" x="47" y="47"/>
-<rect fill="transparent" height="256" rx="10" ry="10" stroke="#333" stroke-width="2.56" width="546" x="77" y="78"/>
-<rect fill="transparent" height="256" rx="10" ry="10" stroke="#333" stroke-width="2.43" width="243" x="77" y="396"/>
-<rect fill="transparent" height="256" rx="10" ry="10" stroke="#333" stroke-width="2.43" width="243" x="380" y="396"/>
-<rect fill="transparent" height="256" rx="10" ry="10" stroke="#333" stroke-width="2.56" width="546" x="77" y="714"/>
+<rect fill="#DEE8ED" height="956" stroke="#333" stroke-width="1" width="606" x="47" y="47"/>
+<rect fill="transparent" height="256" stroke="#333" stroke-width="0.5843862628940718" width="546" x="77" y="78"/>
+<rect fill="transparent" height="256" stroke="#333" stroke-width="0.3343862628940718" width="243" x="77" y="396"/>
+<rect fill="transparent" height="256" stroke="#333" stroke-width="0.3343862628940718" width="243" x="380" y="396"/>
+<rect fill="transparent" height="256" stroke="#333" stroke-width="0.5843862628940718" width="546" x="77" y="714"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="214">
 ALU
 </text>
@@ -17,6 +17,11 @@ L1-D
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="850">
 Registers
 </text>
+<defs>
+<marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="3">
+<polygon fill="#333" points="0,0 0,6 9,3"/>
+</marker>
+</defs>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="350" y="37">
 Reusable Components
 </text>

@@ -1,12 +1,12 @@
 <svg height="400" viewBox="0 0 600 400" width="600" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
-<rect fill="transparent" height="306" rx="10" ry="10" stroke="#333" stroke-width="3" width="506" x="47" y="47"/>
-<rect fill="#F8F9F9" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-width="1.23" width="136" x="63" y="62"/>
-<rect fill="#F8F9F9" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-width="1.23" width="136" x="231" y="62"/>
-<rect fill="#F8F9F9" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-dasharray="2.46,2.46" stroke-width="1.23" width="136" x="399" y="62"/>
-<rect fill="#F8F9F9" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-dasharray="7.38,3.69" stroke-width="1.23" width="136" x="63" y="215"/>
-<rect fill="#F8F9F9" height="123" rx="6.15" ry="6.15" stroke="transparent" stroke-width="0" width="136" x="231" y="215"/>
-<rect fill="#DEE8E8" height="123" rx="6.15" ry="6.15" stroke="#333" stroke-dasharray="2.46,2.46" stroke-width="1.23" width="136" x="399" y="215"/>
+<rect fill="transparent" height="306" stroke="#333" stroke-width="1" width="506" x="47" y="47"/>
+<rect fill="#F8F9F9" height="123" stroke="#333" stroke-width="0.3353677439355189" width="136" x="63" y="62"/>
+<rect fill="#F8F9F9" height="123" stroke="#333" stroke-width="0.3353677439355189" width="136" x="231" y="62"/>
+<rect fill="#F8F9F9" height="123" stroke="#333" stroke-dasharray="4,4" stroke-width="0.3353677439355189" width="136" x="399" y="62"/>
+<rect fill="#F8F9F9" height="123" stroke="#333" stroke-dasharray="12,6" stroke-width="0.3353677439355189" width="136" x="63" y="215"/>
+<rect fill="#F8F9F9" height="123" stroke="transparent" stroke-width="0" width="136" x="231" y="215"/>
+<rect fill="#DEE8E8" height="123" stroke="#333" stroke-dasharray="4,4" stroke-width="0.3353677439355189" width="136" x="399" y="215"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="131" y="123">
 Default
 </text>
@@ -31,6 +31,11 @@ Cyan
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="467" y="289">
 Dotted
 </text>
+<defs>
+<marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="3">
+<polygon fill="#333" points="0,0 0,6 9,3"/>
+</marker>
+</defs>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="300" y="37">
 Border Styles
 </text>

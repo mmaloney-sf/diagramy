@@ -1,0 +1,43 @@
+<svg height="400" viewBox="0 0 600 400" width="600" xmlns="http://www.w3.org/2000/svg">
+<rect fill="#F8F9F9" height="100%" width="100%"/>
+<rect fill="transparent" height="306" rx="1" ry="1" stroke="#333" stroke-width="1" width="506" x="47" y="47"/>
+<rect fill="#E8DEDD" height="123" rx="1" ry="1" stroke="#333" stroke-width="1" width="136" x="63" y="62"/>
+<rect fill="#DEE8ED" height="123" rx="1" ry="1" stroke="#333" stroke-width="1" width="136" x="231" y="62"/>
+<rect fill="#DEE8E3" height="123" rx="1" ry="1" stroke="#333" stroke-width="1" width="136" x="399" y="62"/>
+<rect fill="#E8E8DE" height="123" rx="1" ry="1" stroke="#333" stroke-width="1" width="136" x="63" y="215"/>
+<rect fill="#E3DEE8" height="123" rx="1" ry="1" stroke="#333" stroke-width="1" width="136" x="231" y="215"/>
+<rect fill="#DEE8E8" height="123" rx="1" ry="1" stroke="#333" stroke-width="1" width="136" x="399" y="215"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" x="131" y="130">
+Bold
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="299" y="130">
+Normal
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="467" y="130">
+Not Bold
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" x="131" y="270">
+Bold
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" x="131" y="283">
+Multi-line
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" x="131" y="296">
+Text
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="299" y="270">
+Normal
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="299" y="283">
+Multi-line
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="299" y="296">
+Text
+</text>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" font-weight="bold" text-anchor="middle" x="467" y="283">
+Bold Cyan
+</text>
+<text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="300" y="37">
+Bold Text Example
+</text>
+</svg>

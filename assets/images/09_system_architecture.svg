@@ -1,10 +1,10 @@
 <svg height="1200" viewBox="0 0 800 1200" width="800" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
-<rect fill="#DEE8ED" height="1106" rx="10" ry="10" stroke="#333" stroke-width="3" width="706" x="47" y="47"/>
-<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.96" width="636" x="82" y="83"/>
-<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.83" width="283" x="82" y="451"/>
-<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.83" width="283" x="435" y="451"/>
-<rect fill="transparent" height="296" rx="10" ry="10" stroke="#333" stroke-width="2.96" width="636" x="82" y="819"/>
+<rect fill="#DEE8ED" height="1106" stroke="#333" stroke-width="1" width="706" x="47" y="47"/>
+<rect fill="transparent" height="296" stroke="#333" stroke-width="0.5842404807155408" width="636" x="82" y="83"/>
+<rect fill="transparent" height="296" stroke="#333" stroke-width="0.3342404807155408" width="283" x="82" y="451"/>
+<rect fill="transparent" height="296" stroke="#333" stroke-width="0.3342404807155408" width="283" x="435" y="451"/>
+<rect fill="transparent" height="296" stroke="#333" stroke-width="0.5842404807155408" width="636" x="82" y="819"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="400" y="239">
 Control Unit
 </text>
@@ -17,6 +17,11 @@ FPU
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="400" y="975">
 Cache L1
 </text>
+<defs>
+<marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="3">
+<polygon fill="#333" points="0,0 0,6 9,3"/>
+</marker>
+</defs>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="400" y="37">
 Computer System Architecture
 </text>

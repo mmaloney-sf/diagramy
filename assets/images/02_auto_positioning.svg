@@ -1,12 +1,12 @@
 <svg height="500" viewBox="0 0 500 500" width="500" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#F8F9F9" height="100%" width="100%"/>
-<rect fill="transparent" height="406" rx="10" ry="10" stroke="#333" stroke-width="3" width="406" x="47" y="47"/>
-<rect fill="#E8DEDD" height="109" rx="5.45" ry="5.45" stroke="#333" stroke-width="1.09" width="109" x="60" y="60"/>
-<rect fill="#DEE8E3" height="109" rx="5.45" ry="5.45" stroke="#333" stroke-width="1.09" width="109" x="195" y="60"/>
-<rect fill="#DEE8ED" height="109" rx="5.45" ry="5.45" stroke="#333" stroke-width="1.09" width="109" x="195" y="195"/>
-<rect fill="#E8E8DE" height="109" rx="5.45" ry="5.45" stroke="#333" stroke-width="1.09" width="109" x="330" y="60"/>
-<rect fill="#E3DEE8" height="109" rx="5.45" ry="5.45" stroke="#333" stroke-width="1.09" width="109" x="60" y="195"/>
-<rect fill="#DEE8E8" height="109" rx="5.45" ry="5.45" stroke="#333" stroke-width="1.09" width="109" x="330" y="195"/>
+<rect fill="transparent" height="406" stroke="#333" stroke-width="1" width="406" x="47" y="47"/>
+<rect fill="#E8DEDD" height="109" stroke="#333" stroke-width="0.2684729064039409" width="109" x="60" y="60"/>
+<rect fill="#DEE8E3" height="109" stroke="#333" stroke-width="0.2684729064039409" width="109" x="195" y="60"/>
+<rect fill="#DEE8ED" height="109" stroke="#333" stroke-width="0.2684729064039409" width="109" x="195" y="195"/>
+<rect fill="#E8E8DE" height="109" stroke="#333" stroke-width="0.2684729064039409" width="109" x="330" y="195"/>
+<rect fill="#E3DEE8" height="109" stroke="#333" stroke-width="0.2684729064039409" width="109" x="60" y="330"/>
+<rect fill="#DEE8E8" height="109" stroke="#333" stroke-width="0.2684729064039409" width="109" x="195" y="330"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114" y="121">
 Auto 1
 </text>
@@ -16,15 +16,20 @@ Auto 2
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="249" y="256">
 Fixed
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="384" y="121">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="384" y="256">
 Auto 3
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114" y="256">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114" y="391">
 Auto 4
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="384" y="256">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="249" y="391">
 Auto 5
 </text>
+<defs>
+<marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="3">
+<polygon fill="#333" points="0,0 0,6 9,3"/>
+</marker>
+</defs>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="250" y="37">
 Auto-Positioning Demo
 </text>

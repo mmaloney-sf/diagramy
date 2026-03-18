@@ -1,12 +1,12 @@
 <svg height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
-<rect fill="transparent" height="506" rx="10" ry="10" stroke="#333" stroke-width="3" width="506" x="47" y="47"/>
-<rect fill="#E8DEDD" height="228" rx="10" ry="10" stroke="#333" stroke-width="2.28" width="354" x="59" y="59"/>
-<rect fill="#DEE8E3" height="354" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="102" x="437" y="59"/>
-<rect fill="#DEE8ED" height="228" rx="10" ry="10" stroke="#333" stroke-width="2.28" width="228" x="59" y="311"/>
-<rect fill="#E8E8DE" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="102" x="311" y="311"/>
-<rect fill="#DEE8E8" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="102" x="311" y="437"/>
-<rect fill="#E8E3DE" height="102" rx="5.1" ry="5.1" stroke="#333" stroke-width="1.02" width="102" x="437" y="437"/>
+<rect fill="transparent" height="506" stroke="#333" stroke-width="1" width="506" x="47" y="47"/>
+<rect fill="#E8DEDD" height="228" stroke="#333" stroke-width="0.575098814229249" width="354" x="59" y="59"/>
+<rect fill="#DEE8E3" height="354" stroke="#333" stroke-width="0.450592885375494" width="102" x="437" y="59"/>
+<rect fill="#DEE8ED" height="228" stroke="#333" stroke-width="0.4505928853754941" width="228" x="59" y="311"/>
+<rect fill="#E8E8DE" height="102" stroke="#333" stroke-width="0.2015810276679842" width="102" x="311" y="311"/>
+<rect fill="#DEE8E8" height="102" stroke="#333" stroke-width="0.2015810276679842" width="102" x="311" y="437"/>
+<rect fill="#E8E3DE" height="102" stroke="#333" stroke-width="0.2015810276679842" width="102" x="437" y="437"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="15" text-anchor="middle" x="236" y="173">
 Wide Box
 </text>
@@ -37,6 +37,11 @@ Square
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="488" y="495">
 1x1
 </text>
+<defs>
+<marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="3">
+<polygon fill="#333" points="0,0 0,6 9,3"/>
+</marker>
+</defs>
 <text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="300" y="37">
 Box Dimensions
 </text>
