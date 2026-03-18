@@ -54,6 +54,17 @@ pub struct DiagramBox {
     pub has_children: bool,
     /// Border style: solid, none, dotted, or dashed
     pub border_style: Option<String>,
+    /// Horizontal scaling factor relative to top box (ratio: box width / top box width)
+    pub horizontal_scaling: f64,
+    /// Vertical scaling factor relative to top box (ratio: box height / top box height)
+    pub vertical_scaling: f64,
+}
+
+impl DiagramBox {
+    /// Returns the average scaling factor (average of horizontal and vertical scaling)
+    pub fn scaling(&self) -> f64 {
+        (self.horizontal_scaling + self.vertical_scaling) / 2.0
+    }
 }
 
 /// RGB color representation
@@ -248,21 +259,21 @@ fn render_box_rectangle(
             // Dotted border
             rect = rect
                 .set("stroke", "#333")
-                .set("stroke-width", 2)
+                .set("stroke-width", diagram_box.scaling())
                 .set("stroke-dasharray", "4,4");
         }
         "dashed" => {
             // Dashed border
             rect = rect
                 .set("stroke", "#333")
-                .set("stroke-width", 2)
+                .set("stroke-width", diagram_box.scaling())
                 .set("stroke-dasharray", "12,6");
         }
         _ => {
             // Default: solid border
             rect = rect
                 .set("stroke", "#333")
-                .set("stroke-width", 2);
+                .set("stroke-width", diagram_box.scaling());
         }
     }
 
@@ -409,6 +420,10 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     let top_width = canvas_width.saturating_sub(2 * margin);
     let top_height = canvas_height.saturating_sub(2 * margin);
 
+    // Store top box dimensions for scaling calculations
+    let top_box_width = top_width as f64;
+    let top_box_height = top_height as f64;
+
     // Process the top-level box
     flatten_boxes(
         &elab_diagram.top,
@@ -416,7 +431,9 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
         top_y,
         top_width,
         top_height,
-        canvas_width, // canvas width for logarithmic scaling
+        canvas_width, // canvas width for font scaling
+        top_box_width,
+        top_box_height,
         &mut boxes,
         &mut ports,
     );
@@ -475,6 +492,8 @@ fn flatten_boxes(
     parent_width: usize,
     parent_height: usize,
     canvas_width: usize,
+    top_box_width: f64,
+    top_box_height: f64,
     output: &mut Vec<DiagramBox>,
     ports_output: &mut Vec<DiagramPort>,
 ) {
@@ -487,6 +506,10 @@ fn flatten_boxes(
         // Scale linearly from MIN_FONTSIZE to 1.0 based on width
         let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
 
+        // Calculate scaling factors relative to top box
+        let horizontal_scaling = parent_width as f64 / top_box_width;
+        let vertical_scaling = parent_height as f64 / top_box_height;
+
         output.push(DiagramBox {
             pos: (parent_x, parent_y),
             size: (parent_width, parent_height),
@@ -495,6 +518,8 @@ fn flatten_boxes(
             font_scale,
             has_children: !box_def.boxes.is_empty(),
             border_style: box_def.border_style.clone(),
+            horizontal_scaling,
+            vertical_scaling,
         });
     }
 
@@ -559,6 +584,8 @@ fn flatten_boxes(
             final_width,
             final_height,
             canvas_width,
+            top_box_width,
+            top_box_height,
             output,
             ports_output,
         );
@@ -695,4 +722,38 @@ fn render_arrows(
     }
 
     Ok(svg_doc)
+}
+
+/// Estimates the bounding box (width, height) of text at a given font size
+///
+/// # Arguments
+/// * `text` - The text to measure (can contain newlines)
+/// * `font_size` - The font size in pixels
+///
+/// # Returns
+/// A tuple (width, height) representing the estimated bounding box in pixels
+///
+/// # Notes
+/// - Uses a character width ratio of 0.6 for Arial font (approximation)
+/// - Width is based on the widest line
+/// - Height is number of lines × font_size
+pub fn estimate_text_bbox(text: &str, font_size: usize) -> (usize, usize) {
+    // Average character width is approximately 0.6 × font_size for Arial
+    const CHAR_WIDTH_RATIO: f64 = 0.6;
+
+    let lines: Vec<&str> = text.split('\n').collect();
+
+    // Find the widest line
+    let max_line_chars = lines.iter()
+        .map(|line| line.chars().count())
+        .max()
+        .unwrap_or(0);
+
+    // Calculate width based on widest line
+    let width = (max_line_chars as f64 * font_size as f64 * CHAR_WIDTH_RATIO) as usize;
+
+    // Calculate height based on number of lines
+    let height = lines.len() * font_size;
+
+    (width, height)
 }
