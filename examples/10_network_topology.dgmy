@@ -5,7 +5,7 @@ diagram {
     version: "0.1.0"
     width: 700
     color: white
-    text: "Network Topology"
+    title: "Network Topology"
     top: top
 }
 

@@ -5,7 +5,7 @@ diagram {
     version: "0.1.0"
     width: 700
     color: grey
-    text: "Reusable Components"
+    title: "Reusable Components"
 }
 
 // Define a reusable CPU core component

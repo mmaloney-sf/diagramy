@@ -32,7 +32,7 @@ Create a file called `example.dgmy`:
 diagram {
     width: 400
     color: grey
-    text: "My First Diagram"
+    title: "My First Diagram"
 }
 
 box top {
@@ -84,7 +84,7 @@ diagram {
     version: "0.1.0"    // Optional version string
     width: 800          // Diagram width in pixels
     color: grey         // Background color
-    text: "Title"       // Diagram title
+    title: "Title"      // Diagram title
 }
 ```
 

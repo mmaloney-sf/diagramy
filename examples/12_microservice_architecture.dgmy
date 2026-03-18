@@ -5,7 +5,7 @@ diagram {
     version: "0.1.0"
     width: 1000
     color: white
-    text: "Microservice Architecture"
+    title: "Microservice Architecture"
 }
 
 // Define a microservice component

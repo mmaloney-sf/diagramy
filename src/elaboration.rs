@@ -62,7 +62,7 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str, debug_dir: Op
             ast::Prop::PropNumber { key, value, .. } if key == "width" => {
                 width = Some(*value as usize);
             }
-            ast::Prop::PropString { key, value, .. } if key == "text" => {
+            ast::Prop::PropString { key, value, .. } if key == "title" => {
                 title = Some(value.join("\n"));
             }
             _ => {}

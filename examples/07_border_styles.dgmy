@@ -5,7 +5,7 @@ diagram {
     version: "0.1.0"
     width: 600
     color: grey
-    text: "Border Styles"
+    title: "Border Styles"
 }
 
 box top {

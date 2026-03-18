@@ -11,7 +11,7 @@ const VALID_COLORS: &[&str] = &[
 ];
 
 // Valid diagram-level properties
-const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "text", "top", "version"];
+const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top", "version"];
 
 // Valid box-level properties
 const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle"];
@@ -78,9 +78,9 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
                     return Err(format!("{}:{}:{}: Property 'color' must be an identifier", filename, start.line(), start.col()));
                 }
             }
-            "text" => {
+            "title" => {
                 if !matches!(prop, Prop::PropString { .. }) {
-                    return Err(format!("{}:{}:{}: Property 'text' must be a string", filename, start.line(), start.col()));
+                    return Err(format!("{}:{}:{}: Property 'title' must be a string", filename, start.line(), start.col()));
                 }
             }
             "top" => {
@@ -146,6 +146,12 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
 
     // Validate that boxes don't have both text property and child boxes
     validate_text_and_children_conflict(body, filename)?;
+
+    // Validate that boxes with child boxes have a grid property
+    validate_grid_required_for_children(body, filename)?;
+
+    // Validate no name conflicts among boxes, ports, and arrows
+    validate_no_name_conflicts(body, filename)?;
 
     Ok(())
 }
@@ -385,7 +391,7 @@ fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), Strin
     Ok(())
 }
 
-/// Validate that boxes don't have both text property and child boxes
+/// Validate that boxes don't have both text property and children (boxes or ports)
 fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result<(), String> {
     // Check if this box has a text property
     let text_prop = body.items.iter().find_map(|item| {
@@ -405,7 +411,15 @@ fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result
         None
     });
 
-    // If both exist, return an error
+    // Check if this box has ports
+    let port = body.items.iter().find_map(|item| {
+        if let BoxItem::Port(port) = item {
+            return Some(port.span);
+        }
+        None
+    });
+
+    // If text and child boxes exist, return an error
     if let (Some(text_span), Some(_child_span)) = (text_prop, child_box) {
         let text_start = text_span.start();
         return Err(format!(
@@ -414,6 +428,117 @@ fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result
             text_start.line(),
             text_start.col()
         ));
+    }
+
+    // If text and ports exist, return an error
+    if let (Some(text_span), Some(_port_span)) = (text_prop, port) {
+        let text_start = text_span.start();
+        return Err(format!(
+            "{}:{}:{}: Box cannot have both 'text:' property and ports",
+            filename,
+            text_start.line(),
+            text_start.col()
+        ));
+    }
+
+    Ok(())
+}
+
+/// Validate that boxes with child boxes have a grid property
+fn validate_grid_required_for_children(body: &BoxBody, filename: &str) -> Result<(), String> {
+    // Check if this box has child boxes
+    let child_box = body.items.iter().find_map(|item| {
+        if let BoxItem::BoxInst(box_inst) = item {
+            return Some(box_inst.span());
+        }
+        None
+    });
+
+    // If there are child boxes, check for grid property
+    if let Some(child_span) = child_box {
+        let has_grid = body.items.iter().any(|item| {
+            if let BoxItem::Prop(Prop::PropDim { key, .. }) = item {
+                key == "grid"
+            } else {
+                false
+            }
+        });
+
+        if !has_grid {
+            let child_start = child_span.start();
+            return Err(format!(
+                "{}:{}:{}: Box with child boxes must have a 'grid:' property",
+                filename,
+                child_start.line(),
+                child_start.col()
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate that there are no name conflicts among boxes, ports, and arrows within a box
+fn validate_no_name_conflicts(body: &BoxBody, filename: &str) -> Result<(), String> {
+    use std::collections::HashMap;
+
+    // Track all names and their spans
+    let mut names: HashMap<String, (crate::ast::Span, &str)> = HashMap::new();
+
+    for item in &body.items {
+        match item {
+            BoxItem::BoxInst(box_inst) => {
+                let span = box_inst.span();
+                let id = match box_inst {
+                    crate::ast::BoxInst::WithBody { id, .. } => id.as_ref(),
+                    crate::ast::BoxInst::Reference { id, .. } => id.as_ref(),
+                };
+
+                if let Some(name) = id {
+                    if let Some((prev_span, prev_type)) = names.get(name) {
+                        let start = span.start();
+                        let prev_start = prev_span.start();
+                        return Err(format!(
+                            "{}:{}:{}: Name conflict: '{}' is already used by a {} at line {}",
+                            filename,
+                            start.line(),
+                            start.col(),
+                            name,
+                            prev_type,
+                            prev_start.line()
+                        ));
+                    }
+                    names.insert(name.clone(), (span, "box"));
+                }
+            }
+            BoxItem::Port(port) => {
+                let name = &port.name;
+                let span = port.span;
+
+                if let Some((prev_span, prev_type)) = names.get(name) {
+                    let start = span.start();
+                    let prev_start = prev_span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Name conflict: '{}' is already used by a {} at line {}",
+                        filename,
+                        start.line(),
+                        start.col(),
+                        name,
+                        prev_type,
+                        prev_start.line()
+                    ));
+                }
+                names.insert(name.clone(), (span, "port"));
+            }
+            BoxItem::Arrow(_arrow) => {
+                // Arrows can have names if they use simple identifiers (not paths)
+                // For now, we'll skip arrow name validation since arrows reference ports/boxes
+                // and don't have their own names in the current grammar
+            }
+            BoxItem::Prop(_) => {
+                // Properties don't have names that conflict
+            }
+        }
     }
 
     Ok(())

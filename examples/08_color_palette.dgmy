@@ -5,7 +5,7 @@ diagram {
     version: "0.1.0"
     width: 800
     color: white
-    text: "Color Palette"
+    title: "Color Palette"
 }
 
 box top {

@@ -5,7 +5,7 @@ diagram {
     version: "0.1.0"
     width: 900
     color: grey
-    text: "Mixed Features Demo"
+    title: "Mixed Features Demo"
 }
 
 // Reusable component with custom styling
