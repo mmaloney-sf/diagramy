@@ -1,3 +1,6 @@
+// Import the WebAssembly module
+import init, { render_diagram } from './dist/diagramy.js';
+
 // Initialize Ace Editor
 const editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
@@ -17,59 +20,6 @@ if (savedKeybinding === 'vim') {
     editor.setKeyboardHandler(null); // Default bindings
 }
 
-// Draw line on canvas based on editor content
-function drawLine() {
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-
-    // Set canvas size
-    canvas.width = 600;
-    canvas.height = 600;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Get editor content
-    const content = editor.getValue();
-    const lines = content.split('\n');
-
-    // Calculate x and y
-    const x = lines.length;
-
-    let maxColumn = 0;
-    lines.forEach(line => {
-        if (line.length > maxColumn) {
-            maxColumn = line.length;
-        }
-    });
-    const y = maxColumn;
-
-    // Draw line from (0, 0) to (x, y)
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(x * 10, y * 10); // Scale for visibility
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // Draw coordinate labels
-    ctx.fillStyle = '#666';
-    ctx.font = '12px monospace';
-    ctx.fillText(`(0, 0)`, 5, 15);
-    ctx.fillText(`(${x}, ${y})`, x * 10 + 5, y * 10 + 15);
-
-    // Draw point at end
-    ctx.beginPath();
-    ctx.arc(x * 10, y * 10, 4, 0, 2 * Math.PI);
-    ctx.fillStyle = '#ff0000';
-    ctx.fill();
-}
-
-// Listen for changes in the editor
-editor.session.on('change', function() {
-    drawLine();
-});
-
 // Handle keybinding selection
 keybindingSelect.addEventListener('change', function() {
     const selectedBinding = this.value;
@@ -85,6 +35,49 @@ keybindingSelect.addEventListener('change', function() {
     }
 });
 
-// Initial draw
-drawLine();
+// Render diagram from editor content
+function renderDiagram() {
+    const svgContainer = document.getElementById('svg-container');
+    const content = editor.getValue();
+
+    // If content is empty, clear the container
+    if (!content.trim()) {
+        svgContainer.innerHTML = '';
+        return;
+    }
+
+    try {
+        // Call the WebAssembly function to render the diagram
+        const svgString = render_diagram(content);
+
+        // Display the SVG
+        svgContainer.innerHTML = svgString;
+    } catch (error) {
+        // Display error message
+        svgContainer.innerHTML = `<div class="error-message">Error rendering diagram:\n${error}</div>`;
+    }
+}
+
+// Initialize WebAssembly and set up editor listener
+async function initApp() {
+    try {
+        // Initialize the WebAssembly module
+        await init();
+
+        // Listen for changes in the editor
+        editor.session.on('change', function() {
+            renderDiagram();
+        });
+
+        // Initial render
+        renderDiagram();
+    } catch (error) {
+        console.error('Failed to initialize WebAssembly:', error);
+        document.getElementById('svg-container').innerHTML =
+            `<div class="error-message">Failed to initialize WebAssembly:\n${error}</div>`;
+    }
+}
+
+// Start the application
+initApp();
 
