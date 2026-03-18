@@ -123,9 +123,11 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
                 }
             }
             BoxItem::Port(port) => {
-                // Validate port properties
-                for prop in &port.props {
-                    validate_box_prop(prop, filename)?;
+                // Validate port body if present
+                if let Some(ref port_body) = port.body {
+                    // Disallow boxes inside port bodies
+                    validate_no_boxes_in_body(port_body, "port", &port.name, filename)?;
+                    validate_box_body(port_body, filename)?;
                 }
                 // Validate port coordinates are in bounds
                 validate_port_bounds(port, body, filename)?;
@@ -135,9 +137,12 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
                 validate_port_not_near_corners(port, body, filename)?;
             }
             BoxItem::Arrow(arrow) => {
-                // Validate arrow properties
-                for prop in &arrow.props {
-                    validate_box_prop(prop, filename)?;
+                // Validate arrow body if present
+                if let Some(ref arrow_body) = arrow.body {
+                    // Disallow boxes inside arrow bodies
+                    let arrow_name = format!("{:?} to {:?}", arrow.from, arrow.to);
+                    validate_no_boxes_in_body(arrow_body, "arrow", &arrow_name, filename)?;
+                    validate_box_body(arrow_body, filename)?;
                 }
             }
             BoxItem::Label(_label) => {
@@ -942,6 +947,32 @@ fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -
                 corner_name,
                 corner_row,
                 corner_col
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+/// Validate that a body (port or arrow) does not contain box instances
+fn validate_no_boxes_in_body(
+    body: &BoxBody,
+    container_type: &str,
+    container_name: &str,
+    filename: &str,
+) -> Result<(), String> {
+    use crate::ast::BoxItem;
+
+    for item in &body.items {
+        if let BoxItem::BoxInst(box_inst) = item {
+            let start = box_inst.span().start();
+            return Err(format!(
+                "{}:{}:{}: Box instances are not allowed inside {} '{}' body",
+                filename,
+                start.line(),
+                start.col(),
+                container_type,
+                container_name
             ));
         }
     }

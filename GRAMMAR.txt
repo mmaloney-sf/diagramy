@@ -16,11 +16,11 @@
 // BoxDef
 ////////////////////////////////////////
 
-    BoxDef := "box" Ident BoxBody
+    BoxDef := "box" Ident Body
 
-    BoxBody := "{" BoxItem* "}"
+    Body := "{" Element* "}"
 
-    BoxItem :=
+    Element :=
           BoxInst
         | Prop
         | Port
@@ -28,7 +28,7 @@
         | Label
 
     BoxInst :=
-          "box" Ident? ("at" Coords)? ("dim" Dim)? "is" BoxBody
+          "box" Ident? ("at" Coords)? ("dim" Dim)? "is" Body
         | "box" Ident? ("at" Coords)? ("dim" Dim)? "is" Ident
 
     Prop :=
@@ -44,14 +44,10 @@
 ////////////////////////////////////////
 
     Port :=
-        "port" Ident ("at" CoordsFrac)? ("on" Ident)? ("is" PortBody)?
-
-    PortBody := "{" Prop* "}"
+        "port" Ident ("at" CoordsFrac)? ("on" Ident)? ("is" Body)?
 
     Arrow :=
-        "arrow" Path "to" Path ("is" ArrowBody)?
-
-    ArrowBody := "{" Prop* "}"
+        "arrow" Path "to" Path ("is" Body)?
 
 
 ////////////////////////////////////////

@@ -32,6 +32,8 @@ pub struct Diagram {
 pub struct DiagramPort {
     pub name: String,
     pub pos: (f64, f64), // Absolute position
+    pub label: Option<String>, // Optional label text
+    pub parent_box: (f64, f64, f64, f64), // Parent box bounds (x, y, width, height)
 }
 
 /// An arrow in the diagram connecting two ports
@@ -753,6 +755,8 @@ fn flatten_boxes(
         ports_output.push(DiagramPort {
             name: port.name.clone(),
             pos: (abs_x, abs_y),
+            label: port.label.clone(),
+            parent_box: (parent_x, parent_y, parent_width, parent_height),
         });
     }
 }
@@ -773,7 +777,7 @@ fn collect_arrows(box_def: &elaboration::BoxDef, output: &mut Vec<DiagramArrow>)
     }
 }
 
-/// Render a port as a small circle
+/// Render a port as a small circle with optional label
 fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocument, String> {
     let (x, y) = port.pos;
     let radius = 5;
@@ -787,6 +791,76 @@ fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocume
         .set("stroke-width", 2);
 
     svg_doc = svg_doc.add(circle);
+
+    // Render label (use custom label if present, otherwise use port name)
+    let label_text = port.label.as_ref().unwrap_or(&port.name);
+    let font_size = 12;
+    let offset = 10.0; // Distance from port center
+    let char_width = font_size as f64 * 0.6; // Approximate character width
+
+    // Get parent box boundaries
+    let (box_x, box_y, box_width, box_height) = port.parent_box;
+    let box_right = box_x + box_width;
+    let box_bottom = box_y + box_height;
+
+    // Split label by newlines
+    let lines: Vec<&str> = label_text.split('\n').collect();
+
+    // Calculate label dimensions
+    let max_line_width = lines.iter()
+        .map(|line| line.len() as f64 * char_width)
+        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .unwrap_or(0.0);
+    let label_height = lines.len() as f64 * font_size as f64;
+
+    // Determine label position, ensuring it stays within parent box
+    let mut label_x = x + offset;
+    let mut label_y = y + 4.0; // Slightly below center for better alignment
+
+    // Check if label would extend beyond right edge of box
+    if label_x + max_line_width > box_right {
+        // Try positioning to the left of the port instead
+        label_x = x - offset - max_line_width;
+
+        // If still outside, clamp to box boundary
+        if label_x < box_x {
+            label_x = box_x;
+        }
+    }
+
+    // Check if label would extend beyond bottom edge of box
+    if label_y + label_height > box_bottom {
+        // Position above the port instead
+        label_y = y - label_height + 4.0;
+
+        // If still outside, clamp to box boundary
+        if label_y < box_y {
+            label_y = box_y + font_size as f64;
+        }
+    }
+
+    // Ensure label doesn't extend beyond left edge
+    if label_x < box_x {
+        label_x = box_x;
+    }
+
+    // Ensure label doesn't extend beyond top edge
+    if label_y - (font_size as f64) < box_y {
+        label_y = box_y + (font_size as f64);
+    }
+
+    // Render each line
+    for (i, line) in lines.iter().enumerate() {
+        let line_y = label_y + (i as f64 * font_size as f64);
+        let text = Text::new(*line)
+            .set("x", label_x)
+            .set("y", line_y)
+            .set("font-size", font_size)
+            .set("font-family", "Arial, sans-serif")
+            .set("fill", "#333");
+        svg_doc = svg_doc.add(text);
+    }
+
     Ok(svg_doc)
 }
 

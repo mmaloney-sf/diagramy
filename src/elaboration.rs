@@ -46,6 +46,7 @@ impl RoutedArrowPath {
 pub struct Port {
     pub name: String,
     pub coords: (f64, f64), // Fractional coordinates
+    pub label: Option<String>, // Optional label text
 }
 
 #[derive(Debug, Clone)]
@@ -400,14 +401,34 @@ impl<'ast> Elaborator<'ast> {
                     self.find_port_position_on_side(side, grid, &mut used_positions, port)?
                 };
 
+                // Extract label from port body if present
+                let label = if let Some(ref port_body) = port.body {
+                    self.extract_label_from_body(port_body)
+                } else {
+                    None
+                };
+
                 ports.push(Port {
                     name: port.name.clone(),
                     coords,
+                    label,
                 });
             }
         }
 
         Ok(ports)
+    }
+
+    /// Extract label text from a body (port or arrow)
+    /// Returns the first label found, or None if no labels exist
+    fn extract_label_from_body(&self, body: &ast::BoxBody) -> Option<String> {
+        for item in &body.items {
+            if let ast::BoxItem::Label(label) = item {
+                // Join multi-line labels with newlines
+                return Some(label.text.join("\n"));
+            }
+        }
+        None
     }
 
     /// Find a free position for a port on the given side of the grid

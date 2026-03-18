@@ -35,7 +35,6 @@ box ALU {
 
     // Ports with explicit positioning
     port input at (0.5, 0.0)
-    port output at (0.5, 2.0)
 
     // Auto-positioned port (defaults to right)
     port carry
@@ -47,7 +46,10 @@ box top {
     box cpu at (2, 2) is Processor
 
     // External ports that connect to the processor
-    port ext_clk on top
+    port ext_clk on top is {
+        label "clock"
+    }
+
     port ext_reset on top
     port ext_data on left
     port ext_status on bottom

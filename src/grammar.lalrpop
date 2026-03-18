@@ -64,16 +64,14 @@ Prop: Prop = {
 };
 
 Port: Port = {
-    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Ident>)?> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
-        let props = props.unwrap_or_default();
-        Port { name, coords, on, props, span: Span::from_offsets(source, ll, rr) }
+    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Ident>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
+        Port { name, coords, on, body, span: Span::from_offsets(source, ll, rr) }
     },
 };
 
 Arrow: Arrow = {
-    <ll:@L> "arrow" <from:Path> "to" <to:Path> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
-        let props = props.unwrap_or_default();
-        Arrow { from, to, props, span: Span::from_offsets(source, ll, rr) }
+    <ll:@L> "arrow" <from:Path> "to" <to:Path> <body:("is" <BoxBody>)?> <rr:@R> => {
+        Arrow { from, to, body, span: Span::from_offsets(source, ll, rr) }
     },
 };
 

@@ -224,7 +224,7 @@ pub struct Port {
     pub name: String,
     pub coords: Option<CoordsFrac>,  // Optional "at" clause
     pub on: Option<String>,           // Optional "on" clause (top, bottom, left, right)
-    pub props: Vec<Prop>,
+    pub body: Option<BoxBody>,        // Optional body (can contain labels, props, etc.)
     pub span: Span,
 }
 
@@ -232,7 +232,7 @@ pub struct Port {
 pub struct Arrow {
     pub from: Path,
     pub to: Path,
-    pub props: Vec<Prop>,
+    pub body: Option<BoxBody>,  // Optional body (can contain labels, props, etc.)
     pub span: Span,
 }
 
