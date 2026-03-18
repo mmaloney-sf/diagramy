@@ -228,6 +228,7 @@ impl ArrowRouter {
     }
 
     /// Find if two paths cross
+    #[allow(dead_code)]
     fn find_crossing(&self, path1: &ArrowPath, path2: &ArrowPath) -> Option<Point> {
         // Check each segment of path1 against each segment of path2
         for i in 0..path1.points.len().saturating_sub(1) {
@@ -249,6 +250,7 @@ impl ArrowRouter {
     }
 
     /// Find intersection point of two line segments
+    #[allow(dead_code)]
     fn line_intersection(&self, p1: Point, p2: Point, p3: Point, p4: Point) -> Option<Point> {
         let x1 = p1.1 as f64;
         let y1 = p1.0 as f64;

@@ -61,7 +61,6 @@ pub struct Box {
 
 #[derive(Debug)]
 struct Elaborator<'ast> {
-    source: String,
     filename: String,
     debug_dir: Option<String>,
     box_def_map: HashMap<String, &'ast ast::BoxDef>,
@@ -70,7 +69,6 @@ struct Elaborator<'ast> {
 /// Convert an ast::Document into a diagram::Diagram
 pub fn from_ast(
     doc: &ast::Document,
-    source: &str,
     filename: &str,
     debug_dir: Option<&str>,
 ) -> Result<ElaboratedDiagram, String> {
@@ -81,7 +79,6 @@ pub fn from_ast(
     }
 
     let mut elaborator = Elaborator {
-        source: source.to_string(),
         filename: filename.to_string(),
         debug_dir: debug_dir.map(|s| s.to_string()),
         box_def_map,

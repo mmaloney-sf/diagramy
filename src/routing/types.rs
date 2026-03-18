@@ -55,6 +55,7 @@ impl BoundingBox {
     }
 
     /// Get the discretized min point
+    #[allow(dead_code)]
     pub fn min_discretized(&self, grid_resolution: i32) -> Point {
         (
             (self.min_frac.0 * grid_resolution as f64).round() as i32,
@@ -63,6 +64,7 @@ impl BoundingBox {
     }
 
     /// Get the discretized max point
+    #[allow(dead_code)]
     pub fn max_discretized(&self, grid_resolution: i32) -> Point {
         (
             (self.max_frac.0 * grid_resolution as f64).round() as i32,
@@ -101,6 +103,7 @@ pub struct Node {
     pub parent: Option<Point>,
 }
 
+#[allow(dead_code)]
 fn dir_away_from_wall(position: Point, grid_height: i32, grid_width: i32) -> Option<Direction> {
     let (row, col) = position;
 

@@ -215,7 +215,7 @@ fn convert(doc: diagramy::ast::Document, input: String, args: Args) {
     }
 
     // Test the conversion function
-    match diagramy::elaboration::from_ast(&doc, &input, &args.file, args.debug.as_deref()) {
+    match diagramy::elaboration::from_ast(&doc, &args.file, args.debug.as_deref()) {
         Ok(diagram) => {
             println!("Converted diagram:");
             println!("  Color: {}", diagram.color);
@@ -239,7 +239,7 @@ fn render(doc: diagramy::ast::Document, input: String, args: Args) {
 
     // Default behavior: render to SVG
     // Convert AST to elaboration diagram
-    let elab_diagram = match diagramy::elaboration::from_ast(&doc, &input, &args.file, args.debug.as_deref()) {
+    let elab_diagram = match diagramy::elaboration::from_ast(&doc, &args.file, args.debug.as_deref()) {
         Ok(diagram) => diagram,
         Err(e) => {
             eprintln!("Error: {}", e);
