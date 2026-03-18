@@ -4,7 +4,7 @@ pub mod debug;
 pub mod types;
 
 // Re-export types for convenience
-pub use types::{ArrowPath, ArrowPathCrossing, BoundingBox, Direction, Node, Point};
+pub use types::{ArrowPath, ArrowPathCrossing, BoundingBox, Direction, Node, Point, relative_dir};
 
 use std::collections::{BinaryHeap, HashMap};
 
@@ -17,6 +17,8 @@ pub struct ArrowRouter {
     routed_paths: Vec<ArrowPath>,
     debug_dir: Option<String>,
     box_name: Option<String>,
+    last_g_scores: HashMap<Point, f64>,
+    last_h_scores: HashMap<Point, f64>,
 }
 
 impl ArrowRouter {
@@ -24,17 +26,23 @@ impl ArrowRouter {
         ArrowRouter {
             grid_width: grid_width as u64,
             grid_height: grid_height as u64,
-            grid_resolution: 10, // 10 routable grid squares per original grid square
+            grid_resolution: 10,
             obstacle_boxes: bounding_boxes,
             routed_paths: Vec::new(),
             debug_dir: None,
             box_name: None,
+            last_g_scores: HashMap::new(),
+            last_h_scores: HashMap::new(),
         }
     }
 
     pub fn set_debug_dir(&mut self, dir: &str, box_name: &str) {
         self.debug_dir = Some(dir.to_string());
         self.box_name = Some(box_name.to_string());
+    }
+
+    pub fn grid_resolution(&self) -> i32 {
+        self.grid_resolution
     }
 
     /// Route an arrow from start to end using A* pathfinding
@@ -44,7 +52,11 @@ impl ArrowRouter {
         let start_point = self.discretize(start);
         let end_point = self.discretize(end);
 
-        let path = self.find_path(start_point, end_point);
+        let (path, g_scores, h_scores) = self.find_path(start_point, end_point);
+
+        // Store scores for debug visualization
+        self.last_g_scores = g_scores;
+        self.last_h_scores = h_scores;
 
         // Generate debug SVG after routing (whether it succeeded or failed)
         self.generate_routing_debug_svg(start_point, end_point, self.routed_paths.len(), path.as_ref());
@@ -58,7 +70,6 @@ impl ArrowRouter {
 
     /// Discretize a continuous point to integral grid coordinates
     fn discretize(&self, point: (f64, f64)) -> Point {
-        dbg!(&point);
         let mut row = (point.0 * self.grid_resolution as f64) as i32;
         let mut col = (point.1 * self.grid_resolution as f64) as i32;
         if row == self.grid_height as i32 * self.grid_resolution {
@@ -72,14 +83,11 @@ impl ArrowRouter {
     }
 
     /// A* pathfinding algorithm
-    fn find_path(&self, start: Point, end: Point) -> Option<ArrowPath> {
+    fn find_path(&self, start: Point, end: Point) -> (Option<ArrowPath>, HashMap<Point, f64>, HashMap<Point, f64>) {
         let mut open_set = BinaryHeap::new();
         let mut came_from: HashMap<Point, Point> = HashMap::new();
         let mut g_score: HashMap<Point, f64> = HashMap::new();
-
-        // Grid dimensions in discretized coordinates
-        let grid_width = (self.grid_width as i32) * self.grid_resolution;
-        let grid_height = (self.grid_height as i32) * self.grid_resolution;
+        let mut h_score: HashMap<Point, f64> = HashMap::new();
 
         // Initialize start node
         let h = self.heuristic(start, end);
@@ -88,36 +96,38 @@ impl ArrowRouter {
             0.0,
             h,
             None,
-            grid_width,
-            grid_height,
         ));
         g_score.insert(start, 0.0);
-
-        let mut total_turns = 0;
+        h_score.insert(start, h);
 
         while let Some(current) = open_set.pop() {
             let current_point = current.position;
 
             // Check if we reached the goal
             if current_point == end {
-                return Some(self.reconstruct_path(&came_from, current_point, start, end));
+                return (Some(self.reconstruct_path(&came_from, current_point, start, end)), g_score, h_score);
             }
 
             // Explore neighbors
             for (neighbor_point, dir_moved) in self.get_neighbors(current_point) {
-                // Check if this move is a turn (direction changed from previous move)
-                let is_turn: bool = match current.direction {
-                    Some(prev_dir) => prev_dir != dir_moved,
-                    None => false, // No previous direction, so not a turn
+                // Check if this move is a turn by comparing with the direction from parent to current
+                let is_turn: bool = if let Some(&parent_point) = came_from.get(&current_point) {
+                    // Get the direction from parent to current
+                    if let Some(prev_dir) = relative_dir(parent_point, current_point) {
+                        // It's a turn if the previous direction differs from the current direction
+                        prev_dir != dir_moved
+                    } else {
+                        false // Shouldn't happen if came_from is correct
+                    }
+                } else {
+                    false // No parent (this is the start node), so no turn
                 };
-                let turn_cost = if is_turn {
-                    total_turns += 1;
-                    total_turns.into()
+                let turn_cost: f64 = if is_turn {
+                    5.0
                 } else {
                     0.0
                 };
-                let wall_factor: f64  = self.wall_factor(neighbor_point, dir_moved);
-                let move_cost = 1.0 + turn_cost;
+                let move_cost = 1.0 + self.wall_factor(neighbor_point, dir_moved) + turn_cost;
 
                 let tentative_g = g_score.get(&current_point).unwrap_or(&f64::INFINITY) + move_cost;
                 let current_best_g = *g_score.get(&neighbor_point).unwrap_or(&f64::INFINITY);
@@ -128,9 +138,9 @@ impl ArrowRouter {
                     g_score.insert(neighbor_point, tentative_g);
 
                     let h = self.heuristic(neighbor_point, end);
-                    open_set.push(Node::new_with_dir(
+                    h_score.insert(neighbor_point, h);
+                    open_set.push(Node::new(
                         neighbor_point,
-                        dir_moved,
                         tentative_g,
                         h,
                         Some(current.position),
@@ -183,12 +193,16 @@ impl ArrowRouter {
 
     /// Check if a point is inside any bounding box
     fn is_inside_bounding_box(&self, point: Point) -> bool {
-        self.obstacle_boxes.iter().any(|bbox| bbox.contains(point))
+        self.obstacle_boxes.iter().any(|bbox| bbox.contains(point, self.grid_resolution))
+    }
+
+    fn is_free(&self, point: Point) -> bool {
+        self.is_in_bounds(point) && !self.is_inside_bounding_box(point)
     }
 
     /// Find the bounding box that contains a point, if any
     fn find_containing_bounding_box(&self, point: Point) -> Option<&BoundingBox> {
-        self.obstacle_boxes.iter().find(|bbox| bbox.contains(point))
+        self.obstacle_boxes.iter().find(|bbox| bbox.contains(point, self.grid_resolution))
     }
 
     /// Reconstruct the path from the came_from map
@@ -265,45 +279,40 @@ impl ArrowRouter {
         &self.routed_paths
     }
 
-    fn wall_factor(&self, neighbor_point: (i32, i32), direction: Direction) -> f64 {
-        // If direction is None, no wall penalty
-        if direction == Direction::None {
-            return 0.0;
+    fn wall_factor(&self, point: (i32, i32), _direction: Direction) -> f64 {
+        let mut factor = 0.0;
+        let distance = self.grid_resolution / 4;
+        let pentalty = 1.0;
+
+        for i in 1..=distance {
+            let forward = (point.0 - i, point.1);
+            if !self.is_free(forward) {
+                factor += pentalty / i as f64;
+                break;
+            }
+        }
+        for i in 1..=distance {
+            let backwards = (point.0 + i, point.1);
+            if !self.is_free(backwards) {
+                factor += pentalty / i as f64;
+                break;
+            }
+        }
+        for i in 1..=distance {
+            let forward = (point.0, point.1 - 1);
+            if !self.is_free(forward) {
+                factor += pentalty / i as f64;
+                break;
+            }
+        }
+        for i in 1..=distance {
+            let backwards = (point.0, point.1 + 1);
+            if !self.is_free(backwards) {
+                factor += pentalty / i as f64;
+                break;
+            }
         }
 
-        // Grid bounds in discretized coordinates
-        let grid_width = (self.grid_width as i32) * self.grid_resolution;
-        let grid_height = (self.grid_height as i32) * self.grid_resolution;
-
-        // Calculate distance to the wall perpendicular to the direction of movement
-        // We want to penalize moving close to walls on the sides
-        let distance_to_wall = match direction {
-            Direction::Up | Direction::Down => {
-                // Moving vertically, check distance to left and right walls
-                let dist_to_left = neighbor_point.1;
-                let dist_to_right = grid_width - neighbor_point.1;
-                dist_to_left.min(dist_to_right)
-            }
-            Direction::Left | Direction::Right => {
-                // Moving horizontally, check distance to top and bottom walls
-                let dist_to_top = neighbor_point.0;
-                let dist_to_bottom = grid_height - neighbor_point.0;
-                dist_to_top.min(dist_to_bottom)
-            }
-            Direction::None => return 0.0,
-        };
-
-        // Define "nearby" as within 5 grid cells
-        const NEARBY_THRESHOLD: i32 = 5;
-
-        if distance_to_wall >= NEARBY_THRESHOLD {
-            // Not near a wall, no penalty
-            0.0
-        } else {
-            // Add a small penalty that increases as we get closer to the wall
-            // Penalty ranges from 0.0 (at threshold) to 0.5 (at wall)
-            let normalized_distance = distance_to_wall as f64 / NEARBY_THRESHOLD as f64;
-            0.5 * (1.0 - normalized_distance)
-        }
+        factor
     }
 }

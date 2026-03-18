@@ -391,20 +391,11 @@ fn route_arrows(
         let max_row = (row + height) as f64 - margin;
         let max_col = (col + width) as f64 - margin;
 
-        eprintln!("Child box at ({}, {}) with dim ({}x{}): bbox min=({}, {}), max=({}, {})",
-                 row, col, height, width, min_row, min_col, max_row, max_col);
-
-        // Discretize bounding box coordinates to integral grid coordinates
-        // grid_resolution = 10 means 10 routable squares per original grid square
-        const GRID_RESOLUTION: i32 = 10;
-        let min_row_i32 = (min_row * GRID_RESOLUTION as f64).round() as i32;
-        let min_col_i32 = (min_col * GRID_RESOLUTION as f64).round() as i32;
-        let max_row_i32 = (max_row * GRID_RESOLUTION as f64).round() as i32;
-        let max_col_i32 = (max_col * GRID_RESOLUTION as f64).round() as i32;
-
+        // Store bounding box in fractional coordinates
+        // The ArrowRouter will scale these by its grid_resolution
         bounding_boxes.push(BoundingBox {
-            min: (min_row_i32, min_col_i32),
-            max: (max_row_i32, max_col_i32),
+            min_frac: (min_row, min_col),
+            max_frac: (max_row, max_col),
         });
     }
 
@@ -420,17 +411,18 @@ fn route_arrows(
         router.set_debug_dir(dir, box_name);
     }
 
+    // Get grid resolution from router
+    let grid_resolution = router.grid_resolution();
+
     // Route each arrow
     let mut routed_paths = Vec::new();
     for arrow in arrows {
         if let (Some(&start), Some(&end)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
             if let Some(path) = router.route(start, end) {
                 // Convert i32 points back to f64 for storage
-                // grid_resolution = 10 means 10 routable squares per original grid square
-                const GRID_RESOLUTION: i32 = 10;
                 let f64_points: Vec<(f64, f64)> = path.points.iter()
                     .map(|(row, col)| {
-                        (*row as f64 / GRID_RESOLUTION as f64, *col as f64 / GRID_RESOLUTION as f64)
+                        (*row as f64 / grid_resolution as f64, *col as f64 / grid_resolution as f64)
                     })
                     .collect();
                 routed_paths.push(f64_points);

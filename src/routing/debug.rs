@@ -27,6 +27,8 @@ impl ArrowRouter {
                 self.grid_height,
                 self.grid_resolution,
                 &self.obstacle_boxes,
+                &self.last_g_scores,
+                &self.last_h_scores,
                 debug_dir,
                 box_name,
             );
@@ -45,14 +47,14 @@ pub fn generate_routing_debug_svg(
     grid_height: u64,
     grid_resolution: i32,
     bounding_boxes: &[BoundingBox],
+    g_scores: &std::collections::HashMap<Point, f64>,
+    h_scores: &std::collections::HashMap<Point, f64>,
     debug_dir: &str,
     box_name: &str,
 ) {
     // Scale factor to convert integral coordinates to pixels
-    // We want 100 pixels per original grid square
-    // grid_resolution routable squares per original grid square
-    // So: 100 / grid_resolution pixels per routable square
-    const PIXELS_PER_ORIGINAL_SQUARE: f64 = 100.0;
+    // Scale up 4x from before (was 100 pixels per original square, now 400)
+    const PIXELS_PER_ORIGINAL_SQUARE: f64 = 400.0;
     let scale = PIXELS_PER_ORIGINAL_SQUARE / grid_resolution as f64;
 
     // Calculate SVG dimensions
@@ -126,10 +128,12 @@ pub fn generate_routing_debug_svg(
 
     // Draw bounding boxes (obstacles)
     for bbox in bounding_boxes {
-        let x = (bbox.min.1 as f64 * scale) as i32;
-        let y = (bbox.min.0 as f64 * scale) as i32;
-        let width = ((bbox.max.1 - bbox.min.1) as f64 * scale) as i32;
-        let height = ((bbox.max.0 - bbox.min.0) as f64 * scale) as i32;
+        let min = bbox.min_discretized(grid_resolution);
+        let max = bbox.max_discretized(grid_resolution);
+        let x = (min.1 as f64 * scale) as i32;
+        let y = (min.0 as f64 * scale) as i32;
+        let width = ((max.1 - min.1) as f64 * scale) as i32;
+        let height = ((max.0 - min.0) as f64 * scale) as i32;
 
         let rect = Rectangle::new()
             .set("x", x)
@@ -265,7 +269,7 @@ pub fn generate_routing_debug_svg(
                 let next_point = &arrow_path.points[i + 1];
 
                 // Calculate direction from current to next
-                let arrow_length = scale * 0.1; // 10% of cell size
+                let arrow_length = scale * 0.05; // 5% of cell size (smaller)
                 let (dx, dy) = if next_point.0 < current_point.0 {
                     // Next is above (Up)
                     (0.0, -arrow_length)
@@ -286,14 +290,14 @@ pub fn generate_routing_debug_svg(
                 let end_x = center_x + dx;
                 let end_y = center_y + dy;
 
-                // Draw arrow line
+                // Draw arrow line (thinner)
                 let line = Line::new()
                     .set("x1", center_x as i32)
                     .set("y1", center_y as i32)
                     .set("x2", end_x as i32)
                     .set("y2", end_y as i32)
                     .set("stroke", "#ff0000")
-                    .set("stroke-width", 0.7)
+                    .set("stroke-width", 0.3)
                     .set("marker-end", "url(#arrowhead)");
                 svg_doc = svg_doc.add(line);
             } else {
@@ -305,6 +309,49 @@ pub fn generate_routing_debug_svg(
                     .set("fill", "#000000");
                 svg_doc = svg_doc.add(dot);
             }
+        }
+    }
+
+    // Draw cost information for all considered nodes
+    for (point, g_cost) in g_scores {
+        if let Some(h_cost) = h_scores.get(point) {
+            let px = (point.1 as f64 * scale) as i32;
+            let py = (point.0 as f64 * scale) as i32;
+            let center_x = px as f64 + scale / 2.0;
+            let center_y = py as f64 + scale / 2.0;
+
+            let f_cost = g_cost + h_cost;
+
+            // Font size based on scale
+            let font_size = (scale * 0.15).max(3.0);
+
+            // G cost (top left)
+            let g_text = Text::new(format!("{:.1}", g_cost))
+                .set("x", center_x - scale * 0.3)
+                .set("y", center_y - scale * 0.1)
+                .set("font-family", "monospace")
+                .set("font-size", font_size)
+                .set("fill", "#0000ff");
+            svg_doc = svg_doc.add(g_text);
+
+            // H cost (top right)
+            let h_text = Text::new(format!("{:.1}", h_cost))
+                .set("x", center_x + scale * 0.05)
+                .set("y", center_y - scale * 0.1)
+                .set("font-family", "monospace")
+                .set("font-size", font_size)
+                .set("fill", "#00aa00");
+            svg_doc = svg_doc.add(h_text);
+
+            // F cost (center, slightly lower)
+            let f_text = Text::new(format!("{:.1}", f_cost))
+                .set("x", center_x - scale * 0.15)
+                .set("y", center_y + scale * 0.15)
+                .set("font-family", "monospace")
+                .set("font-size", font_size)
+                .set("font-weight", "bold")
+                .set("fill", "#ff0000");
+            svg_doc = svg_doc.add(f_text);
         }
     }
 

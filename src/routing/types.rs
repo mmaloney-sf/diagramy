@@ -31,19 +31,43 @@ pub struct ArrowPathCrossing {
     pub crossing_point: Point,
 }
 
-/// Bounding box for a child box
+/// Bounding box for a child box (stored in fractional coordinates)
 #[derive(Debug, Clone)]
 pub struct BoundingBox {
-    pub min: Point,
-    pub max: Point,
+    pub min_frac: (f64, f64),
+    pub max_frac: (f64, f64),
 }
 
 impl BoundingBox {
-    pub fn contains(&self, point: Point) -> bool {
-        point.0 >= self.min.0
-            && point.0 <= self.max.0
-            && point.1 >= self.min.1
-            && point.1 <= self.max.1
+    /// Check if a discretized point is inside this bounding box
+    /// point is in discretized coordinates (scaled by grid_resolution)
+    /// This bounding box is in fractional coordinates
+    pub fn contains(&self, point: Point, grid_resolution: i32) -> bool {
+        let min_row = (self.min_frac.0 * grid_resolution as f64).round() as i32;
+        let min_col = (self.min_frac.1 * grid_resolution as f64).round() as i32;
+        let max_row = (self.max_frac.0 * grid_resolution as f64).round() as i32;
+        let max_col = (self.max_frac.1 * grid_resolution as f64).round() as i32;
+
+        point.0 >= min_row
+            && point.0 <= max_row
+            && point.1 >= min_col
+            && point.1 <= max_col
+    }
+
+    /// Get the discretized min point
+    pub fn min_discretized(&self, grid_resolution: i32) -> Point {
+        (
+            (self.min_frac.0 * grid_resolution as f64).round() as i32,
+            (self.min_frac.1 * grid_resolution as f64).round() as i32,
+        )
+    }
+
+    /// Get the discretized max point
+    pub fn max_discretized(&self, grid_resolution: i32) -> Point {
+        (
+            (self.max_frac.0 * grid_resolution as f64).round() as i32,
+            (self.max_frac.1 * grid_resolution as f64).round() as i32,
+        )
     }
 }
 
@@ -54,7 +78,6 @@ pub enum Direction {
     Down,
     Left,
     Right,
-    None, // Starting position
 }
 
 impl Direction {
@@ -64,7 +87,6 @@ impl Direction {
             Direction::Down => Direction::Up,
             Direction::Left => Direction::Right,
             Direction::Right => Direction::Left,
-            Direction::None => Direction::None,
         }
     }
 }
@@ -73,11 +95,54 @@ impl Direction {
 #[derive(Debug, Clone)]
 pub struct Node {
     pub position: Point,
-    pub direction: Option<Direction>,
     pub g_cost: f64, // Cost from start to this node
     pub h_cost: f64, // Heuristic cost from this node to end
     pub f_cost: f64, // Total cost (g + h)
     pub parent: Option<Point>,
+}
+
+fn dir_away_from_wall(position: Point, grid_height: i32, grid_width: i32) -> Option<Direction> {
+    let (row, col) = position;
+
+    // Check for corner positions (not allowed)
+    if (row == 0 && col == 0) || (row == grid_height - 1 && col == grid_width - 1) {
+        panic!("Corner positions are not allowed: ({}, {})", row, col);
+    }
+
+    // Determine direction based on wall position
+    if row == 0 {
+        // Top wall - direction should be Down (away from wall)
+        Some(Direction::Down)
+    } else if row == grid_height - 1 {
+        // Bottom wall - direction should be Up (away from wall)
+        Some(Direction::Up)
+    } else if col == 0 {
+        // Left wall - direction should be Right (away from wall)
+        Some(Direction::Right)
+    } else if col == grid_width - 1 {
+        // Right wall - direction should be Left (away from wall)
+        Some(Direction::Left)
+    } else {
+        // Not on a wall
+        None
+    }
+}
+
+pub fn relative_dir(from: Point, to: Point) -> Option<Direction> {
+    let (from_row, from_col) = from;
+    let (to_row, to_col) = to;
+
+    let row_diff = to_row - from_row;
+    let col_diff = to_col - from_col;
+
+    // Check if points are adjacent (exactly 1 step away in one direction, 0 in the other)
+    match (row_diff, col_diff) {
+        (-1, 0) => Some(Direction::Up),
+        (1, 0) => Some(Direction::Down),
+        (0, -1) => Some(Direction::Left),
+        (0, 1) => Some(Direction::Right),
+        _ => None, // Not adjacent or diagonal
+    }
 }
 
 impl Node {
@@ -86,54 +151,9 @@ impl Node {
         g_cost: f64,
         h_cost: f64,
         parent: Option<Point>,
-        grid_width: i32,
-        grid_height: i32,
-    ) -> Self {
-        let (row, col) = position;
-
-        // Check for corner positions (not allowed)
-        if (row == 0 && col == 0) || (row == grid_height - 1 && col == grid_width - 1) {
-            panic!("Corner positions are not allowed: ({}, {})", row, col);
-        }
-
-        // Determine direction based on wall position
-        let direction = if row == 0 {
-            // Top wall - direction should be Down (away from wall)
-            Some(Direction::Down)
-        } else if row == grid_height - 1 {
-            // Bottom wall - direction should be Up (away from wall)
-            Some(Direction::Up)
-        } else if col == 0 {
-            // Left wall - direction should be Right (away from wall)
-            Some(Direction::Right)
-        } else if col == grid_width - 1 {
-            // Right wall - direction should be Left (away from wall)
-            Some(Direction::Left)
-        } else {
-            // Not on a wall
-            None
-        };
-
-        Node {
-            position,
-            direction,
-            g_cost,
-            h_cost,
-            f_cost: g_cost + h_cost,
-            parent,
-        }
-    }
-
-    pub fn new_with_dir(
-        position: Point,
-        direction: Direction,
-        g_cost: f64,
-        h_cost: f64,
-        parent: Option<Point>,
     ) -> Self {
         Node {
             position,
-            direction: Some(direction),
             g_cost,
             h_cost,
             f_cost: g_cost + h_cost,
