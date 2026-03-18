@@ -1,0 +1,41 @@
+diagram {
+    width: 600
+    color: white
+    title: "Bus example"
+}
+
+box Top {
+    grid: 3x3
+    color: blue
+
+    box alu at (2, 1) is Alu
+    box mem at (2, 3) is Memory
+
+    arrow alu.addr_out to mem.addr_in
+    arrow alu.data_out to mem.data_in
+    arrow mem.data_out to alu.data_in
+    arrow alu.strobe   to mem.strobe
+    arrow alu.select   to mem.select
+}
+
+box Alu {
+    grid: 5x5
+    color: green
+
+    port addr_out on right
+    port data_out on right
+    port data_in  on right
+    port strobe   on right
+    port select   on right
+
+}
+
+box Memory {
+    grid: 5x5
+
+    port addr_in  on left
+    port data_in  on left
+    port data_out on left
+    port strobe   on left
+    port select   on left
+}
