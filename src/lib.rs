@@ -21,14 +21,16 @@ lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 #[rustfmt::skip]
 const COLOR_TABLE: [(&'static str, &'static str); 21] = [
     ("transparent", "transparent"),
-    ("red",         "#E8DEDD"),
-    ("blue",        "#DEE8ED"),
-    ("green",       "#DEE8E3"),
-    ("yellow",      "#E8E8DE"),
-    ("orange",      "#E8E3DE"),
+
+    ("yellow",      "#F5F5DC"),
+    ("pink",        "#F0E6ED"),
     ("purple",      "#E3DEE8"),
-    ("pink",        "#E8DEE3"),
+    ("blue",        "#DEE8ED"),
     ("cyan",        "#DEE8E8"),
+    ("green",       "#DEE8E3"),
+    ("red",         "#E8DEDD"),
+    ("orange",      "#E8E3DE"),
+
     ("magenta",     "#E8DEE8"),
     ("lime",        "#E3E8DE"),
     ("teal",        "#DEE8E5"),

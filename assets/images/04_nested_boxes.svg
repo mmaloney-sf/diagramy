@@ -2,16 +2,16 @@
 <rect fill="#F8F9F9" height="100%" width="100%"/>
 <rect fill="transparent" height="506" stroke="#333" stroke-width="1" width="506" x="47" y="47"/>
 <rect fill="#E8DEDD" height="202.4" stroke="#333" stroke-width="0.4" width="202.4" x="72.3" y="72.3"/>
-<rect fill="#E8DEE3" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="82.42" y="82.42"/>
-<rect fill="#E8DEE3" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="183.62" y="82.42"/>
-<rect fill="#E8DEE3" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="82.42" y="183.62"/>
-<rect fill="#E8DEE3" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="183.62" y="183.62"/>
+<rect fill="#F0E6ED" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="82.42" y="82.42"/>
+<rect fill="#F0E6ED" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="183.62" y="82.42"/>
+<rect fill="#F0E6ED" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="82.42" y="183.62"/>
+<rect fill="#F0E6ED" height="80.96000000000001" stroke="#333" stroke-width="0.16" width="80.96000000000001" x="183.62" y="183.62"/>
 <rect fill="#DEE8ED" height="202.4" stroke="#333" stroke-width="0.4" width="202.4" x="325.3" y="72.3"/>
 <rect fill="#DEE8E8" height="53.973333333333336" stroke="#333" stroke-width="0.21333333333333335" width="161.92000000000002" x="345.54" y="79.04666666666667"/>
 <rect fill="#DEE8E8" height="53.973333333333336" stroke="#333" stroke-width="0.21333333333333335" width="161.92000000000002" x="345.54" y="146.51333333333332"/>
 <rect fill="#DEE8E8" height="53.973333333333336" stroke="#333" stroke-width="0.21333333333333335" width="161.92000000000002" x="345.54" y="213.98000000000002"/>
 <rect fill="#DEE8E3" height="202.4" stroke="#333" stroke-width="0.4" width="202.4" x="72.3" y="325.3"/>
-<rect fill="#E8E8DE" height="202.4" stroke="#333" stroke-width="0.4" width="202.4" x="325.3" y="325.3"/>
+<rect fill="#F5F5DC" height="202.4" stroke="#333" stroke-width="0.4" width="202.4" x="325.3" y="325.3"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="122.9" y="129.4">
 Child A1
 </text>

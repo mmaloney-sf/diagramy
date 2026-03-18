@@ -4,7 +4,7 @@
 <rect fill="#E8DEDD" height="162.4" stroke="#333" stroke-width="0.4" width="162.4" x="67.3" y="67.3"/>
 <rect fill="#DEE8E3" height="162.4" stroke="#333" stroke-width="0.4" width="162.4" x="270.3" y="67.3"/>
 <rect fill="#DEE8ED" height="162.4" stroke="#333" stroke-width="0.4" width="162.4" x="67.3" y="270.3"/>
-<rect fill="#E8E8DE" height="162.4" stroke="#333" stroke-width="0.4" width="162.4" x="270.3" y="270.3"/>
+<rect fill="#F5F5DC" height="162.4" stroke="#333" stroke-width="0.4" width="162.4" x="270.3" y="270.3"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="148.5" y="155.5">
 Single Line
 </text>
