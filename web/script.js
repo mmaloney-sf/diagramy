@@ -4,7 +4,6 @@ import init, { render_diagram_with_diagnostics } from './dist/diagramy.js';
 // Initialize Ace Editor
 const editor = ace.edit("editor");
 editor.setTheme("ace/theme/monokai");
-editor.session.setMode("ace/mode/text");
 editor.setShowPrintMargin(false);
 editor.setOption("showLineNumbers", true); // Always display line numbers
 
@@ -81,14 +80,84 @@ function renderDiagram() {
     }
 }
 
+// Load examples from JSON file
+async function loadExamples() {
+    try {
+        const response = await fetch('examples.json');
+        const data = await response.json();
+        const exampleSelect = document.getElementById('example-select');
+
+        // Populate the dropdown
+        data.examples.forEach(example => {
+            const option = document.createElement('option');
+            option.value = example.id;
+            option.textContent = example.name;
+            option.dataset.content = example.content;
+            exampleSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Failed to load examples:', error);
+    }
+}
+
+// Handle Load button click
+document.getElementById('load-example-btn').addEventListener('click', function() {
+    const exampleSelect = document.getElementById('example-select');
+    const selectedOption = exampleSelect.options[exampleSelect.selectedIndex];
+
+    if (selectedOption.value && selectedOption.dataset.content) {
+        // Set the editor content
+        editor.setValue(selectedOption.dataset.content, -1); // -1 moves cursor to start
+
+        // Render immediately
+        renderDiagram();
+    }
+});
+
+// Save editor content to localStorage
+function saveEditorContent() {
+    const content = editor.getValue();
+    localStorage.setItem('diagramyEditorContent', content);
+}
+
+// Load initial content (from localStorage or first example)
+function loadInitialContent() {
+    // Check if there's saved content in localStorage
+    const savedContent = localStorage.getItem('diagramyEditorContent');
+
+    if (savedContent) {
+        // Load saved content
+        editor.setValue(savedContent, -1); // -1 moves cursor to start
+    } else {
+        // Load the first example
+        const exampleSelect = document.getElementById('example-select');
+        if (exampleSelect.options.length > 1) { // Skip the "-- Select Example --" option
+            const firstExample = exampleSelect.options[1];
+            if (firstExample.dataset.content) {
+                editor.setValue(firstExample.dataset.content, -1);
+            }
+        }
+    }
+}
+
 // Initialize WebAssembly and set up editor listener
 async function initApp() {
     try {
+        // Set custom syntax highlighting mode for Diagramy
+        editor.session.setMode("ace/mode/diagramy");
+
         // Initialize the WebAssembly module
         await init();
 
-        // Listen for changes in the editor
+        // Load examples
+        await loadExamples();
+
+        // Load initial content (saved or first example)
+        loadInitialContent();
+
+        // Listen for changes in the editor and save to localStorage
         editor.session.on('change', function() {
+            saveEditorContent();
             renderDiagram();
         });
 

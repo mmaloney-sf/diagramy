@@ -16,6 +16,7 @@ assets: build
 
 web:
 	wasm-pack build --target web --out-dir web/dist -- --no-default-features --features wasm-bindgen
+	./web/build-examples.sh
 
 serve-web:
 	cd web
