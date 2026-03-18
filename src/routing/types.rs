@@ -123,6 +123,23 @@ impl Node {
             parent,
         }
     }
+
+    pub fn new_with_dir(
+        position: Point,
+        direction: Direction,
+        g_cost: f64,
+        h_cost: f64,
+        parent: Option<Point>,
+    ) -> Self {
+        Node {
+            position,
+            direction: Some(direction),
+            g_cost,
+            h_cost,
+            f_cost: g_cost + h_cost,
+            parent,
+        }
+    }
 }
 
 impl PartialEq for Node {

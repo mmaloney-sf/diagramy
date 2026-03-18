@@ -3,7 +3,7 @@
 use crate::routing::{debug, ArrowRouter};
 
 use super::types::{ArrowPath, BoundingBox, Point};
-use svg::node::element::{Line, Rectangle, Text};
+use svg::node::element::{Circle, Definitions, Line, Marker, Polygon, Rectangle, Text};
 use svg::Document as SvgDocument;
 
 impl ArrowRouter {
@@ -63,6 +63,24 @@ pub fn generate_routing_debug_svg(
         .set("width", svg_width)
         .set("height", svg_height)
         .set("viewBox", (0, 0, svg_width, svg_height));
+
+    // Add arrowhead marker definition
+    let arrowhead = Marker::new()
+        .set("id", "arrowhead")
+        .set("markerWidth", 10)
+        .set("markerHeight", 10)
+        .set("refX", 8)
+        .set("refY", 3)
+        .set("orient", "auto")
+        .set("markerUnits", "strokeWidth")
+        .add(
+            Polygon::new()
+                .set("points", "0,0 0,6 9,3")
+                .set("fill", "#ff0000")
+        );
+
+    let defs = Definitions::new().add(arrowhead);
+    svg_doc = svg_doc.add(defs);
 
     // Draw parent box boundary
     let parent_rect = Rectangle::new()
@@ -172,20 +190,121 @@ pub fn generate_routing_debug_svg(
 
     // Draw the routed path if it exists
     if let Some(arrow_path) = path {
-        // Fill each grid square in the path with light yellow (transparent)
-        for point in &arrow_path.points {
+        // First pass: determine which nodes are turns
+        let mut is_turn_at = vec![false; arrow_path.points.len()];
+        for i in 1..arrow_path.points.len() - 1 {
+            let prev_point = &arrow_path.points[i - 1];
+            let current_point = &arrow_path.points[i];
+            let next_point = &arrow_path.points[i + 1];
+
+            // Calculate direction from prev to current
+            let prev_dir = if current_point.0 < prev_point.0 {
+                super::types::Direction::Up
+            } else if current_point.0 > prev_point.0 {
+                super::types::Direction::Down
+            } else if current_point.1 < prev_point.1 {
+                super::types::Direction::Left
+            } else {
+                super::types::Direction::Right
+            };
+
+            // Calculate direction from current to next
+            let next_dir = if next_point.0 < current_point.0 {
+                super::types::Direction::Up
+            } else if next_point.0 > current_point.0 {
+                super::types::Direction::Down
+            } else if next_point.1 < current_point.1 {
+                super::types::Direction::Left
+            } else {
+                super::types::Direction::Right
+            };
+
+            // It's a turn if the directions are different
+            is_turn_at[i] = prev_dir != next_dir;
+        }
+
+        // Fill each grid square in the path with light gray (transparent)
+        // and add orange border for turns
+        for (i, point) in arrow_path.points.iter().enumerate() {
             let px = (point.1 as f64 * scale) as i32;
             let py = (point.0 as f64 * scale) as i32;
 
-            let rect = Rectangle::new()
-                .set("x", px)
-                .set("y", py)
-                .set("width", scale as i32)
-                .set("height", scale as i32)
-                .set("fill", "#aaaaaa")
-                .set("fill-opacity", "0.7")
-                .set("stroke", "none");
+            let rect = if is_turn_at[i] {
+                // Turn node: add bright orange border
+                Rectangle::new()
+                    .set("x", px)
+                    .set("y", py)
+                    .set("width", scale as i32)
+                    .set("height", scale as i32)
+                    .set("fill", "#aaaaaa")
+                    .set("fill-opacity", "0.7")
+                    .set("stroke", "#ff8800")
+                    .set("stroke-width", 2)
+            } else {
+                // Regular node: no border
+                Rectangle::new()
+                    .set("x", px)
+                    .set("y", py)
+                    .set("width", scale as i32)
+                    .set("height", scale as i32)
+                    .set("fill", "#aaaaaa")
+                    .set("fill-opacity", "0.7")
+                    .set("stroke", "none")
+            };
             svg_doc = svg_doc.add(rect);
+        }
+
+        // Draw direction arrows showing path direction (from current to next node)
+        for i in 0..arrow_path.points.len() {
+            let current_point = &arrow_path.points[i];
+            let center_x = (current_point.1 as f64 * scale) + scale / 2.0;
+            let center_y = (current_point.0 as f64 * scale) + scale / 2.0;
+
+            if i + 1 < arrow_path.points.len() {
+                // There's a next point, draw arrow pointing to it
+                let next_point = &arrow_path.points[i + 1];
+
+                // Calculate direction from current to next
+                let arrow_length = scale * 0.1; // 10% of cell size
+                let (dx, dy) = if next_point.0 < current_point.0 {
+                    // Next is above (Up)
+                    (0.0, -arrow_length)
+                } else if next_point.0 > current_point.0 {
+                    // Next is below (Down)
+                    (0.0, arrow_length)
+                } else if next_point.1 < current_point.1 {
+                    // Next is to the left (Left)
+                    (-arrow_length, 0.0)
+                } else if next_point.1 > current_point.1 {
+                    // Next is to the right (Right)
+                    (arrow_length, 0.0)
+                } else {
+                    // Same position (shouldn't happen)
+                    (0.0, 0.0)
+                };
+
+                let end_x = center_x + dx;
+                let end_y = center_y + dy;
+
+                // Draw arrow line
+                let line = Line::new()
+                    .set("x1", center_x as i32)
+                    .set("y1", center_y as i32)
+                    .set("x2", end_x as i32)
+                    .set("y2", end_y as i32)
+                    .set("stroke", "#ff0000")
+                    .set("stroke-width", 0.7)
+                    .set("marker-end", "url(#arrowhead)");
+                svg_doc = svg_doc.add(line);
+            } else {
+                // Last point in path, draw a small dot
+                let dot = Circle::new()
+                    .set("cx", center_x as i32)
+                    .set("cy", center_y as i32)
+                    .set("r", 2)
+                    .set("fill", "#000000");
+                svg_doc = svg_doc.add(dot);
+            }
         }
     }
 

@@ -58,8 +58,16 @@ impl ArrowRouter {
 
     /// Discretize a continuous point to integral grid coordinates
     fn discretize(&self, point: (f64, f64)) -> Point {
-        let row = (point.0 * self.grid_resolution as f64).round() as i32;
-        let col = (point.1 * self.grid_resolution as f64).round() as i32;
+        dbg!(&point);
+        let mut row = (point.0 * self.grid_resolution as f64) as i32;
+        let mut col = (point.1 * self.grid_resolution as f64) as i32;
+        if row == self.grid_height as i32 * self.grid_resolution {
+            row -= 1;
+        }
+        if col == self.grid_width as i32 *  self.grid_resolution {
+            col -= 1;
+        }
+
         (row, col)
     }
 
@@ -85,6 +93,8 @@ impl ArrowRouter {
         ));
         g_score.insert(start, 0.0);
 
+        let mut total_turns = 0;
+
         while let Some(current) = open_set.pop() {
             let current_point = current.position;
 
@@ -94,9 +104,21 @@ impl ArrowRouter {
             }
 
             // Explore neighbors
-            for neighbor_point in self.get_neighbors(current_point) {
-                // Calculate movement cost (uniform cost)
-                let move_cost = 1.0;
+            for (neighbor_point, dir_moved) in self.get_neighbors(current_point) {
+                // Check if this move is a turn (direction changed from previous move)
+                let is_turn: bool = match current.direction {
+                    Some(prev_dir) => prev_dir != dir_moved,
+                    None => false, // No previous direction, so not a turn
+                };
+                let turn_cost = if is_turn {
+                    total_turns += 1;
+                    total_turns.into()
+                } else {
+                    0.0
+                };
+                let wall_factor: f64  = self.wall_factor(neighbor_point, dir_moved);
+                let move_cost = 1.0 + turn_cost;
+
                 let tentative_g = g_score.get(&current_point).unwrap_or(&f64::INFINITY) + move_cost;
                 let current_best_g = *g_score.get(&neighbor_point).unwrap_or(&f64::INFINITY);
 
@@ -106,20 +128,19 @@ impl ArrowRouter {
                     g_score.insert(neighbor_point, tentative_g);
 
                     let h = self.heuristic(neighbor_point, end);
-                    open_set.push(Node::new(
+                    open_set.push(Node::new_with_dir(
                         neighbor_point,
+                        dir_moved,
                         tentative_g,
                         h,
                         Some(current.position),
-                        grid_width,
-                        grid_height,
                     ));
                 }
             }
         }
 
         // No path found
-        None
+        panic!("NO PATH FOUND")
     }
 
     /// Manhattan distance heuristic
@@ -128,22 +149,22 @@ impl ArrowRouter {
     }
 
     /// Get neighboring points (4-connected grid)
-    fn get_neighbors(&self, point: Point) -> Vec<Point> {
+    fn get_neighbors(&self, point: Point) -> Vec<(Point, Direction)> {
         let mut neighbors = vec![];
         let candidates = &[
-            (point.0 - 1, point.1), // Up
-            (point.0 + 1, point.1), // Down
-            (point.0, point.1 - 1), // Left
-            (point.0, point.1 + 1), // Right
+            ((point.0 - 1, point.1), Direction::Up),
+            ((point.0 + 1, point.1), Direction::Down),
+            ((point.0, point.1 - 1), Direction::Left),
+            ((point.0, point.1 + 1), Direction::Right),
         ];
         for candidate in candidates {
             // Skip if neighbor is out of bounds
-            if !self.is_in_bounds(*candidate) {
+            if !self.is_in_bounds(candidate.0) {
                 continue;
             }
 
             // Skip if neighbor is inside a bounding box
-            if let Some(_bbox) = self.find_containing_bounding_box(*candidate) {
+            if let Some(_bbox) = self.find_containing_bounding_box(candidate.0) {
                 continue;
             }
 
@@ -155,9 +176,9 @@ impl ArrowRouter {
     /// Check if a point is within the grid bounds
     fn is_in_bounds(&self, point: Point) -> bool {
         point.0 >= 0
-            && point.0 <= (self.grid_height as i32) * self.grid_resolution
+            && point.0 < (self.grid_height as i32) * self.grid_resolution
             && point.1 >= 0
-            && point.1 <= (self.grid_width as i32) * self.grid_resolution
+            && point.1 < (self.grid_width as i32) * self.grid_resolution
     }
 
     /// Check if a point is inside any bounding box
@@ -242,5 +263,47 @@ impl ArrowRouter {
 
     pub fn get_routed_paths(&self) -> &[ArrowPath] {
         &self.routed_paths
+    }
+
+    fn wall_factor(&self, neighbor_point: (i32, i32), direction: Direction) -> f64 {
+        // If direction is None, no wall penalty
+        if direction == Direction::None {
+            return 0.0;
+        }
+
+        // Grid bounds in discretized coordinates
+        let grid_width = (self.grid_width as i32) * self.grid_resolution;
+        let grid_height = (self.grid_height as i32) * self.grid_resolution;
+
+        // Calculate distance to the wall perpendicular to the direction of movement
+        // We want to penalize moving close to walls on the sides
+        let distance_to_wall = match direction {
+            Direction::Up | Direction::Down => {
+                // Moving vertically, check distance to left and right walls
+                let dist_to_left = neighbor_point.1;
+                let dist_to_right = grid_width - neighbor_point.1;
+                dist_to_left.min(dist_to_right)
+            }
+            Direction::Left | Direction::Right => {
+                // Moving horizontally, check distance to top and bottom walls
+                let dist_to_top = neighbor_point.0;
+                let dist_to_bottom = grid_height - neighbor_point.0;
+                dist_to_top.min(dist_to_bottom)
+            }
+            Direction::None => return 0.0,
+        };
+
+        // Define "nearby" as within 5 grid cells
+        const NEARBY_THRESHOLD: i32 = 5;
+
+        if distance_to_wall >= NEARBY_THRESHOLD {
+            // Not near a wall, no penalty
+            0.0
+        } else {
+            // Add a small penalty that increases as we get closer to the wall
+            // Penalty ranges from 0.0 (at threshold) to 0.5 (at wall)
+            let normalized_distance = distance_to_wall as f64 / NEARBY_THRESHOLD as f64;
+            0.5 * (1.0 - normalized_distance)
+        }
     }
 }
