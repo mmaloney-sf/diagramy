@@ -1,5 +1,7 @@
 // Diagram representation with absolute coordinates
 
+pub mod debug;
+
 use svg::Document as SvgDocument;
 use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
 use crate::elaboration;
@@ -157,7 +159,7 @@ impl Diagram {
     /// * `width` - Width of the SVG canvas
     /// * `height` - Height of the SVG canvas
     /// * `font_size` - Font size for text rendering (default: 18)
-    pub fn render_to_svg(&self, filename: &str, width: usize, height: usize, font_size: usize) -> Result<(), String> {
+    pub fn render_to_svg(&self, filename: &str, width: usize, height: usize, font_size: usize, debug: bool) -> Result<(), String> {
         // Create SVG document
         let mut svg_doc = SvgDocument::new()
             .set("width", width)
@@ -213,6 +215,11 @@ impl Diagram {
 
                 svg_doc = svg_doc.add(title_text);
             }
+        }
+
+        // Add debug overlay if debug mode is enabled
+        if debug {
+            svg_doc = render_debug_overlay(svg_doc, self, width, height, font_size)?;
         }
 
         // Save to file
@@ -442,12 +449,14 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     collect_arrows(&elab_diagram.top, &mut arrows);
 
     // Collect routed paths and convert to pixel coordinates
-    let routed_paths = convert_routed_paths(
+    let mut routed_paths = Vec::new();
+    collect_routed_paths(
         &elab_diagram.top,
         top_x,
         top_y,
         top_width,
         top_height,
+        &mut routed_paths,
     );
 
     Diagram {
@@ -460,18 +469,20 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     }
 }
 
-/// Convert routed paths from fractional to pixel coordinates
-fn convert_routed_paths(
+/// Recursively collect and convert routed paths from fractional to pixel coordinates
+fn collect_routed_paths(
     box_def: &elaboration::BoxDef,
     parent_x: usize,
     parent_y: usize,
     parent_width: usize,
     parent_height: usize,
-) -> Vec<Vec<(usize, usize)>> {
+    output: &mut Vec<Vec<(usize, usize)>>,
+) {
     let (grid_height, grid_width) = box_def.grid;
 
-    box_def.routed_arrow_paths.iter().map(|path| {
-        path.iter().map(|(row, col)| {
+    // Convert routed paths from this box
+    for path in &box_def.routed_arrow_paths {
+        let pixel_path: Vec<(usize, usize)> = path.iter().map(|(row, col)| {
             // Scale fractional coordinates to pixel coordinates
             let frac_y = row / grid_height as f64;
             let frac_x = col / grid_width as f64;
@@ -480,8 +491,33 @@ fn convert_routed_paths(
             let abs_y = parent_y + (frac_y * parent_height as f64) as usize;
 
             (abs_x, abs_y)
-        }).collect()
-    }).collect()
+        }).collect();
+        output.push(pixel_path);
+    }
+
+    // Recursively collect from child boxes
+    for child_box in &box_def.boxes {
+        // Calculate child box's absolute position and size
+        let (child_row, child_col) = child_box.pos;
+        let (child_height, child_width) = child_box.dim;
+
+        let cell_width = parent_width as f64 / grid_width as f64;
+        let cell_height = parent_height as f64 / grid_height as f64;
+
+        let child_x = parent_x + (child_col as f64 * cell_width) as usize;
+        let child_y = parent_y + (child_row as f64 * cell_height) as usize;
+        let child_pixel_width = (child_width as f64 * cell_width) as usize;
+        let child_pixel_height = (child_height as f64 * cell_height) as usize;
+
+        collect_routed_paths(
+            &child_box.def,
+            child_x,
+            child_y,
+            child_pixel_width,
+            child_pixel_height,
+            output,
+        );
+    }
 }
 
 /// Recursively flatten hierarchical boxes into absolute-positioned boxes
@@ -756,4 +792,112 @@ pub fn estimate_text_bbox(text: &str, font_size: usize) -> (usize, usize) {
     let height = lines.len() * font_size;
 
     (width, height)
+}
+
+/// Render debug overlay with grid and labels
+fn render_debug_overlay(
+    mut svg_doc: SvgDocument,
+    diagram: &Diagram,
+    width: usize,
+    height: usize,
+    _font_size: usize,
+) -> Result<SvgDocument, String> {
+    use svg::node::element::Group;
+
+    // Create a group for debug overlays
+    let mut debug_group = Group::new()
+        .set("id", "debug-overlay");
+
+    // Draw a grid overlay with 70% opacity
+    let grid_size = 50; // Grid cell size in pixels
+    let grid_color = "#FF0000"; // Red color for visibility
+    let grid_opacity = 0.3; // 30% opacity (70% transparent)
+
+    // Draw vertical grid lines
+    let mut x = 0;
+    while x <= width {
+        let line = svg::node::element::Line::new()
+            .set("x1", x)
+            .set("y1", 0)
+            .set("x2", x)
+            .set("y2", height)
+            .set("stroke", grid_color)
+            .set("stroke-width", 1)
+            .set("opacity", grid_opacity);
+        debug_group = debug_group.add(line);
+        x += grid_size;
+    }
+
+    // Draw horizontal grid lines
+    let mut y = 0;
+    while y <= height {
+        let line = svg::node::element::Line::new()
+            .set("x1", 0)
+            .set("y1", y)
+            .set("x2", width)
+            .set("y2", y)
+            .set("stroke", grid_color)
+            .set("stroke-width", 1)
+            .set("opacity", grid_opacity);
+        debug_group = debug_group.add(line);
+        y += grid_size;
+    }
+
+    // Label each box with its index
+    for (i, diagram_box) in diagram.boxes.iter().enumerate() {
+        let (x, y) = diagram_box.pos;
+        let (box_width, box_height) = diagram_box.size;
+
+        // Position label at top-left corner of the box
+        let label_x = x + 5;
+        let label_y = y + 15;
+
+        let label = Text::new(format!("Box #{}", i))
+            .set("x", label_x)
+            .set("y", label_y)
+            .set("font-size", 12)
+            .set("font-family", "monospace")
+            .set("font-weight", "bold")
+            .set("fill", "#FF0000")
+            .set("opacity", 1.0);
+
+        debug_group = debug_group.add(label);
+
+        // Also add a small rectangle outline to highlight the box
+        let highlight = Rectangle::new()
+            .set("x", x)
+            .set("y", y)
+            .set("width", box_width)
+            .set("height", box_height)
+            .set("fill", "none")
+            .set("stroke", "#FF0000")
+            .set("stroke-width", 2)
+            .set("stroke-dasharray", "5,5")
+            .set("opacity", 0.5);
+
+        debug_group = debug_group.add(highlight);
+    }
+
+    // Label each port with its index
+    for (i, port) in diagram.ports.iter().enumerate() {
+        let (x, y) = port.pos;
+
+        // Position label slightly offset from the port
+        let label_x = x + 10;
+        let label_y = y - 5;
+
+        let label = Text::new(format!("Port #{}", i))
+            .set("x", label_x)
+            .set("y", label_y)
+            .set("font-size", 10)
+            .set("font-family", "monospace")
+            .set("font-weight", "bold")
+            .set("fill", "#0000FF")
+            .set("opacity", 1.0);
+
+        debug_group = debug_group.add(label);
+    }
+
+    svg_doc = svg_doc.add(debug_group);
+    Ok(svg_doc)
 }

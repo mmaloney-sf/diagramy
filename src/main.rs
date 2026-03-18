@@ -259,7 +259,24 @@ fn render(doc: diagramy::ast::Document, input: String, args: Args) {
 
     // Convert elaboration diagram to renderable diagram
     let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
-    if let Err(e) = diagram.render_to_svg(&output_file, width, height, args.font_size) {
+
+    // Write debug output if debug directory is specified
+    if let Some(ref debug_dir) = args.debug {
+        let debug_output = diagramy::diagram::debug::debug(&diagram);
+        let debug_path = Path::new(debug_dir).join("diagram.txt");
+
+        // Create debug directory if it doesn't exist
+        if let Err(e) = fs::create_dir_all(debug_dir) {
+            eprintln!("Warning: Failed to create debug directory: {}", e);
+        } else if let Err(e) = fs::write(&debug_path, debug_output) {
+            eprintln!("Warning: Failed to write debug output: {}", e);
+        } else {
+            println!("Debug output written to: {}", debug_path.display());
+        }
+    }
+
+    let debug_mode = args.debug.is_some();
+    if let Err(e) = diagram.render_to_svg(&output_file, width, height, args.font_size, debug_mode) {
         eprintln!("Error rendering diagram: {}", e);
         std::process::exit(1);
     }

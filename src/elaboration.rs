@@ -22,7 +22,22 @@ pub struct BoxDef {
     pub boxes: Vec<Box>,
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
-    pub routed_arrow_paths: Vec<Vec<(f64, f64)>>, // Routed paths in fractional coordinates
+    pub routed_arrow_paths: Vec<RoutedArrowPath>, // Routed paths in fractional coordinates
+}
+
+#[derive(Clone)]
+pub struct RoutedArrowPath {
+    path: Vec<(f64, f64)>,
+}
+
+impl RoutedArrowPath {
+    pub fn new(path: Vec<(f64, f64)>) -> Self {
+        Self { path }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &(f64, f64)> {
+        self.path.iter()
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -468,8 +483,17 @@ impl<'ast> Elaborator<'ast> {
         grid: (usize, usize),
         parent_margin: Option<f64>,
         box_name: &str,
-    ) -> Vec<Vec<(f64, f64)>> {
+    ) -> Vec<RoutedArrowPath> {
         use crate::routing::{ArrowRouter, BoundingBox};
+
+        eprintln!();
+        eprintln!("route_arrows for {box_name}");
+        dbg!(&arrows);
+        dbg!(&ports);
+        dbg!(&boxes);
+        dbg!(&grid);
+        dbg!(&parent_margin);
+        dbg!(&box_name);
 
         // Build port map (using f64 coordinates)
         let mut port_map: HashMap<String, (f64, f64)> = HashMap::new();
@@ -536,17 +560,29 @@ impl<'ast> Elaborator<'ast> {
                             )
                         })
                         .collect();
-                    routed_paths.push(f64_points);
+                    routed_paths.push(RoutedArrowPath::new(f64_points));
                 } else {
                     // Fallback to straight line if routing fails
-                    routed_paths.push(vec![start, end]);
+                    routed_paths.push(RoutedArrowPath::new(vec![start, end]));
                 }
             } else {
                 // Port not found, push empty path
-                routed_paths.push(Vec::new());
+                routed_paths.push(RoutedArrowPath::new(Vec::new()));
             }
         }
 
         routed_paths
+    }
+}
+
+impl std::fmt::Debug for RoutedArrowPath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let path = self.path
+            .iter()
+            .copied()
+            .map(|(row, col)| format!("({row}, {col})"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        write!(f, "RoutedArrowPath({path})")
     }
 }
