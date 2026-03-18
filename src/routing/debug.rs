@@ -25,7 +25,7 @@ impl ArrowRouter {
                 path,
                 self.grid_width,
                 self.grid_height,
-                &self.bounding_boxes,
+                &self.obstacle_boxes,
                 debug_dir,
                 box_name,
             );
@@ -40,8 +40,8 @@ pub fn generate_routing_debug_svg(
     end: Point,
     arrow_index: usize,
     path: Option<&ArrowPath>,
-    grid_width: f64,
-    grid_height: f64,
+    grid_width: u64,
+    grid_height: u64,
     bounding_boxes: &[BoundingBox],
     debug_dir: &str,
     box_name: &str,
@@ -50,8 +50,8 @@ pub fn generate_routing_debug_svg(
     const SCALE: f64 = 100.0;
 
     // Calculate SVG dimensions
-    let svg_width = (grid_width * SCALE) as usize;
-    let svg_height = (grid_height * SCALE) as usize;
+    let svg_width = (grid_width as f64 * SCALE) as usize;
+    let svg_height = (grid_height as f64 * SCALE) as usize;
 
     let mut svg_doc = SvgDocument::new()
         .set("width", svg_width)

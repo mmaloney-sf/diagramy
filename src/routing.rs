@@ -6,15 +6,14 @@ pub mod types;
 // Re-export types for convenience
 pub use types::{ArrowPath, ArrowPathCrossing, BoundingBox, Direction, Node, Point};
 
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{BinaryHeap, HashMap};
 
 /// Arrow router using A* pathfinding
 pub struct ArrowRouter {
-    grid_width: f64,
-    grid_height: f64,
-    bounding_boxes: Vec<BoundingBox>,
+    grid_width: u64,
+    grid_height: u64,
+    obstacle_boxes: Vec<BoundingBox>,
     routed_paths: Vec<ArrowPath>,
-    crossings: Vec<ArrowPathCrossing>,
     debug_dir: Option<String>,
     box_name: Option<String>,
 }
@@ -22,11 +21,10 @@ pub struct ArrowRouter {
 impl ArrowRouter {
     pub fn new(grid_width: f64, grid_height: f64, bounding_boxes: Vec<BoundingBox>) -> Self {
         ArrowRouter {
-            grid_width,
-            grid_height,
-            bounding_boxes,
+            grid_width: grid_width as u64,
+            grid_height: grid_height as u64,
+            obstacle_boxes: bounding_boxes,
             routed_paths: Vec::new(),
-            crossings: Vec::new(),
             debug_dir: None,
             box_name: None,
         }
@@ -45,8 +43,6 @@ impl ArrowRouter {
         self.generate_routing_debug_svg(start, end, self.routed_paths.len(), path.as_ref());
 
         if let Some(ref p) = path {
-            // Check for crossings with existing paths
-            self.detect_crossings(p);
             self.routed_paths.push(p.clone());
         }
 
@@ -68,7 +64,7 @@ impl ArrowRouter {
         eprintln!("Start: {:?} (cell: {:?})", start, start_cell);
         eprintln!("End: {:?} (cell: {:?})", end, end_cell);
         eprintln!("Grid: {}x{}", self.grid_width, self.grid_height);
-        eprintln!("Bounding boxes: {}", self.bounding_boxes.len());
+        eprintln!("Bounding boxes: {}", self.obstacle_boxes.len());
 
         // Initialize start node
         let h = self.heuristic(start_cell, end_cell);
@@ -118,9 +114,9 @@ impl ArrowRouter {
                 if current.direction == Direction::None {
                     // This is the first move from start
                     let is_on_row_boundary = (current.position.0 - 0.0).abs() < 1e-6
-                        || (current.position.0 - self.grid_height).abs() < 1e-6;
+                        || (current.position.0 - self.grid_height as f64).abs() < 1e-6;
                     let is_on_col_boundary = (current.position.1 - 0.0).abs() < 1e-6
-                        || (current.position.1 - self.grid_width).abs() < 1e-6;
+                        || (current.position.1 - self.grid_width as f64).abs() < 1e-6;
 
                     if is_on_row_boundary || is_on_col_boundary {
                         // We're on a boundary, must move perpendicular to it
@@ -271,19 +267,19 @@ impl ArrowRouter {
     /// Check if a point is within the grid bounds
     fn is_in_bounds(&self, point: Point) -> bool {
         point.0 >= 0.0
-            && point.0 <= self.grid_height
+            && point.0 <= self.grid_height as f64
             && point.1 >= 0.0
-            && point.1 <= self.grid_width
+            && point.1 <= self.grid_width as f64
     }
 
     /// Check if a point is inside any bounding box
     fn is_inside_bounding_box(&self, point: Point) -> bool {
-        self.bounding_boxes.iter().any(|bbox| bbox.contains(point))
+        self.obstacle_boxes.iter().any(|bbox| bbox.contains(point))
     }
 
     /// Find the bounding box that contains a point, if any
     fn find_containing_bounding_box(&self, point: Point) -> Option<&BoundingBox> {
-        self.bounding_boxes.iter().find(|bbox| bbox.contains(point))
+        self.obstacle_boxes.iter().find(|bbox| bbox.contains(point))
     }
 
     /// Reconstruct the path from the came_from map
@@ -339,21 +335,6 @@ impl ArrowRouter {
         ArrowPath::new(path)
     }
 
-    /// Detect crossings between the new path and existing paths
-    fn detect_crossings(&mut self, new_path: &ArrowPath) {
-        let new_path_index = self.routed_paths.len();
-
-        for (existing_index, existing_path) in self.routed_paths.iter().enumerate() {
-            if let Some(crossing_point) = self.find_crossing(new_path, existing_path) {
-                self.crossings.push(ArrowPathCrossing {
-                    path1_index: existing_index,
-                    path2_index: new_path_index,
-                    crossing_point,
-                });
-            }
-        }
-    }
-
     /// Find if two paths cross
     fn find_crossing(&self, path1: &ArrowPath, path2: &ArrowPath) -> Option<Point> {
         // Check each segment of path1 against each segment of path2
@@ -405,9 +386,5 @@ impl ArrowRouter {
 
     pub fn get_routed_paths(&self) -> &[ArrowPath] {
         &self.routed_paths
-    }
-
-    pub fn get_crossings(&self) -> &[ArrowPathCrossing] {
-        &self.crossings
     }
 }
