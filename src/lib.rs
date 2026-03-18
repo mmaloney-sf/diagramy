@@ -18,34 +18,45 @@ pub mod routing;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
+#[rustfmt::skip]
+const COLOR_TABLE: [(&'static str, &'static str); 21] = [
+    ("transparent", "transparent"),
+    ("red",         "#E8DEDD"),
+    ("blue",        "#DEE8ED"),
+    ("green",       "#DEE8E3"),
+    ("yellow",      "#E8E8DE"),
+    ("orange",      "#E8E3DE"),
+    ("purple",      "#E3DEE8"),
+    ("pink",        "#E8DEE3"),
+    ("cyan",        "#DEE8E8"),
+    ("magenta",     "#E8DEE8"),
+    ("lime",        "#E3E8DE"),
+    ("teal",        "#DEE8E5"),
+    ("indigo",      "#DEE3E8"),
+    ("brown",       "#E5DEE3"),
+    ("gray",        "#D5DBDB"),
+    ("grey",        "#D5DBDB"),
+    ("black",       "#566573"),
+    ("white",       "#F8F9F9"),
+    ("navy",        "#5D6D7E"),
+    ("maroon",      "#E3DEE8"),
+    ("olive",       "#E3E8DE"),
+];
+
 // Map .dia color names to SVG hex color codes
 // Colors are highly desaturated and bright for a professional, subtle palette
 // Returns an error if the color name is not recognized
 pub fn map_color(color_name: &str) -> Result<&str, String> {
-    match color_name {
-        "transparent" => Ok("transparent"),
-        "red" => Ok("#E8DEDD"),
-        "blue" => Ok("#DEE8ED"),
-        "green" => Ok("#DEE8E3"),
-        "yellow" => Ok("#E8E8DE"),
-        "orange" => Ok("#E8E3DE"),
-        "purple" => Ok("#E3DEE8"),
-        "pink" => Ok("#E8DEE3"),
-        "cyan" => Ok("#DEE8E8"),
-        "magenta" => Ok("#E8DEE8"),
-        "lime" => Ok("#E3E8DE"),
-        "teal" => Ok("#DEE8E5"),
-        "indigo" => Ok("#DEE3E8"),
-        "brown" => Ok("#E5DEE3"),
-        "gray" => Ok("#D5DBDB"),
-        "grey" => Ok("#D5DBDB"),
-        "black" => Ok("#566573"),
-        "white" => Ok("#F8F9F9"),
-        "navy" => Ok("#5D6D7E"),
-        "maroon" => Ok("#E3DEE8"),
-        "olive" => Ok("#E3E8DE"),
-        _ => Err(format!("Unknown color: '{}'. Valid colors are: transparent, red, blue, green, yellow, orange, purple, pink, cyan, magenta, lime, teal, indigo, brown, gray/grey, black, white, navy, maroon, olive", color_name)),
+    for (name, hex) in &COLOR_TABLE {
+        if color_name == *name {
+            return Ok(hex);
+        }
     }
+
+    let color_names = COLOR_TABLE
+        .iter()
+        .map(|(name, _hex)| name.to_string()).collect::<Vec<_>>().join(" ");
+    Err(format!("Unknown color: '{color_name}'. Valid colors are: {color_names}"))
 }
 
 /* TODO: All rendering code below needs to be updated for new AST
