@@ -1029,7 +1029,7 @@ fn check_box_inst_hover(
 /// Check if hovering over a port
 fn check_port_hover(
     port: &diagramy::ast::Port,
-    _text: &str,
+    text: &str,
     line: usize,
     col: usize,
 ) -> Option<String> {
@@ -1046,17 +1046,31 @@ fn check_port_hover(
         return Some("The `port` keyword defines a connection point on a box.\nPorts can be connected with arrows.".to_string());
     }
 
-    // Check if hovering over the coords
-    let coords_span = port.coords.span;
-    let coords_start = coords_span.start();
-    let coords_end = coords_span.end();
-    if is_position_in_span(line, col, coords_start.line(), coords_start.col(), coords_end.line(), coords_end.col()) {
-        return Some("Fractional coordinates specify a position as a (row, col) pair.\nValues range from (0.0, 0.0) at the upper-left corner to (grid_height, grid_width) at the lower-right corner.\nFor a 3x3 grid, (1.5, 1.5) would be the center of the box.".to_string());
+    // Check if hovering over the coords (if "at" clause is present)
+    if let Some(ref coords) = port.coords {
+        let coords_span = coords.span;
+        let coords_start = coords_span.start();
+        let coords_end = coords_span.end();
+        if is_position_in_span(line, col, coords_start.line(), coords_start.col(), coords_end.line(), coords_end.col()) {
+            return Some("Fractional coordinates specify a position as a (row, col) pair.\nValues range from (0.0, 0.0) at the upper-left corner to (grid_height, grid_width) at the lower-right corner.\nFor a 3x3 grid, (1.5, 1.5) would be the center of the box.".to_string());
+        }
+
+        // Check if hovering over "at" keyword
+        if line == coords_start.line() && col >= coords_start.col().saturating_sub(4) && col < coords_start.col() {
+            return Some("The `at` keyword specifies the position of the port on the box.".to_string());
+        }
     }
 
-    // Check if hovering over "at" keyword
-    if line == coords_start.line() && col >= coords_start.col().saturating_sub(4) && col < coords_start.col() {
-        return Some("The `at` keyword specifies the position of the port on the box.".to_string());
+    // Check if hovering over "on" keyword (if "on" clause is present)
+    if let Some(ref on_value) = port.on {
+        // Try to find "on" keyword in the line
+        let line_text = text.lines().nth(line - 1)?;
+        if let Some(on_pos) = line_text.find(" on ") {
+            let on_col = on_pos + 2; // +1 for 0-based to 1-based, +1 for space before "on"
+            if col >= on_col && col < on_col + 2 {
+                return Some(format!("The `on` keyword specifies which side of the box to place the port.\nValid values: top, bottom, left, right\nThis port is on the '{}' side.", on_value));
+            }
+        }
     }
 
     None

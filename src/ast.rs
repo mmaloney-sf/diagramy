@@ -222,7 +222,8 @@ impl Prop {
 #[derive(Debug, Clone)]
 pub struct Port {
     pub name: String,
-    pub coords: CoordsFrac,
+    pub coords: Option<CoordsFrac>,  // Optional "at" clause
+    pub on: Option<String>,           // Optional "on" clause (top, bottom, left, right)
     pub props: Vec<Prop>,
     pub span: Span,
 }

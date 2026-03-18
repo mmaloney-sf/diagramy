@@ -48,6 +48,7 @@ pub struct DiagramBox {
     pub pos: (f64, f64),
     /// Absolute size (width, height) in the diagram coordinate space
     pub size: (f64, f64),
+    pub id: Option<String>,
     pub title: Option<String>,
     pub color: Option<String>,
     /// Font scale factor based on width relative to parent
@@ -498,6 +499,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     // Process the top-level box
     flatten_boxes(
         &elab_diagram.top,
+        None, // Top-level box has no ID
         top_x,
         top_y,
         top_width,
@@ -618,6 +620,7 @@ fn collect_routed_paths(
 /// Recursively flatten hierarchical boxes into absolute-positioned boxes
 fn flatten_boxes(
     box_def: &elaboration::BoxDef,
+    box_id: Option<&str>,
     parent_x: f64,
     parent_y: f64,
     parent_width: f64,
@@ -648,6 +651,7 @@ fn flatten_boxes(
         output.push(DiagramBox {
             pos: (parent_x, parent_y),
             size: (parent_width, parent_height),
+            id: box_id.map(|s| s.to_string()),
             title: box_def.title.clone(),
             color: box_def.color.clone(),
             font_scale,
@@ -716,6 +720,7 @@ fn flatten_boxes(
         // Use the box with margins for child positioning
         flatten_boxes(
             &child_box.def,
+            child_box.id.as_deref(),
             final_x,
             final_y,
             final_width,
@@ -954,7 +959,22 @@ fn render_debug_overlay(
         let label_x = x + 5.0;
         let label_y = y + 15.0;
 
-        let label = Text::new(format!("Box #{}", i))
+        // Create label text with box number and name/title if available
+        let label_text = if let Some(ref id) = diagram_box.id {
+            format!("Box #{} ({})", i, id)
+        } else if let Some(ref title) = diagram_box.title {
+            // Use first line of title if it's multi-line
+            let first_line = title.lines().next().unwrap_or("");
+            if first_line.len() > 20 {
+                format!("Box #{} ({}...)", i, &first_line[..20])
+            } else {
+                format!("Box #{} ({})", i, first_line)
+            }
+        } else {
+            format!("Box #{}", i)
+        };
+
+        let label = Text::new(label_text)
             .set("x", label_x)
             .set("y", label_y)
             .set("font-size", 12)
@@ -980,7 +1000,7 @@ fn render_debug_overlay(
         debug_group = debug_group.add(highlight);
     }
 
-    // Label each port with its index
+    // Label each port with its index and name
     for (i, port) in diagram.ports.iter().enumerate() {
         let (x, y) = port.pos;
 
@@ -988,7 +1008,10 @@ fn render_debug_overlay(
         let label_x = x + 10.0;
         let label_y = y - 5.0;
 
-        let label = Text::new(format!("Port #{}", i))
+        // Create label text with port number and name
+        let label_text = format!("Port #{} ({})", i, port.name);
+
+        let label = Text::new(label_text)
             .set("x", label_x)
             .set("y", label_y)
             .set("font-size", 10)

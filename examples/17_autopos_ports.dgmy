@@ -1,0 +1,61 @@
+// Example 17: Auto-Positioned Ports
+// Ports can be automatically positioned on the sides of a box using the "on" clause
+// Valid sides: top, bottom, left, right
+// If neither "at" nor "on" is specified, ports default to the right side
+
+diagram {
+    version: "0.1.0"
+    width: 600
+    color: white
+    title: "Auto-Positioned Ports"
+}
+
+box Processor {
+    grid: 2x2
+    color: blue
+
+    // Ports on different sides using "on" clause
+    port clk on top
+    port reset on top
+    port data_in on left
+    port data_out on right
+    port status on bottom
+
+    // Child box with its own ports
+    box alu at (1, 1) is ALU
+
+    // Connect parent port to child port
+    arrow data_in to alu.input
+    arrow alu.output to data_out
+}
+
+box ALU {
+    grid: 2x2
+    color: green
+
+    // Ports with explicit positioning
+    port input at (0.5, 0.0)
+    port output at (0.5, 2.0)
+
+    // Auto-positioned port (defaults to right)
+    port carry
+}
+
+box top {
+    grid: 3x3
+
+    box cpu at (2, 2) is Processor
+
+    // External ports that connect to the processor
+    port ext_clk on top
+    port ext_reset on top
+    port ext_data on left
+    port ext_status on bottom
+
+    // Connect external ports to processor ports
+    arrow ext_clk to cpu.clk
+    arrow ext_reset to cpu.reset
+    arrow ext_data to cpu.data_in
+    arrow cpu.status to ext_status
+}
+

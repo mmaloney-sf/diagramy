@@ -44,7 +44,7 @@
 ////////////////////////////////////////
 
     Port :=
-        "port" Ident "at" CoordsFrac ("is" PortBody)?
+        "port" Ident ("at" CoordsFrac)? ("on" Ident)? ("is" PortBody)?
 
     PortBody := "{" Prop* "}"
 

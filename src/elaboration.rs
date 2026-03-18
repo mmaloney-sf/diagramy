@@ -380,8 +380,120 @@ impl<'ast> Elaborator<'ast> {
         })
     }
 
+    /// Process ports from AST, handling both "at" and "on" clauses
+    fn process_ports(
+        &mut self,
+        body: &ast::BoxBody,
+        grid: (usize, usize),
+    ) -> Result<Vec<Port>, String> {
+        let mut ports = Vec::new();
+        let mut used_positions: HashSet<(i32, i32)> = HashSet::new(); // Track used edge positions
+
+        for item in &body.items {
+            if let ast::BoxItem::Port(port) = item {
+                let coords = if let Some(ref coords_frac) = port.coords {
+                    // Explicit "at" positioning
+                    (coords_frac.row, coords_frac.col)
+                } else {
+                    // Use "on" clause (or default to "right")
+                    let side = port.on.as_deref().unwrap_or("right");
+                    self.find_port_position_on_side(side, grid, &mut used_positions, port)?
+                };
+
+                ports.push(Port {
+                    name: port.name.clone(),
+                    coords,
+                });
+            }
+        }
+
+        Ok(ports)
+    }
+
+    /// Find a free position for a port on the given side of the grid
+    fn find_port_position_on_side(
+        &self,
+        side: &str,
+        grid: (usize, usize),
+        used_positions: &mut HashSet<(i32, i32)>,
+        port: &ast::Port,
+    ) -> Result<(f64, f64), String> {
+        let (grid_height, grid_width) = grid;
+        let height = grid_height as f64;
+        let width = grid_width as f64;
+
+        // Try to find a free position on the specified side
+        // We'll use integer positions to track usage, but return fractional coordinates
+        match side {
+            "left" => {
+                // Find free position on left side: (row, 0.0)
+                for r in 1..=grid_height {
+                    if !used_positions.contains(&(r as i32, 0)) {
+                        used_positions.insert((r as i32, 0));
+                        return Ok(((r as f64 - 0.5), 0.0));
+                    }
+                }
+                let start = port.span.start();
+                return Err(format!(
+                    "{}:{}:{}: No free position on left side for port '{}'",
+                    self.filename, start.line(), start.col(), port.name
+                ));
+            }
+            "right" => {
+                // Find free position on right side: (row, WIDTH)
+                for r in 1..=grid_height {
+                    if !used_positions.contains(&(r as i32, grid_width as i32 + 1)) {
+                        used_positions.insert((r as i32, grid_width as i32 + 1));
+                        return Ok(((r as f64 - 0.5), width));
+                    }
+                }
+                let start = port.span.start();
+                return Err(format!(
+                    "{}:{}:{}: No free position on right side for port '{}'",
+                    self.filename, start.line(), start.col(), port.name
+                ));
+            }
+            "top" => {
+                // Find free position on top side: (0.0, col)
+                for c in 1..=grid_width {
+                    if !used_positions.contains(&(0, c as i32)) {
+                        used_positions.insert((0, c as i32));
+                        return Ok((0.0, (c as f64 - 0.5)));
+                    }
+                }
+                let start = port.span.start();
+                return Err(format!(
+                    "{}:{}:{}: No free position on top side for port '{}'",
+                    self.filename, start.line(), start.col(), port.name
+                ));
+            }
+            "bottom" => {
+                // Find free position on bottom side: (HEIGHT, col)
+                for c in 1..=grid_width {
+                    if !used_positions.contains(&(grid_height as i32 + 1, c as i32)) {
+                        used_positions.insert((grid_height as i32 + 1, c as i32));
+                        return Ok((height, (c as f64 - 0.5)));
+                    }
+                }
+                let start = port.span.start();
+                return Err(format!(
+                    "{}:{}:{}: No free position on bottom side for port '{}'",
+                    self.filename, start.line(), start.col(), port.name
+                ));
+            }
+            _ => {
+                let start = port.span.start();
+                return Err(format!(
+                    "{}:{}:{}: Invalid 'on' value '{}' for port '{}'. Must be one of: top, bottom, left, right",
+                    self.filename, start.line(), start.col(), side, port.name
+                ));
+            }
+        }
+    }
+
     /// Extract properties, ports, and arrows from a box body
-    /// Returns (grid, title, color, margin, border_style, bold, debug, ports, arrows)
+    /// Returns (grid, title, color, margin, border_style, bold, debug, arrows)
+    /// Note: ports are now processed separately after grid is known
     fn extract_box_items(
         &mut self,
         body: &ast::BoxBody,
@@ -393,7 +505,6 @@ impl<'ast> Elaborator<'ast> {
         Option<String>,
         Option<bool>,
         Option<bool>,
-        Vec<Port>,
         Vec<Arrow>,
     ) {
         let mut grid = (1, 1); // default grid
@@ -403,7 +514,6 @@ impl<'ast> Elaborator<'ast> {
         let mut border_style: Option<String> = None;
         let mut bold: Option<bool> = None;
         let mut debug: Option<bool> = None;
-        let mut ports: Vec<Port> = Vec::new();
         let mut arrows: Vec<Arrow> = Vec::new();
 
         for item in &body.items {
@@ -432,11 +542,10 @@ impl<'ast> Elaborator<'ast> {
                     }
                     _ => {}
                 },
-                ast::BoxItem::Port(port) => {
-                    ports.push(Port {
-                        name: port.name.clone(),
-                        coords: (port.coords.row, port.coords.col),
-                    });
+                ast::BoxItem::Port(_port) => {
+                    // Port positioning will be handled later after we know the grid size
+                    // For now, we'll store ports and process them after extracting all items
+                    // This is a placeholder - we'll process ports separately
                 }
                 ast::BoxItem::Arrow(arrow) => {
                     arrows.push(Arrow {
@@ -448,7 +557,7 @@ impl<'ast> Elaborator<'ast> {
             }
         }
 
-        (grid, title, color, margin, border_style, bold, debug, ports, arrows)
+        (grid, title, color, margin, border_style, bold, debug, arrows)
     }
 
     /// Find the next free grid position that can fit a box with the given dimensions
@@ -514,8 +623,12 @@ impl<'ast> Elaborator<'ast> {
         body: &ast::BoxBody,
         box_name: &str,
     ) -> Result<BoxDef, String> {
-        // First pass: extract properties, ports, and arrows
-        let (grid, title, color, margin, border_style, bold, debug, ports, arrows) = self.extract_box_items(body);
+        // First pass: extract properties and arrows
+        let (grid, title, color, margin, border_style, bold, debug, arrows) = self.extract_box_items(body);
+
+        // Process ports after we know the grid size
+        let ports = self.process_ports(body, grid)?;
+
         let mut boxes: Vec<Box> = Vec::new();
 
         // Second pass: process box instances with auto-positioning

@@ -638,69 +638,99 @@ fn validate_box_body_references(
 
 /// Validate that port coordinates are within bounds
 fn validate_port_bounds(port: &Port, body: &BoxBody, filename: &str) -> Result<(), String> {
-    // Extract the grid dimensions from the box body
-    let mut grid = (1, 1); // default grid
-    for item in &body.items {
-        if let BoxItem::Prop(Prop::PropDim(p)) = item {
-            if p.key == "grid" {
-                grid = (p.value.height, p.value.width);
-                break;
-            }
+    // Validate mutual exclusivity of "at" and "on" clauses
+    if port.coords.is_some() && port.on.is_some() {
+        let start = port.span.start();
+        return Err(format!(
+            "{}:{}:{}: Port '{}' cannot have both 'at' and 'on' clauses",
+            filename,
+            start.line(),
+            start.col(),
+            port.name
+        ));
+    }
+
+    // Validate "on" clause value if present
+    if let Some(ref on_value) = port.on {
+        if !matches!(on_value.as_str(), "top" | "bottom" | "left" | "right") {
+            let start = port.span.start();
+            return Err(format!(
+                "{}:{}:{}: Port '{}' has invalid 'on' value '{}'. Must be one of: top, bottom, left, right",
+                filename,
+                start.line(),
+                start.col(),
+                port.name,
+                on_value
+            ));
         }
     }
 
-    let (height, width) = grid;
-    let port_span = port.coords.span;
-    let start = port_span.start();
+    // If "at" clause is present, validate coordinates are within bounds
+    if let Some(ref coords) = port.coords {
+        // Extract the grid dimensions from the box body
+        let mut grid = (1, 1); // default grid
+        for item in &body.items {
+            if let BoxItem::Prop(Prop::PropDim(p)) = item {
+                if p.key == "grid" {
+                    grid = (p.value.height, p.value.width);
+                    break;
+                }
+            }
+        }
 
-    // Validate row (y-coordinate) is in bounds [0.0, HEIGHT]
-    if port.coords.row < 0.0 {
-        return Err(format!(
-            "{}:{}:{}: Port '{}' row coordinate {} is out of bounds (must be >= 0.0)",
-            filename,
-            start.line(),
-            start.col(),
-            port.name,
-            port.coords.row
-        ));
-    }
-    if port.coords.row > height as f64 {
-        return Err(format!(
-            "{}:{}:{}: Port '{}' row coordinate {} is out of bounds (must be <= {} for grid {}x{})",
-            filename,
-            start.line(),
-            start.col(),
-            port.name,
-            port.coords.row,
-            height,
-            height,
-            width
-        ));
-    }
+        let (height, width) = grid;
+        let port_span = coords.span;
+        let start = port_span.start();
 
-    // Validate col (x-coordinate) is in bounds [0.0, WIDTH]
-    if port.coords.col < 0.0 {
-        return Err(format!(
-            "{}:{}:{}: Port '{}' col coordinate {} is out of bounds (must be >= 0.0)",
-            filename,
-            start.line(),
-            start.col(),
-            port.name,
-            port.coords.col
-        ));
-    }
-    if port.coords.col > width as f64 {
-        return Err(format!(
-            "{}:{}:{}: Port '{}' col coordinate {} is out of bounds (must be <= {} for grid {}x{})",
-            filename,
-            start.line(),
-            start.col(),
-            port.name,
-            port.coords.col,
-            width,
-            height,
-            width
-        ));
+        // Validate row (y-coordinate) is in bounds [0.0, HEIGHT]
+        if coords.row < 0.0 {
+            return Err(format!(
+                "{}:{}:{}: Port '{}' row coordinate {} is out of bounds (must be >= 0.0)",
+                filename,
+                start.line(),
+                start.col(),
+                port.name,
+                coords.row
+            ));
+        }
+        if coords.row > height as f64 {
+            return Err(format!(
+                "{}:{}:{}: Port '{}' row coordinate {} is out of bounds (must be <= {} for grid {}x{})",
+                filename,
+                start.line(),
+                start.col(),
+                port.name,
+                coords.row,
+                height,
+                height,
+                width
+            ));
+        }
+
+        // Validate col (x-coordinate) is in bounds [0.0, WIDTH]
+        if coords.col < 0.0 {
+            return Err(format!(
+                "{}:{}:{}: Port '{}' col coordinate {} is out of bounds (must be >= 0.0)",
+                filename,
+                start.line(),
+                start.col(),
+                port.name,
+                coords.col
+            ));
+        }
+        if coords.col > width as f64 {
+            return Err(format!(
+                "{}:{}:{}: Port '{}' col coordinate {} is out of bounds (must be <= {} for grid {}x{})",
+                filename,
+                start.line(),
+                start.col(),
+                port.name,
+                coords.col,
+                width,
+                height,
+                width
+            ));
+        }
     }
 
     Ok(())
@@ -831,21 +861,24 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
             let child_x_end = child_col_end * (grid_width as f64 / grid_width as f64);
 
             // Check if port is inside this child box (excluding boundaries/margins)
-            if port.coords.row > child_y_start && port.coords.row < child_y_end &&
-               port.coords.col > child_x_start && port.coords.col < child_x_end {
-                let port_span = port.coords.span;
-                let start = port_span.start();
-                return Err(format!(
-                    "{}:{}:{}: Port '{}' at ({}, {}) is inside a child box at ({}, {})",
-                    filename,
-                    start.line(),
-                    start.col(),
-                    port.name,
-                    port.coords.row,
-                    port.coords.col,
-                    child_row,
-                    child_col
-                ));
+            // Only check if port has explicit "at" coordinates
+            if let Some(ref coords) = port.coords {
+                if coords.row > child_y_start && coords.row < child_y_end &&
+                   coords.col > child_x_start && coords.col < child_x_end {
+                    let port_span = coords.span;
+                    let start = port_span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Port '{}' at ({}, {}) is inside a child box at ({}, {})",
+                        filename,
+                        start.line(),
+                        start.col(),
+                        port.name,
+                        coords.row,
+                        coords.col,
+                        child_row,
+                        child_col
+                    ));
+                }
             }
         }
     }
@@ -856,6 +889,13 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
 /// Validate that a port is not too close to corners
 fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -> Result<(), String> {
     use crate::ast::{BoxItem, Prop};
+
+    // Only validate if port has explicit "at" coordinates
+    // Ports with "on" clause are auto-positioned and won't be at corners
+    let coords = match &port.coords {
+        Some(c) => c,
+        None => return Ok(()), // Skip validation for "on" ports
+    };
 
     // Get grid dimensions
     let mut grid = (1, 1);
@@ -874,8 +914,8 @@ fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -
     // Using a fixed padding value (could be made configurable)
     let padding = 0.1; // 10% of a grid cell
 
-    let port_row = port.coords.row;
-    let port_col = port.coords.col;
+    let port_row = coords.row;
+    let port_col = coords.col;
 
     // Check distance from each corner
     let corners = [
@@ -889,7 +929,7 @@ fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -
         let distance = ((port_row - corner_row).powi(2) + (port_col - corner_col).powi(2)).sqrt();
 
         if distance < padding {
-            let port_span = port.coords.span;
+            let port_span = coords.span;
             let start = port_span.start();
             return Err(format!(
                 "{}:{}:{}: Port '{}' at ({}, {}) is too close to the {} corner ({}, {})",
@@ -897,8 +937,8 @@ fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -
                 start.line(),
                 start.col(),
                 port.name,
-                port.coords.row,
-                port.coords.col,
+                coords.row,
+                coords.col,
                 corner_name,
                 corner_row,
                 corner_col

@@ -64,9 +64,9 @@ Prop: Prop = {
 };
 
 Port: Port = {
-    <ll:@L> "port" <name:Ident> "at" <coords:CoordsFrac> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
+    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Ident>)?> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
         let props = props.unwrap_or_default();
-        Port { name, coords, props, span: Span::from_offsets(source, ll, rr) }
+        Port { name, coords, on, props, span: Span::from_offsets(source, ll, rr) }
     },
 };
 
