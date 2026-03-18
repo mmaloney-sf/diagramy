@@ -150,7 +150,8 @@ impl ArrowRouter {
         }
 
         // No path found
-        panic!("NO PATH FOUND")
+        eprintln!("NO PATH FOUND");
+        (None, g_score, h_score)
     }
 
     /// Manhattan distance heuristic

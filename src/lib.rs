@@ -310,39 +310,6 @@ fn validate_box_colors(boxes: &[Box]) -> Result<(), String> {
     Ok(())
 }
 
-// Add arrowhead marker definition to SVG
-fn add_arrowhead_marker(doc: SvgDocument, font_size: i32) -> SvgDocument {
-    use svg::node::element::{Marker, Polygon, Definitions};
-
-    // Scale arrowhead with font size (base size for font_size=18), then reduce to 70%
-    let scale = (font_size as f64 / 18.0) * 0.6;
-    let width = (10.0 * scale) as i32;
-    let height = (10.0 * scale) as i32;
-    let ref_x = (9.0 * scale) as i32;
-    let ref_y = (3.0 * scale) as i32;
-    let points = format!("0,0 0,{} {},{}",
-        (6.0 * scale) as i32,
-        (9.0 * scale) as i32,
-        (3.0 * scale) as i32);
-
-    let marker = Marker::new()
-        .set("id", "arrowhead")
-        .set("markerWidth", width)
-        .set("markerHeight", height)
-        .set("refX", ref_x)
-        .set("refY", ref_y)
-        .set("orient", "auto")
-        .set("markerUnits", "strokeWidth")
-        .add(
-            Polygon::new()
-                .set("points", points)
-                .set("fill", "#333")
-        );
-
-    let defs = Definitions::new().add(marker);
-    doc.add(defs)
-}
-
 // Render the diagram AST as an SVG
 pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, transparent: bool, background_color: Option<&str>, font_size: i32) -> Result<(), String> {
     // Validate all colors in the diagram first
@@ -392,9 +359,6 @@ pub fn render_diagram_to_svg(doc: &Document, filename: &str, scale_factor: f64, 
         svg_doc = svg_doc.add(background);
     }
     // Otherwise, leave transparent (no background)
-
-    // Add arrowhead marker definition
-    svg_doc = add_arrowhead_marker(svg_doc, font_size);
 
     // Build layout map
     let layout_map = build_layout_map(doc);
@@ -857,7 +821,7 @@ fn render_box_ports(
     doc
 }
 
-// Render a single port as a circle with an X through it
+// Render a single port as a small square
 fn render_single_port(
     port: &Port,
     port_id: &str,
@@ -872,38 +836,38 @@ fn render_single_port(
     let is_tieoff = port.properties.iter()
         .any(|p| matches!(p, PortProperty::Style(s) if s == "tieoff"));
 
-    // Scale port circle with font size (base size for font_size=18)
+    // Scale port size with font size (base size for font_size=18)
     let scale = font_size as f64 / 18.0;
-    let radius = (8.0 * scale) as i32;
+    let size = (8.0 * scale) as i32;
+    let half_size = size / 2;
 
-    // Only draw circle with X if style is tieoff
+    // Draw small square for the port
+    let square = Rectangle::new()
+        .set("x", x - half_size)
+        .set("y", y - half_size)
+        .set("width", size)
+        .set("height", size)
+        .set("fill", if is_tieoff { "white" } else { "#333" })
+        .set("stroke", "#333")
+        .set("stroke-width", 2);
+    doc = doc.add(square);
+
+    // If tieoff style, draw X through it
     if is_tieoff {
-
-        // Draw circle
-        let circle = Circle::new()
-            .set("cx", x)
-            .set("cy", y)
-            .set("r", radius)
-            .set("fill", "white")
-            .set("stroke", "#333")
-            .set("stroke-width", 2);
-        doc = doc.add(circle);
-
-        // Draw X through it
         let line1 = Line::new()
-            .set("x1", x - radius / 2)
-            .set("y1", y - radius / 2)
-            .set("x2", x + radius / 2)
-            .set("y2", y + radius / 2)
+            .set("x1", x - half_size / 2)
+            .set("y1", y - half_size / 2)
+            .set("x2", x + half_size / 2)
+            .set("y2", y + half_size / 2)
             .set("stroke", "#333")
             .set("stroke-width", 2);
         doc = doc.add(line1);
 
         let line2 = Line::new()
-            .set("x1", x - radius / 2)
-            .set("y1", y + radius / 2)
-            .set("x2", x + radius / 2)
-            .set("y2", y - radius / 2)
+            .set("x1", x - half_size / 2)
+            .set("y1", y + half_size / 2)
+            .set("x2", x + half_size / 2)
+            .set("y2", y - half_size / 2)
             .set("stroke", "#333")
             .set("stroke-width", 2);
         doc = doc.add(line2);
@@ -914,7 +878,7 @@ fn render_single_port(
         .find_map(|p| if let PortProperty::Title(t) = p { Some(t) } else { None }) {
 
         // Calculate label position based on arrow direction
-        let (label_x, label_y, anchor) = calculate_label_position(x, y, port_id, port_connections, radius, font_size);
+        let (label_x, label_y, anchor) = calculate_label_position(x, y, port_id, port_connections, half_size, font_size);
 
         let text = Text::new(title)
             .set("x", label_x)
@@ -1004,8 +968,7 @@ fn render_arrows(
                 .set("d", path_data)
                 .set("stroke", "#333")
                 .set("stroke-width", 2)
-                .set("fill", "none")
-                .set("marker-end", "url(#arrowhead)");
+                .set("fill", "none");
             doc = doc.add(path);
         }
     }
