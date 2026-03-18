@@ -46,12 +46,13 @@ pub fn generate_routing_debug_svg(
     debug_dir: &str,
     box_name: &str,
 ) {
-    // Scale factor to convert fractional coordinates to pixels
-    const SCALE: f64 = 100.0;
+    // Scale factor to convert integral coordinates to pixels
+    // GRID_RESOLUTION is 0.1, so we need to scale by 10.0 to get back to fractional units
+    const SCALE: f64 = 10.0; // 100.0 pixels per unit * 0.1 units per grid cell = 10 pixels per grid cell
 
     // Calculate SVG dimensions
-    let svg_width = (grid_width as f64 * SCALE) as usize;
-    let svg_height = (grid_height as f64 * SCALE) as usize;
+    let svg_width = (grid_width as f64 * 100.0) as usize;
+    let svg_height = (grid_height as f64 * 100.0) as usize;
 
     let mut svg_doc = SvgDocument::new()
         .set("width", svg_width)
@@ -100,10 +101,10 @@ pub fn generate_routing_debug_svg(
 
     // Draw bounding boxes (obstacles)
     for bbox in bounding_boxes {
-        let x = (bbox.min.1 * SCALE) as i32;
-        let y = (bbox.min.0 * SCALE) as i32;
-        let width = ((bbox.max.1 - bbox.min.1) * SCALE) as i32;
-        let height = ((bbox.max.0 - bbox.min.0) * SCALE) as i32;
+        let x = (bbox.min.1 as f64 * SCALE) as i32;
+        let y = (bbox.min.0 as f64 * SCALE) as i32;
+        let width = ((bbox.max.1 - bbox.min.1) as f64 * SCALE) as i32;
+        let height = ((bbox.max.0 - bbox.min.0) as f64 * SCALE) as i32;
 
         let rect = Rectangle::new()
             .set("x", x)
@@ -117,8 +118,8 @@ pub fn generate_routing_debug_svg(
     }
 
     // Draw start point (green circle)
-    let start_x = (start.1 * SCALE) as i32;
-    let start_y = (start.0 * SCALE) as i32;
+    let start_x = (start.1 as f64 * SCALE) as i32;
+    let start_y = (start.0 as f64 * SCALE) as i32;
     let start_circle = Circle::new()
         .set("cx", start_x)
         .set("cy", start_y)
@@ -140,8 +141,8 @@ pub fn generate_routing_debug_svg(
     svg_doc = svg_doc.add(start_label);
 
     // Draw end point (blue circle)
-    let end_x = (end.1 * SCALE) as i32;
-    let end_y = (end.0 * SCALE) as i32;
+    let end_x = (end.1 as f64 * SCALE) as i32;
+    let end_y = (end.0 as f64 * SCALE) as i32;
     let end_circle = Circle::new()
         .set("cx", end_x)
         .set("cy", end_y)
@@ -167,8 +168,8 @@ pub fn generate_routing_debug_svg(
         let mut path_data = String::new();
 
         for (i, point) in arrow_path.points.iter().enumerate() {
-            let px = (point.1 * SCALE) as i32;
-            let py = (point.0 * SCALE) as i32;
+            let px = (point.1 as f64 * SCALE) as i32;
+            let py = (point.0 as f64 * SCALE) as i32;
 
             if i == 0 {
                 path_data.push_str(&format!("M {} {} ", px, py));

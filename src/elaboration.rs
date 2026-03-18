@@ -363,10 +363,10 @@ fn route_arrows(
     debug_dir: Option<&str>,
     box_name: &str,
 ) -> Vec<Vec<(f64, f64)>> {
-    use crate::routing::{ArrowRouter, BoundingBox, Point};
+    use crate::routing::{ArrowRouter, BoundingBox};
 
-    // Build port map
-    let mut port_map: HashMap<String, Point> = HashMap::new();
+    // Build port map (using f64 coordinates)
+    let mut port_map: HashMap<String, (f64, f64)> = HashMap::new();
     for port in ports {
         port_map.insert(port.name.clone(), (port.coords.0, port.coords.1));
     }
@@ -394,9 +394,16 @@ fn route_arrows(
         eprintln!("Child box at ({}, {}) with dim ({}x{}): bbox min=({}, {}), max=({}, {})",
                  row, col, height, width, min_row, min_col, max_row, max_col);
 
+        // Discretize bounding box coordinates to integral grid coordinates
+        const GRID_RESOLUTION: f64 = 0.1;
+        let min_row_i32 = (min_row / GRID_RESOLUTION).round() as i32;
+        let min_col_i32 = (min_col / GRID_RESOLUTION).round() as i32;
+        let max_row_i32 = (max_row / GRID_RESOLUTION).round() as i32;
+        let max_col_i32 = (max_col / GRID_RESOLUTION).round() as i32;
+
         bounding_boxes.push(BoundingBox {
-            min: (min_row, min_col),
-            max: (max_row, max_col),
+            min: (min_row_i32, min_col_i32),
+            max: (max_row_i32, max_col_i32),
         });
     }
 
@@ -417,7 +424,14 @@ fn route_arrows(
     for arrow in arrows {
         if let (Some(&start), Some(&end)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
             if let Some(path) = router.route(start, end) {
-                routed_paths.push(path.points);
+                // Convert i32 points back to f64 for storage
+                const GRID_RESOLUTION: f64 = 0.1;
+                let f64_points: Vec<(f64, f64)> = path.points.iter()
+                    .map(|(row, col)| {
+                        (*row as f64 * GRID_RESOLUTION, *col as f64 * GRID_RESOLUTION)
+                    })
+                    .collect();
+                routed_paths.push(f64_points);
             } else {
                 // Fallback to straight line if routing fails
                 routed_paths.push(vec![start, end]);

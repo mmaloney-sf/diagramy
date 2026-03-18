@@ -1,7 +1,7 @@
 // Types for arrow routing
 
-/// A point in the routing grid (fractional coordinates)
-pub type Point = (f64, f64);
+/// A point in the routing grid (integral coordinates)
+pub type Point = (i32, i32);
 
 /// A path for an arrow, consisting of a sequence of points
 #[derive(Debug, Clone)]
