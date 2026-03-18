@@ -18,6 +18,42 @@ pub mod routing;
 
 lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+use wasm_bindgen::prelude::*;
+
+/// Parse and render a diagram from text input to SVG string
+/// This function is exposed to JavaScript when compiled to WebAssembly
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[wasm_bindgen]
+pub fn render_diagram(input: &str) -> Result<String, String> {
+    // Create a parser instance
+    let parser = grammar::DocumentParser::new();
+
+    // Parse the input
+    let doc = parser.parse(input, input)
+        .map_err(|e| format!("Parse error: {:?}", e))?;
+
+    // Validate the document
+    validation::validate(&doc, input, "input.dgmy")
+        .map_err(|e| format!("Validation error: {}", e))?;
+
+    // Convert AST to elaboration diagram
+    let elab_diagram = elaboration::from_ast(&doc, "input.dgmy", None)
+        .map_err(|e| format!("Elaboration error: {}", e))?;
+
+    // Get diagram size
+    let (width, height) = elab_diagram.size;
+
+    // Convert elaboration diagram to renderable diagram
+    let diagram_obj = diagram::from_elaboration(&elab_diagram);
+
+    // Render to SVG string
+    let svg_string = diagram_obj.render_to_svg_string(width, height, 18, false)
+        .map_err(|e| format!("Render error: {}", e))?;
+
+    Ok(svg_string)
+}
+
 #[rustfmt::skip]
 const COLOR_TABLE: [(&'static str, &'static str); 21] = [
     ("transparent", "transparent"),

@@ -14,4 +14,7 @@ assets: build
 		./target/release/dgmy $$file -o assets/images/$$basename.svg; \
 	done
 
-.PHONY: build install clean assets
+web:
+	wasm-pack build --target web --out-dir web/dist -- --no-default-features --features wasm-bindgen
+
+.PHONY: build install clean assets web

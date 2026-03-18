@@ -235,6 +235,81 @@ impl Diagram {
 
         Ok(())
     }
+
+    /// Render the diagram to an SVG string (for WebAssembly)
+    ///
+    /// # Arguments
+    /// * `width` - Width of the SVG canvas
+    /// * `height` - Height of the SVG canvas
+    /// * `font_size` - Font size for text rendering (default: 18)
+    /// * `debug` - Whether to include debug overlay
+    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+    pub fn render_to_svg_string(&self, width: usize, height: usize, font_size: usize, debug: bool) -> Result<String, String> {
+        // Create SVG document
+        let mut svg_doc = SvgDocument::new()
+            .set("width", width)
+            .set("height", height)
+            .set("viewBox", (0, 0, width, height));
+
+        // Add background if diagram has a color
+        if let Some(ref color) = self.color {
+            let bg_color = crate::map_color(color)?;
+            let background = Rectangle::new()
+                .set("width", "100%")
+                .set("height", "100%")
+                .set("fill", bg_color);
+            svg_doc = svg_doc.add(background);
+        }
+
+        // First pass: Render all box rectangles
+        for diagram_box in &self.boxes {
+            svg_doc = render_box_rectangle(svg_doc, diagram_box)?;
+        }
+
+        // Second pass: Render all box titles on top
+        for diagram_box in &self.boxes {
+            svg_doc = render_box_title(svg_doc, diagram_box, font_size)?;
+        }
+
+        // Third pass: Render arrows (before ports so ports appear on top)
+        svg_doc = render_arrows(svg_doc, &self.arrows, &self.ports, &self.routed_paths)?;
+
+        // Fourth pass: Render ports as small circles
+        for port in &self.ports {
+            svg_doc = render_port(svg_doc, port)?;
+        }
+
+        // Render diagram title centered at the top if present (on top of everything)
+        if let Some(ref title) = self.title {
+            let title_font_size = (font_size as f64 * 1.5) as usize;
+            let padding = 10;
+
+            // Split title by newlines and render each line centered
+            let lines: Vec<&str> = title.split('\n').collect();
+            let center_x = width / 2;
+            for (i, line) in lines.iter().enumerate() {
+                let line_y = title_font_size + padding + (i * title_font_size);
+                let title_text = Text::new(*line)
+                    .set("x", center_x)
+                    .set("y", line_y)
+                    .set("text-anchor", "middle")
+                    .set("font-size", title_font_size)
+                    .set("font-family", "Arial, sans-serif")
+                    .set("font-weight", "bold")
+                    .set("fill", "#2C3E50");
+
+                svg_doc = svg_doc.add(title_text);
+            }
+        }
+
+        // Add debug overlay if debug mode is enabled
+        if debug {
+            svg_doc = render_debug_overlay(svg_doc, self, width, height, font_size)?;
+        }
+
+        // Convert to string
+        Ok(svg_doc.to_string())
+    }
 }
 
 /// Render a box rectangle to the SVG document
