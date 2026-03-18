@@ -77,7 +77,6 @@ pub struct Node {
     pub h_cost: f64, // Heuristic cost from this node to end
     pub f_cost: f64, // Total cost (g + h)
     pub parent: Option<Point>,
-    pub direction: Direction, // Direction we came from to reach this node
 }
 
 impl Node {
@@ -86,7 +85,6 @@ impl Node {
         g_cost: f64,
         h_cost: f64,
         parent: Option<Point>,
-        direction: Direction,
     ) -> Self {
         Node {
             position,
@@ -94,7 +92,6 @@ impl Node {
             h_cost,
             f_cost: g_cost + h_cost,
             parent,
-            direction,
         }
     }
 }
