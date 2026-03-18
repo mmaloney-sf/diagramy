@@ -2,8 +2,8 @@
 <rect fill="#D5DBDB" height="100%" width="100%"/>
 <rect fill="#DEE8ED" height="956" stroke="#333" stroke-width="1" width="606" x="47" y="47"/>
 <rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.5833333333333333" width="545.4" x="77.3" y="78.86666666666667"/>
-<rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.33333333333333337" width="242.4" x="77.3" y="397.53333333333336"/>
-<rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.33333333333333337" width="242.4" x="380.3" y="397.53333333333336"/>
+<rect fill="transparent" height="254.93333333333334" stroke="transparent" stroke-width="0" width="242.4" x="77.3" y="397.53333333333336"/>
+<rect fill="transparent" height="254.93333333333334" stroke="transparent" stroke-width="0" width="242.4" x="380.3" y="397.53333333333336"/>
 <rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.5833333333333333" width="545.4" x="77.3" y="716.2"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="214.33333333333334">
 ALU

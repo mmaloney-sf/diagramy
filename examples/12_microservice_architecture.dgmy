@@ -22,9 +22,7 @@ box Microservice {
               "Logic"
     }
 
-    box at (2, 2) is {
-        text: "Cache"
-    }
+    label "Cache" at (2, 2)
 
     box at (3, 1) dim 1x2 is {
         text: "Database"
@@ -36,9 +34,7 @@ box LoadBalancer {
     grid: 2x1
     color: orange
 
-    box at (1, 1) is {
-        text: "LB"
-    }
+    label "LB" at (1, 1)
 
     box at (2, 1) is {
         text: "Health"

@@ -7,20 +7,20 @@
 <rect fill="#F5F5DC" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="269.2" y="487.475"/>
 <rect fill="#F5F5DC" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="471.2" y="487.475"/>
 <rect fill="#DEE8ED" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="67.2" y="697.225"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="701.4200000000001"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="743.3700000000001"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="785.32"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="827.2700000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="83.36" y="701.4200000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="83.36" y="743.3700000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="83.36" y="785.32"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="83.36" y="827.2700000000001"/>
 <rect fill="#DEE8ED" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="269.2" y="697.225"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="701.4200000000001"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="743.3700000000001"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="785.32"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="827.2700000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="285.36" y="701.4200000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="285.36" y="743.3700000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="285.36" y="785.32"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="285.36" y="827.2700000000001"/>
 <rect fill="#DEE8ED" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="471.2" y="697.225"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="701.4200000000001"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="743.3700000000001"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="785.32"/>
-<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="827.2700000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="487.36" y="701.4200000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="487.36" y="743.3700000000001"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="487.36" y="785.32"/>
+<rect fill="transparent" height="33.56" stroke="transparent" stroke-width="0" width="129.28" x="487.36" y="827.2700000000001"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="151.875">
 Internet
 </text>

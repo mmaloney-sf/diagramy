@@ -3,7 +3,7 @@
 <rect fill="#DEE8ED" height="1406" stroke="#333" stroke-width="1" width="906" x="47" y="47"/>
 <rect fill="transparent" height="374.93333333333334" stroke="#333" stroke-width="0.5833333333333334" width="815.4" x="92.30000000000001" y="93.86666666666667"/>
 <rect fill="transparent" height="374.93333333333334" stroke="#333" stroke-width="0.3333333333333333" width="362.4" x="92.30000000000001" y="562.5333333333334"/>
-<rect fill="transparent" height="374.93333333333334" stroke="#333" stroke-width="0.3333333333333333" width="362.4" x="545.3" y="562.5333333333334"/>
+<rect fill="transparent" height="374.93333333333334" stroke="transparent" stroke-width="0" width="362.4" x="545.3" y="562.5333333333334"/>
 <rect fill="transparent" height="374.93333333333334" stroke="#333" stroke-width="0.5833333333333334" width="815.4" x="92.30000000000001" y="1031.2"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="17" text-anchor="middle" x="500" y="289.83333333333337">
 API Gateway

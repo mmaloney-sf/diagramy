@@ -140,6 +140,9 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
                     validate_box_prop(prop, filename)?;
                 }
             }
+            BoxItem::Label(_label) => {
+                // Labels are converted to boxes during elaboration, no special validation needed
+            }
         }
     }
 
@@ -552,6 +555,9 @@ fn validate_no_name_conflicts(body: &BoxBody, filename: &str) -> Result<(), Stri
             }
             BoxItem::Prop(_) => {
                 // Properties don't have names that conflict
+            }
+            BoxItem::Label(_label) => {
+                // Labels are converted to boxes during elaboration, no name conflicts
             }
         }
     }

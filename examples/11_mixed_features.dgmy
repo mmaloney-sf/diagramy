@@ -14,21 +14,10 @@ box Module {
     color: cyan
     borderStyle: dashed
 
-    box at (1, 1) is {
-        text: "Input"
-    }
-
-    box at (1, 2) is {
-        text: "Process"
-    }
-
-    box at (2, 1) is {
-        text: "Output"
-    }
-
-    box at (2, 2) is {
-        text: "Control"
-    }
+    label "Input" at (1, 1)
+    label "Process" at (1, 2)
+    label "Output" at (2, 1)
+    label "Control" at (2, 2)
 }
 
 box top {

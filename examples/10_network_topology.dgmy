@@ -14,21 +14,10 @@ box ServerRack {
     grid: 4x1
     color: blue
 
-    box at (1, 1) is {
-        text: "Web"
-    }
-
-    box at (2, 1) is {
-        text: "App"
-    }
-
-    box at (3, 1) is {
-        text: "DB"
-    }
-
-    box at (4, 1) is {
-        text: "Cache"
-    }
+    label "Web" at (1, 1)
+    label "App" at (2, 1)
+    label "DB" at (3, 1)
+    label "Cache" at (4, 1)
 }
 
 box top {

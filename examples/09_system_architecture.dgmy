@@ -17,13 +17,8 @@ box Processor {
         text: "Control Unit"
     }
 
-    box at (2, 1) is {
-        text: "ALU"
-    }
-
-    box at (2, 2) is {
-        text: "FPU"
-    }
+    label "ALU" at (2, 1)
+    label "FPU" at (2, 2)
 
     box at (3, 1) dim 1x2 is {
         text: "Cache L1"
@@ -35,13 +30,8 @@ box Memory {
     grid: 2x1
     color: green
 
-    box at (1, 1) is {
-        text: "RAM"
-    }
-
-    box at (2, 1) is {
-        text: "Controller"
-    }
+    label "RAM" at (1, 1)
+    label "Controller" at (2, 1)
 }
 
 box top {

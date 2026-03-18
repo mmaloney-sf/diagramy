@@ -17,13 +17,8 @@ box CPUCore {
         text: "ALU"
     }
 
-    box at (2, 1) is {
-        text: "L1-I"
-    }
-
-    box at (2, 2) is {
-        text: "L1-D"
-    }
+    label "L1-I" at (2, 1)
+    label "L1-D" at (2, 2)
 
     box at (3, 1) dim 1x2 is {
         text: "Registers"
@@ -35,13 +30,8 @@ box MemoryBlock {
     grid: 2x1
     color: green
 
-    box at (1, 1) is {
-        text: "Data"
-    }
-
-    box at (2, 1) is {
-        text: "Control"
-    }
+    label "Data" at (1, 1)
+    label "Control" at (2, 1)
 }
 
 // Use the defined components in the main diagram

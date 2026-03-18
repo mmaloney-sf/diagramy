@@ -100,6 +100,7 @@ pub enum BoxItem {
     Prop(Prop),
     Port(Port),
     Arrow(Arrow),
+    Label(Label),
 }
 
 impl BoxItem {
@@ -109,6 +110,7 @@ impl BoxItem {
             BoxItem::Prop(prop) => prop.span(),
             BoxItem::Port(port) => port.span,
             BoxItem::Arrow(arrow) => arrow.span,
+            BoxItem::Label(label) => label.span,
         }
     }
 }
@@ -230,6 +232,14 @@ pub struct Arrow {
     pub from: Path,
     pub to: Path,
     pub props: Vec<Prop>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct Label {
+    pub text: Vec<String>,
+    pub coords: Option<Coords>,
+    pub dim: Option<Dim>,
     pub span: Span,
 }
 

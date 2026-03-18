@@ -937,6 +937,11 @@ fn check_box_body_hover(
                     return Some(hover);
                 }
             }
+            BoxItem::Label(label) => {
+                if let Some(hover) = check_label_hover(label, text, line, col) {
+                    return Some(hover);
+                }
+            }
         }
     }
 
@@ -1084,6 +1089,38 @@ fn check_arrow_hover(
         let to_col = to_pos + 2; // +1 for 0-based to 1-based, +1 for space before "to"
         if col >= to_col && col < to_col + 2 {
             return Some("The `to` keyword specifies the destination port for the arrow.".to_string());
+        }
+    }
+
+    None
+}
+
+/// Check if hovering over a label
+fn check_label_hover(
+    label: &diagramy::ast::Label,
+    text: &str,
+    line: usize,
+    col: usize,
+) -> Option<String> {
+    let span = label.span;
+    let start = span.start();
+    let end = span.end();
+
+    if !is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
+        return None;
+    }
+
+    // Check if hovering over the "label" keyword
+    if line == start.line() && col >= start.col() && col < start.col() + 5 {
+        return Some("The `label` keyword creates a text label that acts like a box with a text property.\nLabels can be positioned using the optional `at` clause and sized using the optional `dim` clause.".to_string());
+    }
+
+    // Check if hovering over "at" keyword
+    let line_text = text.lines().nth(line - 1)?;
+    if let Some(at_pos) = line_text.find(" at ") {
+        let at_col = at_pos + 2; // +1 for 0-based to 1-based, +1 for space before "at"
+        if col >= at_col && col < at_col + 2 {
+            return Some("The `at` keyword specifies the position of the label in the grid.\nFormat: at (row, col)".to_string());
         }
     }
 

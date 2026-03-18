@@ -25,6 +25,7 @@
         | Prop
         | Port
         | Arrow
+        | Label
 
     BoxInst :=
           "box" Ident? ("at" Coords)? ("dim" Dim)? "is" BoxBody
@@ -51,6 +52,14 @@
         "arrow" Path "to" Path ("is" ArrowBody)?
 
     ArrowBody := "{" Prop* "}"
+
+
+////////////////////////////////////////
+// Labels
+////////////////////////////////////////
+
+    Label :=
+        "label" String+ ("at" Coords)? ("dim" Dim)?
 
 
 ////////////////////////////////////////

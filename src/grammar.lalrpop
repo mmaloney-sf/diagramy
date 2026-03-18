@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Coords, CoordsFrac, Path, Dim, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Label, Coords, CoordsFrac, Path, Dim, Span};
 
 grammar(source: &str);
 
@@ -38,6 +38,7 @@ BoxItem: BoxItem = {
     <prop:Prop> => BoxItem::Prop(prop),
     <port:Port> => BoxItem::Port(port),
     <arrow:Arrow> => BoxItem::Arrow(arrow),
+    <label:Label> => BoxItem::Label(label),
 };
 
 BoxInst: BoxInst = {
@@ -73,6 +74,12 @@ Arrow: Arrow = {
     <ll:@L> "arrow" <from:Path> "to" <to:Path> <props:("is" "{" <Prop*> "}")?> <rr:@R> => {
         let props = props.unwrap_or_default();
         Arrow { from, to, props, span: Span::from_offsets(source, ll, rr) }
+    },
+};
+
+Label: Label = {
+    <ll:@L> "label" <text:String+> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> <rr:@R> => {
+        Label { text, coords, dim, span: Span::from_offsets(source, ll, rr) }
     },
 };
 

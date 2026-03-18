@@ -301,6 +301,85 @@ impl<'ast> Elaborator<'ast> {
         })
     }
 
+    /// Process a label (converts to a box with text property)
+    fn process_label(
+        &mut self,
+        label: &ast::Label,
+        grid: (usize, usize),
+        occupied: &mut HashSet<(i32, i32)>,
+        last_pos: &mut (i32, i32),
+    ) -> Result<Box, String> {
+        // Get dimensions from label, defaulting to 1x1
+        let (dim_height, dim_width) = if let Some(ref dim) = label.dim {
+            (dim.height, dim.width)
+        } else {
+            (1, 1)
+        };
+
+        // Determine position (auto-position if coords is None)
+        let (row, col) = if let Some(c) = &label.coords {
+            (c.row, c.col)
+        } else {
+            match self.find_next_free_position(
+                occupied,
+                grid,
+                (dim_height, dim_width),
+                *last_pos,
+            ) {
+                Some(pos) => pos,
+                None => {
+                    let start = label.span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Cannot auto-position label with dim {}x{}. No free space available in {}x{} grid",
+                        self.filename, start.line(), start.col(), dim_height, dim_width, grid.0, grid.1
+                    ));
+                }
+            }
+        };
+
+        // Update last position
+        *last_pos = (row, col);
+
+        // Check for overlaps and mark all occupied cells
+        for r in row..(row + dim_height as i32) {
+            for c in col..(col + dim_width as i32) {
+                if occupied.contains(&(r, c)) {
+                    let start = label.span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Label at ({}, {}) with dim {}x{} overlaps with another box at ({}, {})",
+                        self.filename, start.line(), start.col(), row, col, dim_height, dim_width, r, c
+                    ));
+                }
+                occupied.insert((r, c));
+            }
+        }
+
+        // Create a box definition with the text property
+        // The label text becomes the title (which is rendered as text in the box)
+        // Multi-line labels are joined with newlines
+        let box_def = BoxDef {
+            grid: (1, 1),
+            title: Some(label.text.join("\n")),
+            color: None,
+            margin: None,
+            border_style: Some("none".to_string()), // Labels have no border by default
+            bold: None,
+            debug: None,
+            boxes: Vec::new(),
+            ports: Vec::new(),
+            arrows: Vec::new(),
+            routed_arrow_paths: Vec::new(),
+        };
+
+        Ok(Box {
+            id: None, // Labels don't have IDs
+            def: Arc::new(box_def),
+            // Convert from 1-based to 0-based indexing
+            pos: ((row - 1) as usize, (col - 1) as usize),
+            dim: (dim_height as usize, dim_width as usize),
+        })
+    }
+
     /// Extract properties, ports, and arrows from a box body
     /// Returns (grid, title, color, margin, border_style, bold, debug, ports, arrows)
     fn extract_box_items(
@@ -446,28 +525,40 @@ impl<'ast> Elaborator<'ast> {
         let mut last_pos = (1, 0); // Start before (1, 1)
 
         for item in &body.items {
-            if let ast::BoxItem::BoxInst(box_inst) = item {
-                match box_inst {
-                    ast::BoxInst::WithBody(with_body) => {
-                        let box_def = self.process_inline_box(
-                            with_body,
-                            box_name,
-                            grid,
-                            &mut occupied,
-                            &mut last_pos,
-                        )?;
-                        boxes.push(box_def);
-                    }
-                    ast::BoxInst::Reference(reference) => {
-                        let box_def = self.process_box_reference(
-                            reference,
-                            grid,
-                            &mut occupied,
-                            &mut last_pos,
-                        )?;
-                        boxes.push(box_def);
+            match item {
+                ast::BoxItem::BoxInst(box_inst) => {
+                    match box_inst {
+                        ast::BoxInst::WithBody(with_body) => {
+                            let box_def = self.process_inline_box(
+                                with_body,
+                                box_name,
+                                grid,
+                                &mut occupied,
+                                &mut last_pos,
+                            )?;
+                            boxes.push(box_def);
+                        }
+                        ast::BoxInst::Reference(reference) => {
+                            let box_def = self.process_box_reference(
+                                reference,
+                                grid,
+                                &mut occupied,
+                                &mut last_pos,
+                            )?;
+                            boxes.push(box_def);
+                        }
                     }
                 }
+                ast::BoxItem::Label(label) => {
+                    let box_def = self.process_label(
+                        label,
+                        grid,
+                        &mut occupied,
+                        &mut last_pos,
+                    )?;
+                    boxes.push(box_def);
+                }
+                _ => {}
             }
         }
 
