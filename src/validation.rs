@@ -272,6 +272,8 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
 
     // Track which cells are occupied
     let mut occupied_cells: HashSet<(i32, i32)> = HashSet::new();
+    // Track the last position for auto-positioning
+    let mut last_pos = (1, 0); // Start before (1, 1)
 
     for item in &body.items {
         if let BoxItem::BoxInst(box_inst) = item {
@@ -282,54 +284,67 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
                 crate::ast::BoxInst::Reference { coords, dim, .. } => (coords, dim),
             };
 
-            // Skip validation if coords is None (auto-positioning will be done during elaboration)
-            let coords = match coords_opt {
-                Some(c) => c,
-                None => continue,
+            // Determine actual position (explicit or auto-positioned)
+            let (row, col) = if let Some(c) = coords_opt {
+                (c.row, c.col)
+            } else {
+                // Auto-positioned box - find next free position
+                match find_next_free_position(&occupied_cells, (grid_size.height, grid_size.width), (dim.height, dim.width), last_pos) {
+                    Some(pos) => {
+                        last_pos = pos;
+                        pos
+                    }
+                    None => {
+                        return Err(format!(
+                            "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
+                            filename, start.line(), start.col(), dim.height, dim.width, grid_size.height, grid_size.width
+                        ));
+                    }
+                }
             };
 
             // Check if position is within grid bounds (1-based indexing)
-            if coords.row < 1 || coords.row > grid_size.height {
+            if row < 1 || row > grid_size.height {
                 return Err(format!(
                     "{}:{}:{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so row must be in range [1, {}]",
-                    filename, start.line(), start.col(), coords.row, coords.col, grid_size.height, grid_size.width, grid_size.height
+                    filename, start.line(), start.col(), row, col, grid_size.height, grid_size.width, grid_size.height
                 ));
             }
 
-            if coords.col < 1 || coords.col > grid_size.width {
+            if col < 1 || col > grid_size.width {
                 return Err(format!(
                     "{}:{}:{}: Box position ({}, {}) is out of bounds. Grid size is {}x{}, so col must be in range [1, {}]",
-                    filename, start.line(), start.col(), coords.row, coords.col, grid_size.height, grid_size.width, grid_size.width
+                    filename, start.line(), start.col(), row, col, grid_size.height, grid_size.width, grid_size.width
                 ));
             }
 
             // Check if box with dim fits within grid bounds (1-based indexing)
             // For 1-based indexing, a box at (1, 1) with dim 1x2 occupies cells (1, 1) and (1, 2)
-            let end_row = coords.row + dim.height - 1;
-            let end_col = coords.col + dim.width - 1;
+            let end_row = row + dim.height - 1;
+            let end_col = col + dim.width - 1;
 
             if end_row > grid_size.height {
                 return Err(format!(
                     "{}:{}:{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
-                    filename, start.line(), start.col(), coords.row, coords.col, dim.height, dim.width, end_row, grid_size.height
+                    filename, start.line(), start.col(), row, col, dim.height, dim.width, end_row, grid_size.height
                 ));
             }
 
             if end_col > grid_size.width {
                 return Err(format!(
                     "{}:{}:{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
-                    filename, start.line(), start.col(), coords.row, coords.col, dim.height, dim.width, end_col, grid_size.width
+                    filename, start.line(), start.col(), row, col, dim.height, dim.width, end_col, grid_size.width
                 ));
             }
 
             // Check for overlapping cells
-            for row in coords.row..=end_row {
-                for col in coords.col..=end_col {
-                    let cell = (row, col);
+            for r in row..=end_row {
+                for c in col..=end_col {
+                    let cell = (r, c);
                     if occupied_cells.contains(&cell) {
                         return Err(format!(
                             "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                            filename, start.line(), start.col(), coords.row, coords.col, dim.height, dim.width, row, col
+                            filename, start.line(), start.col(), row, col, dim.height, dim.width, r, c
                         ));
                     }
                     occupied_cells.insert(cell);
@@ -635,9 +650,13 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
                 match find_next_free_position(&occupied, grid, (dimensions.height, dimensions.width), last_pos) {
                     Some(pos) => pos,
                     None => {
-                        // No free space - skip this box for validation purposes
-                        // (elaboration will catch this error)
-                        continue;
+                        // No free space - return error
+                        let span = box_inst.span();
+                        let start = span.start();
+                        return Err(format!(
+                            "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
+                            filename, start.line(), start.col(), dimensions.height, dimensions.width, grid.0, grid.1
+                        ));
                     }
                 }
             };
