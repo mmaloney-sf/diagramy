@@ -17,9 +17,8 @@ assets: build
 web:
 	wasm-pack build --target web --out-dir web/dist -- --no-default-features --features wasm-bindgen
 
-serve-web: web
+serve-web:
 	cd web
 	python3 -m http.server 8002
 
-
-.PHONY: build install clean assets web
+.PHONY: build install clean assets web serve-web

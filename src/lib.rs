@@ -21,6 +21,63 @@ lalrpop_mod!(pub grammar); // synthesized by LALRPOP
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
 use wasm_bindgen::prelude::*;
 
+/// Diagnostic information for errors and warnings
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[wasm_bindgen]
+#[derive(Clone)]
+pub struct Diagnostic {
+    line: usize,
+    column: usize,
+    message: String,
+    severity: String, // "error", "warning", "info"
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[wasm_bindgen]
+impl Diagnostic {
+    #[wasm_bindgen(getter)]
+    pub fn line(&self) -> usize {
+        self.line
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn column(&self) -> usize {
+        self.column
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn message(&self) -> String {
+        self.message.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn severity(&self) -> String {
+        self.severity.clone()
+    }
+}
+
+/// Result of rendering a diagram, including SVG and diagnostics
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[wasm_bindgen]
+pub struct RenderResult {
+    svg: Option<String>,
+    diagnostics: Vec<Diagnostic>,
+}
+
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[wasm_bindgen]
+impl RenderResult {
+    #[wasm_bindgen(getter)]
+    pub fn svg(&self) -> Option<String> {
+        self.svg.clone()
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn diagnostics(&self) -> Vec<Diagnostic> {
+        self.diagnostics.clone()
+    }
+}
+
 /// Parse and render a diagram from text input to SVG string
 /// This function is exposed to JavaScript when compiled to WebAssembly
 #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
@@ -52,6 +109,211 @@ pub fn render_diagram(input: &str) -> Result<String, String> {
         .map_err(|e| format!("Render error: {}", e))?;
 
     Ok(svg_string)
+}
+
+/// Parse and render a diagram, returning both SVG and diagnostics
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+#[wasm_bindgen]
+pub fn render_diagram_with_diagnostics(input: &str) -> RenderResult {
+    let mut diagnostics = Vec::new();
+
+    // Create a parser instance
+    let parser = grammar::DocumentParser::new();
+
+    // Parse the input
+    let doc = match parser.parse(input, input) {
+        Ok(doc) => doc,
+        Err(e) => {
+            // Parse error - extract location information
+            if let Some(diag) = parse_error_to_diagnostic(&e, input) {
+                diagnostics.push(diag);
+            } else {
+                diagnostics.push(Diagnostic {
+                    line: 1,
+                    column: 1,
+                    message: format!("Parse error: {:?}", e),
+                    severity: "error".to_string(),
+                });
+            }
+            return RenderResult {
+                svg: None,
+                diagnostics,
+            };
+        }
+    };
+
+    // Validate the document
+    if let Err(e) = validation::validate(&doc, input, "input.dgmy") {
+        // Validation error - parse the error message to extract position
+        if let Some(diag) = parse_validation_error(&e) {
+            diagnostics.push(diag);
+        } else {
+            diagnostics.push(Diagnostic {
+                line: 1,
+                column: 1,
+                message: e,
+                severity: "error".to_string(),
+            });
+        }
+        return RenderResult {
+            svg: None,
+            diagnostics,
+        };
+    }
+
+    // Convert AST to elaboration diagram
+    let elab_diagram = match elaboration::from_ast(&doc, "input.dgmy", None) {
+        Ok(diag) => diag,
+        Err(e) => {
+            diagnostics.push(Diagnostic {
+                line: 1,
+                column: 1,
+                message: format!("Elaboration error: {}", e),
+                severity: "error".to_string(),
+            });
+            return RenderResult {
+                svg: None,
+                diagnostics,
+            };
+        }
+    };
+
+    // Get diagram size
+    let (width, height) = elab_diagram.size;
+
+    // Convert elaboration diagram to renderable diagram
+    let diagram_obj = diagram::from_elaboration(&elab_diagram);
+
+    // Render to SVG string
+    match diagram_obj.render_to_svg_string(width, height, 18, false) {
+        Ok(svg_string) => RenderResult {
+            svg: Some(svg_string),
+            diagnostics,
+        },
+        Err(e) => {
+            diagnostics.push(Diagnostic {
+                line: 1,
+                column: 1,
+                message: format!("Render error: {}", e),
+                severity: "error".to_string(),
+            });
+            RenderResult {
+                svg: None,
+                diagnostics,
+            }
+        }
+    }
+}
+
+/// Parse a validation error message to extract position and create a diagnostic
+/// Error format: "filename:line:col: message"
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+fn parse_validation_error(error: &str) -> Option<Diagnostic> {
+    let parts: Vec<&str> = error.splitn(2, ": ").collect();
+    if parts.len() != 2 {
+        return None;
+    }
+
+    let location_parts: Vec<&str> = parts[0].split(':').collect();
+    if location_parts.len() < 3 {
+        return None;
+    }
+
+    let line = location_parts[location_parts.len() - 2].parse::<usize>().ok()?;
+    let col = location_parts[location_parts.len() - 1].parse::<usize>().ok()?;
+    let message = parts[1].to_string();
+
+    Some(Diagnostic {
+        line,
+        column: col,
+        message,
+        severity: "error".to_string(),
+    })
+}
+
+/// Convert a parse error to a diagnostic with proper line/column numbers
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+fn parse_error_to_diagnostic(
+    error: &lalrpop_util::ParseError<usize, lalrpop_util::lexer::Token, &str>,
+    text: &str,
+) -> Option<Diagnostic> {
+    use lalrpop_util::ParseError;
+
+    match error {
+        ParseError::InvalidToken { location } => {
+            let (line, col) = get_line_col(text, *location);
+            Some(Diagnostic {
+                line,
+                column: col,
+                message: "Invalid token".to_string(),
+                severity: "error".to_string(),
+            })
+        }
+        ParseError::UnrecognizedEof { location, expected } => {
+            let (line, col) = get_line_col(text, *location);
+            let expected_str = if expected.is_empty() {
+                String::new()
+            } else {
+                format!(" (expected one of: {})", expected.join(", "))
+            };
+            Some(Diagnostic {
+                line,
+                column: col,
+                message: format!("Unexpected end of file{}", expected_str),
+                severity: "error".to_string(),
+            })
+        }
+        ParseError::UnrecognizedToken { token, expected } => {
+            let (line, col) = get_line_col(text, token.0);
+            let expected_str = if expected.is_empty() {
+                String::new()
+            } else {
+                format!(" (expected one of: {})", expected.join(", "))
+            };
+            Some(Diagnostic {
+                line,
+                column: col,
+                message: format!("Unexpected token{}", expected_str),
+                severity: "error".to_string(),
+            })
+        }
+        ParseError::ExtraToken { token } => {
+            let (line, col) = get_line_col(text, token.0);
+            Some(Diagnostic {
+                line,
+                column: col,
+                message: "Extra token".to_string(),
+                severity: "error".to_string(),
+            })
+        }
+        ParseError::User { error } => Some(Diagnostic {
+            line: 1,
+            column: 1,
+            message: error.to_string(),
+            severity: "error".to_string(),
+        }),
+    }
+}
+
+/// Convert byte offset to line and column (1-based)
+#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
+fn get_line_col(input: &str, location: usize) -> (usize, usize) {
+    let mut line = 1;
+    let mut col = 1;
+
+    for (i, ch) in input.chars().enumerate() {
+        if i >= location {
+            break;
+        }
+        if ch == '\n' {
+            line += 1;
+            col = 1;
+        } else {
+            col += 1;
+        }
+    }
+
+    (line, col)
 }
 
 #[rustfmt::skip]

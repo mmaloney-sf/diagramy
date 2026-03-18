@@ -1,5 +1,5 @@
 // Import the WebAssembly module
-import init, { render_diagram } from './dist/diagramy.js';
+import init, { render_diagram_with_diagnostics } from './dist/diagramy.js';
 
 // Initialize Ace Editor
 const editor = ace.edit("editor");
@@ -40,21 +40,44 @@ function renderDiagram() {
     const svgContainer = document.getElementById('svg-container');
     const content = editor.getValue();
 
-    // If content is empty, clear the container
+    // If content is empty, clear the container and annotations
     if (!content.trim()) {
         svgContainer.innerHTML = '';
+        editor.session.clearAnnotations();
         return;
     }
 
     try {
-        // Call the WebAssembly function to render the diagram
-        const svgString = render_diagram(content);
+        // Call the WebAssembly function to render the diagram with diagnostics
+        const result = render_diagram_with_diagnostics(content);
 
-        // Display the SVG
-        svgContainer.innerHTML = svgString;
+        // Get diagnostics
+        const diagnostics = result.diagnostics;
+
+        // Convert diagnostics to Ace annotations
+        const annotations = diagnostics.map(diag => ({
+            row: diag.line - 1, // Ace uses 0-based line numbers
+            column: diag.column - 1, // Ace uses 0-based column numbers
+            text: diag.message,
+            type: diag.severity // "error", "warning", or "info"
+        }));
+
+        // Set annotations in the editor
+        editor.session.setAnnotations(annotations);
+
+        // If we have SVG, display it
+        const svg = result.svg;
+        if (svg) {
+            svgContainer.innerHTML = svg;
+        } else {
+            // Show error message in the right panel as well
+            const errorMessages = diagnostics.map(d => `Line ${d.line}, Col ${d.column}: ${d.message}`).join('\n');
+            svgContainer.innerHTML = `<div class="error-message">Errors:\n${errorMessages}</div>`;
+        }
     } catch (error) {
         // Display error message
         svgContainer.innerHTML = `<div class="error-message">Error rendering diagram:\n${error}</div>`;
+        editor.session.clearAnnotations();
     }
 }
 
