@@ -19,6 +19,7 @@ pub struct BoxDef {
     pub margin: Option<f64>,
     pub border_style: Option<String>,
     pub bold: Option<bool>,
+    pub debug: Option<bool>,
     pub boxes: Vec<Box>,
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
@@ -289,7 +290,7 @@ impl<'ast> Elaborator<'ast> {
     }
 
     /// Extract properties, ports, and arrows from a box body
-    /// Returns (grid, title, color, margin, border_style, bold, ports, arrows)
+    /// Returns (grid, title, color, margin, border_style, bold, debug, ports, arrows)
     fn extract_box_items(
         &mut self,
         body: &ast::BoxBody,
@@ -300,6 +301,7 @@ impl<'ast> Elaborator<'ast> {
         Option<f64>,
         Option<String>,
         Option<bool>,
+        Option<bool>,
         Vec<Port>,
         Vec<Arrow>,
     ) {
@@ -309,6 +311,7 @@ impl<'ast> Elaborator<'ast> {
         let mut margin: Option<f64> = None;
         let mut border_style: Option<String> = None;
         let mut bold: Option<bool> = None;
+        let mut debug: Option<bool> = None;
         let mut ports: Vec<Port> = Vec::new();
         let mut arrows: Vec<Arrow> = Vec::new();
 
@@ -329,6 +332,9 @@ impl<'ast> Elaborator<'ast> {
                     }
                     ast::Prop::PropIdent(p) if p.key == "bold" => {
                         bold = Some(p.value == "true");
+                    }
+                    ast::Prop::PropIdent(p) if p.key == "debug" => {
+                        debug = Some(p.value == "true");
                     }
                     ast::Prop::PropFrac(p) if p.key == "margin" => {
                         margin = Some(p.value);
@@ -351,7 +357,7 @@ impl<'ast> Elaborator<'ast> {
             }
         }
 
-        (grid, title, color, margin, border_style, bold, ports, arrows)
+        (grid, title, color, margin, border_style, bold, debug, ports, arrows)
     }
 
     /// Find the next free grid position that can fit a box with the given dimensions
@@ -418,7 +424,7 @@ impl<'ast> Elaborator<'ast> {
         box_name: &str,
     ) -> Result<BoxDef, String> {
         // First pass: extract properties, ports, and arrows
-        let (grid, title, color, margin, border_style, bold, ports, arrows) = self.extract_box_items(body);
+        let (grid, title, color, margin, border_style, bold, debug, ports, arrows) = self.extract_box_items(body);
         let mut boxes: Vec<Box> = Vec::new();
 
         // Second pass: process box instances with auto-positioning
@@ -464,6 +470,7 @@ impl<'ast> Elaborator<'ast> {
             margin,
             border_style,
             bold,
+            debug,
             boxes,
             ports,
             arrows,

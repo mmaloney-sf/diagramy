@@ -14,7 +14,7 @@ const VALID_COLORS: &[&str] = &[
 const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top", "version"];
 
 // Valid box-level properties
-const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle", "bold"];
+const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle", "bold", "debug"];
 
 // Valid border styles
 const VALID_BORDER_STYLES: &[&str] = &["solid", "none", "dotted", "dashed"];
@@ -237,6 +237,11 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
         "bold" => {
             if !matches!(prop, Prop::PropIdent(p) if p.value == "true" || p.value == "false") {
                 return Err(format!("{}:{}:{}: Property 'bold' must be 'true' or 'false'", filename, start.line(), start.col()));
+            }
+        }
+        "debug" => {
+            if !matches!(prop, Prop::PropIdent(p) if p.value == "true" || p.value == "false") {
+                return Err(format!("{}:{}:{}: Property 'debug' must be 'true' or 'false'", filename, start.line(), start.col()));
             }
         }
         _ => {}

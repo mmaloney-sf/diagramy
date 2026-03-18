@@ -60,6 +60,10 @@ pub struct DiagramBox {
     pub horizontal_scaling: f64,
     /// Vertical scaling factor relative to top box (ratio: box height / top box height)
     pub vertical_scaling: f64,
+    /// Whether to show debug grid overlay
+    pub debug: bool,
+    /// Grid dimensions (rows, cols) for debug overlay
+    pub grid: (usize, usize),
 }
 
 impl DiagramBox {
@@ -285,6 +289,66 @@ fn render_box_rectangle(
     }
 
     svg_doc = svg_doc.add(rect);
+
+    // Add debug grid overlay if debug is enabled
+    if diagram_box.debug {
+        svg_doc = render_debug_grid(svg_doc, diagram_box)?;
+    }
+
+    Ok(svg_doc)
+}
+
+/// Render debug grid overlay for a box
+fn render_debug_grid(
+    mut svg_doc: SvgDocument,
+    diagram_box: &DiagramBox,
+) -> Result<SvgDocument, String> {
+    use svg::node::element::Group;
+
+    let (x, y) = diagram_box.pos;
+    let (width, height) = diagram_box.size;
+    let (grid_rows, grid_cols) = diagram_box.grid;
+
+    // Create a group for the debug grid
+    let mut debug_group = Group::new()
+        .set("class", "debug-grid");
+
+    // Calculate cell size based on the box's grid property
+    let cell_width = width / grid_cols as f64;
+    let cell_height = height / grid_rows as f64;
+
+    let grid_color = "#FF0000"; // Red color
+    let grid_opacity = 0.3; // 30% opacity (70% transparent)
+
+    // Draw vertical grid lines (grid_cols + 1 lines)
+    for i in 0..=grid_cols {
+        let grid_x = x + (i as f64 * cell_width);
+        let line = svg::node::element::Line::new()
+            .set("x1", grid_x)
+            .set("y1", y)
+            .set("x2", grid_x)
+            .set("y2", y + height)
+            .set("stroke", grid_color)
+            .set("stroke-width", 1)
+            .set("opacity", grid_opacity);
+        debug_group = debug_group.add(line);
+    }
+
+    // Draw horizontal grid lines (grid_rows + 1 lines)
+    for i in 0..=grid_rows {
+        let grid_y = y + (i as f64 * cell_height);
+        let line = svg::node::element::Line::new()
+            .set("x1", x)
+            .set("y1", grid_y)
+            .set("x2", x + width)
+            .set("y2", grid_y)
+            .set("stroke", grid_color)
+            .set("stroke-width", 1)
+            .set("opacity", grid_opacity);
+        debug_group = debug_group.add(line);
+    }
+
+    svg_doc = svg_doc.add(debug_group);
     Ok(svg_doc)
 }
 
@@ -580,6 +644,8 @@ fn flatten_boxes(
             border_style: box_def.border_style.clone(),
             horizontal_scaling,
             vertical_scaling,
+            debug: box_def.debug.unwrap_or(false),
+            grid: box_def.grid,
         });
     }
 
