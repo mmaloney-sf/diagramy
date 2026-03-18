@@ -1,40 +1,40 @@
 <svg height="600" viewBox="0 0 600 600" width="600" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
 <rect fill="transparent" height="506" stroke="#333" stroke-width="1" width="506" x="47" y="47"/>
-<rect fill="#E8DEDD" height="228" stroke="#333" stroke-width="0.575098814229249" width="354" x="59" y="59"/>
-<rect fill="#DEE8E3" height="354" stroke="#333" stroke-width="0.450592885375494" width="102" x="437" y="59"/>
-<rect fill="#DEE8ED" height="228" stroke="#333" stroke-width="0.4505928853754941" width="228" x="59" y="311"/>
-<rect fill="#E8E8DE" height="102" stroke="#333" stroke-width="0.2015810276679842" width="102" x="311" y="311"/>
-<rect fill="#DEE8E8" height="102" stroke="#333" stroke-width="0.2015810276679842" width="102" x="311" y="437"/>
-<rect fill="#E8E3DE" height="102" stroke="#333" stroke-width="0.2015810276679842" width="102" x="437" y="437"/>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="15" text-anchor="middle" x="236" y="173">
+<rect fill="#E8DEDD" height="227.7" stroke="#333" stroke-width="0.575" width="354.2" x="59.65" y="59.65"/>
+<rect fill="#DEE8E3" height="354.2" stroke="#333" stroke-width="0.44999999999999996" width="101.2" x="439.15" y="59.65"/>
+<rect fill="#DEE8ED" height="227.7" stroke="#333" stroke-width="0.44999999999999996" width="227.7" x="59.65" y="312.65"/>
+<rect fill="#E8E8DE" height="101.2" stroke="#333" stroke-width="0.2" width="101.2" x="312.65" y="312.65"/>
+<rect fill="#DEE8E8" height="101.2" stroke="#333" stroke-width="0.2" width="101.2" x="312.65" y="439.15"/>
+<rect fill="#E8E3DE" height="101.2" stroke="#333" stroke-width="0.2" width="101.2" x="439.15" y="439.15"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="15" text-anchor="middle" x="236.75" y="173.5">
 Wide Box
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="15" text-anchor="middle" x="236" y="188">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="15" text-anchor="middle" x="236.75" y="188.5">
 (2x3)
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="488" y="230">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="489.75" y="230.25">
 Tall
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="488" y="243">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="489.75" y="243.25">
 Box
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="488" y="256">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="489.75" y="256.25">
 (3x1)
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="173" y="425">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="173.5" y="426.5">
 Square
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="173" y="439">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="173.5" y="440.5">
 (2x2)
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="362" y="369">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="363.25" y="369.75">
 1x1
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="362" y="495">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="363.25" y="496.25">
 1x1
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="488" y="495">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="489.75" y="496.25">
 1x1
 </text>
 <defs>

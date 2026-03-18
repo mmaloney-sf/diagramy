@@ -486,15 +486,6 @@ impl<'ast> Elaborator<'ast> {
     ) -> Vec<RoutedArrowPath> {
         use crate::routing::{ArrowRouter, BoundingBox};
 
-        eprintln!();
-        eprintln!("route_arrows for {box_name}");
-        dbg!(&arrows);
-        dbg!(&ports);
-        dbg!(&boxes);
-        dbg!(&grid);
-        dbg!(&parent_margin);
-        dbg!(&box_name);
-
         // Build port map (using f64 coordinates)
         let mut port_map: HashMap<String, (f64, f64)> = HashMap::new();
         for port in ports {

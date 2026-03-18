@@ -1,20 +1,20 @@
 <svg height="1050" viewBox="0 0 700 1050" width="700" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#D5DBDB" height="100%" width="100%"/>
 <rect fill="#DEE8ED" height="956" stroke="#333" stroke-width="1" width="606" x="47" y="47"/>
-<rect fill="transparent" height="256" stroke="#333" stroke-width="0.5843862628940718" width="546" x="77" y="78"/>
-<rect fill="transparent" height="256" stroke="#333" stroke-width="0.3343862628940718" width="243" x="77" y="396"/>
-<rect fill="transparent" height="256" stroke="#333" stroke-width="0.3343862628940718" width="243" x="380" y="396"/>
-<rect fill="transparent" height="256" stroke="#333" stroke-width="0.5843862628940718" width="546" x="77" y="714"/>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="214">
+<rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.5833333333333333" width="545.4" x="77.3" y="78.86666666666667"/>
+<rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.33333333333333337" width="242.4" x="77.3" y="397.53333333333336"/>
+<rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.33333333333333337" width="242.4" x="380.3" y="397.53333333333336"/>
+<rect fill="transparent" height="254.93333333333334" stroke="#333" stroke-width="0.5833333333333333" width="545.4" x="77.3" y="716.2"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="214.33333333333334">
 ALU
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="198" y="531">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="198.5" y="532">
 L1-I
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="501" y="531">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="501.5" y="532">
 L1-D
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="850">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" x="350" y="851.6666666666667">
 Registers
 </text>
 <defs>

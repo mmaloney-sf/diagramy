@@ -1,90 +1,90 @@
 <svg height="933" viewBox="0 0 700 933" width="700" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#F8F9F9" height="100%" width="100%"/>
 <rect fill="transparent" height="839" stroke="#333" stroke-width="1" width="606" x="47" y="47"/>
-<rect fill="#E8DEDD" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="269" y="67"/>
-<rect fill="#E8E3DE" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="269" y="276"/>
-<rect fill="#E8E8DE" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="67" y="485"/>
-<rect fill="#E8E8DE" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="269" y="485"/>
-<rect fill="#E8E8DE" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="471" y="485"/>
-<rect fill="#DEE8ED" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="67" y="694"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="83" y="698"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="83" y="740"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="83" y="782"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="83" y="824"/>
-<rect fill="#DEE8ED" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="269" y="694"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="285" y="698"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="285" y="740"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="285" y="782"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="285" y="824"/>
-<rect fill="#DEE8ED" height="169" stroke="#333" stroke-width="0.2343785034045717" width="162" x="471" y="694"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="487" y="698"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="487" y="740"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="487" y="782"/>
-<rect fill="transparent" height="34" stroke="#333" stroke-width="0.12752294299751787" width="130" x="487" y="824"/>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="151">
+<rect fill="#E8DEDD" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="269.2" y="67.975"/>
+<rect fill="#E8E3DE" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="269.2" y="277.725"/>
+<rect fill="#E8E8DE" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="67.2" y="487.475"/>
+<rect fill="#E8E8DE" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="269.2" y="487.475"/>
+<rect fill="#E8E8DE" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="471.2" y="487.475"/>
+<rect fill="#DEE8ED" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="67.2" y="697.225"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="701.4200000000001"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="743.3700000000001"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="785.32"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="83.36" y="827.2700000000001"/>
+<rect fill="#DEE8ED" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="269.2" y="697.225"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="701.4200000000001"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="743.3700000000001"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="785.32"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="285.36" y="827.2700000000001"/>
+<rect fill="#DEE8ED" height="167.8" stroke="#333" stroke-width="0.23333333333333334" width="161.6" x="471.2" y="697.225"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="701.4200000000001"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="743.3700000000001"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="785.32"/>
+<rect fill="transparent" height="33.56" stroke="#333" stroke-width="0.12666666666666668" width="129.28" x="487.36" y="827.2700000000001"/>
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="151.875">
 Internet
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="164">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="164.875">
 Gateway
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="360">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="361.625">
 Core
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="373">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="374.625">
 Router
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="569">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="571.375">
 Switch
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="582">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="584.375">
 A
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="569">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="571.375">
 Switch
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="582">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="584.375">
 B
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="569">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="571.375">
 Switch
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="582">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="584.375">
 C
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="722">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="724.7">
 Web
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="764">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="766.6500000000001">
 App
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="806">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="808.6">
 DB
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="848">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="148" y="850.5500000000001">
 Cache
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="722">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="724.7">
 Web
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="764">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="766.6500000000001">
 App
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="806">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="808.6">
 DB
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="848">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="350" y="850.5500000000001">
 Cache
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="722">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="724.7">
 Web
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="764">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="766.6500000000001">
 App
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="806">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="808.6">
 DB
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="848">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="552" y="850.5500000000001">
 Cache
 </text>
 <defs>

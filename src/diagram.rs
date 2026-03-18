@@ -480,6 +480,25 @@ fn collect_routed_paths(
 ) {
     let (grid_height, grid_width) = box_def.grid;
 
+    // Calculate padding if this box has a title and children
+    let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
+        let min_dimension = parent_width.min(parent_height);
+        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
+        let margin_scale = box_def.margin.unwrap_or(1.0);
+        (
+            padding * margin_scale,
+            padding * margin_scale,
+            padding * margin_scale,
+            padding * margin_scale,
+        )
+    } else {
+        (0.0, 0.0, 0.0, 0.0)
+    };
+
+    // Calculate available space after padding
+    let available_width = parent_width - (padding_left + padding_right);
+    let available_height = parent_height - (padding_top + padding_bottom);
+
     // Convert routed paths from this box
     for path in &box_def.routed_arrow_paths {
         let pixel_path: Vec<(f64, f64)> = path.iter().map(|(row, col)| {
@@ -487,8 +506,9 @@ fn collect_routed_paths(
             let frac_y = row / grid_height as f64;
             let frac_x = col / grid_width as f64;
 
-            let abs_x = parent_x + (frac_x * parent_width);
-            let abs_y = parent_y + (frac_y * parent_height);
+            // Map to available space, accounting for padding
+            let abs_x = parent_x + padding_left + (frac_x * available_width);
+            let abs_y = parent_y + padding_top + (frac_y * available_height);
 
             (abs_x, abs_y)
         }).collect();
@@ -501,11 +521,11 @@ fn collect_routed_paths(
         let (child_row, child_col) = child_box.pos;
         let (child_height, child_width) = child_box.dim;
 
-        let cell_width = parent_width / grid_width as f64;
-        let cell_height = parent_height / grid_height as f64;
+        let cell_width = available_width / grid_width as f64;
+        let cell_height = available_height / grid_height as f64;
 
-        let child_x = parent_x + (child_col as f64 * cell_width);
-        let child_y = parent_y + (child_row as f64 * cell_height);
+        let child_x = parent_x + padding_left + (child_col as f64 * cell_width);
+        let child_y = parent_y + padding_top + (child_row as f64 * cell_height);
         let child_pixel_width = child_width as f64 * cell_width;
         let child_pixel_height = child_height as f64 * cell_height;
 
@@ -533,9 +553,13 @@ fn flatten_boxes(
     output: &mut Vec<DiagramBox>,
     ports_output: &mut Vec<DiagramPort>,
 ) {
-    // First, add the current box itself (if it has a title, color, or children)
-    // Boxes with children should always be rendered to show their border
-    if box_def.title.is_some() || box_def.color.is_some() || !box_def.boxes.is_empty() {
+    // First, add the current box itself (if it has a title, color, children, ports, or arrows)
+    // Boxes with children, ports, or arrows should always be rendered to show their border
+    if box_def.title.is_some()
+        || box_def.color.is_some()
+        || !box_def.boxes.is_empty()
+        || !box_def.ports.is_empty()
+        || !box_def.arrows.is_empty() {
         // Linear scaling based on box width relative to canvas
         let width_ratio = parent_width / canvas_width;
         let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
@@ -639,9 +663,10 @@ fn flatten_boxes(
         let frac_y = port.coords.0 / grid_height as f64;
         let frac_x = port.coords.1 / grid_width as f64;
 
-        // Map to actual box dimensions
-        let abs_x = parent_x + (frac_x * parent_width); // col is x
-        let abs_y = parent_y + (frac_y * parent_height); // row is y
+        // Map to actual box dimensions, accounting for padding
+        // Ports should be positioned within the available space (after padding)
+        let abs_x = parent_x + padding_left + (frac_x * available_width); // col is x
+        let abs_y = parent_y + padding_top + (frac_y * available_height); // row is y
 
         ports_output.push(DiagramPort {
             name: port.name.clone(),

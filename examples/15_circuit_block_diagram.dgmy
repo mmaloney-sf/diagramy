@@ -1,0 +1,111 @@
+// Example 15: Circuit Block Diagram
+// Demonstrates a complex circuit layout with multiple levels of nested boxes,
+// ports, and arrows showing signal flow between components.
+// This example shows how to create hierarchical block diagrams with automatic
+// arrow routing between components at different nesting levels.
+
+diagram {
+    version: "0.1.0"
+    width: 1200
+    color: white
+    title: "Digital Signal Processor Architecture"
+}
+
+box processor {
+    grid: 4x4
+
+    // Input/Output Interface (top-left)
+    box io_interface at (1, 1) is {
+        grid: 2x2
+        color: cyan
+
+        box adc at (1, 1) is {
+            text: "ADC"
+            color: lime
+        }
+
+        box dac at (2, 1) is {
+            text: "DAC"
+            color: lime
+        }
+    }
+
+    // Processing Core (center)
+    box core at (2, 2) dim 1x1 is {
+        grid: 3x2
+        color: yellow
+
+        box alu at (1, 1) is {
+            text: "ALU"
+            color: orange
+        }
+
+        box fpu at (2, 1) is {
+            text: "FPU"
+            color: orange
+        }
+
+        box control at (3, 1) dim 1x2 is {
+            text: "Control\nUnit"
+            color: pink
+        }
+    }
+
+    // Memory Subsystem (top-right)
+    box memory at (1, 3) dim 2x1 is {
+        grid: 3x1
+        color: teal
+
+        box cache_l1 at (1, 1) is {
+            text: "L1 Cache"
+            color: cyan
+        }
+
+        box cache_l2 at (2, 1) is {
+            text: "L2 Cache"
+            color: cyan
+        }
+
+        box ram at (3, 1) is {
+            text: "RAM"
+            color: blue
+        }
+    }
+
+    // DMA Controller (bottom-left)
+    box dma at (3, 1) is {
+        color: purple
+
+        port dma_data at (0.0, 0.5)
+        port dma_ctrl at (1.0, 0.5)
+
+        arrow dma_data to dma_ctrl
+    }
+
+    // Clock and Power Management (bottom-center)
+    box clock_power at (3, 2) is {
+        grid: 3x3
+        color: yellow
+
+        box pll at (1, 1) is {
+            text: "PLL"
+            color: orange
+        }
+
+        box pmu at (2, 2) is {
+            text: "PMU"
+            color: orange
+        }
+
+        port irq_in at (0.0, 0.5)
+        port irq_out at (3.0, 0.5)
+
+        arrow irq_in to irq_out
+    }
+
+    // Interrupt Controller (bottom-right)
+    box interrupt at (3, 3) is {
+        color: pink
+    }
+}
+
