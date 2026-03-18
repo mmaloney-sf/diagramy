@@ -149,23 +149,70 @@ impl BoxInst {
 
 #[derive(Debug, Clone)]
 pub enum Prop {
-    PropIdent { key: String, value: String, value_location: (usize, usize), span: Span },
-    PropString { key: String, value: Vec<String>, span: Span },
-    PropNumber { key: String, value: i32, span: Span },
-    PropFrac { key: String, value: f64, span: Span },
-    PropCoords { key: String, value: Coords, span: Span },
-    PropDim { key: String, value: Dim, span: Span },
+    PropIdent(PropIdent), // { key: String, value: String, , span: Span },
+    PropString(PropString), // { key: String, value: Vec<String>, span: Span },
+    PropNumber(PropNumber), // { key: String, value: i32, span: Span },
+    PropFrac(PropFrac), // { key: String, value: f64, span: Span },
+    PropCoords(PropCoords), // { key: String, value: Coords, span: Span },
+    PropDim(PropDim), // { key: String, value: Dim, span: Span },
 }
+
+#[derive(Debug, Clone)]
+pub struct PropIdent {
+    pub key: String,
+    pub value: String,
+    pub span: Span,
+    pub value_location: (usize, usize),
+}
+
+#[derive(Debug, Clone)]
+pub struct PropString {
+    pub key: String,
+    pub value: Vec<String>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct PropNumber {
+    pub key: String,
+    pub value: i32,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct PropFrac {
+    pub key: String,
+    pub value: f64,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct PropCoords {
+    pub key: String,
+    pub value: Coords,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct PropDim {
+    pub key: String,
+    pub value: Dim,
+    pub span: Span,
+}
+
+
+
+
 
 impl Prop {
     pub fn span(&self) -> Span {
         match self {
-            Prop::PropIdent { span, .. } => *span,
-            Prop::PropString { span, .. } => *span,
-            Prop::PropNumber { span, .. } => *span,
-            Prop::PropFrac { span, .. } => *span,
-            Prop::PropCoords { span, .. } => *span,
-            Prop::PropDim { span, .. } => *span,
+            Prop::PropIdent(p) => p.span,
+            Prop::PropString(p) => p.span,
+            Prop::PropNumber(p) => p.span,
+            Prop::PropFrac(p) => p.span,
+            Prop::PropCoords(p) => p.span,
+            Prop::PropDim(p) => p.span,
         }
     }
 }

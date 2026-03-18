@@ -596,15 +596,15 @@ fn find_top_prop_at_position(
     use diagramy::ast::Prop;
 
     for prop in &doc.diagram.props {
-        if let Prop::PropIdent { key, value, value_location, .. } = prop {
-            if key == "top" {
+        if let Prop::PropIdent(p) = prop {
+            if p.key == "top" {
                 // Check if the position is within the value identifier
-                let value_span = diagramy::ast::Span::from_offsets(text, value_location.0, value_location.1);
+                let value_span = diagramy::ast::Span::from_offsets(text, p.value_location.0, p.value_location.1);
                 let start = value_span.start();
                 let end = value_span.end();
 
                 if is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
-                    return Some(value.clone());
+                    return Some(p.value.clone());
                 }
             }
         }
@@ -651,15 +651,15 @@ fn check_box_reference_hover(
 
     // Check if hovering over the "top" property value
     for prop in &doc.diagram.props {
-        if let Prop::PropIdent { key, value, value_location, .. } = prop {
-            if key == "top" {
-                let value_span = diagramy::ast::Span::from_offsets(text, value_location.0, value_location.1);
+        if let Prop::PropIdent(p) = prop {
+            if p.key == "top" {
+                let value_span = diagramy::ast::Span::from_offsets(text, p.value_location.0, p.value_location.1);
                 let start = value_span.start();
                 let end = value_span.end();
 
                 if is_position_in_span(line, col, start.line(), start.col(), end.line(), end.col()) {
                     // Find the box definition
-                    if let Some(box_def) = doc.box_defs.iter().find(|bd| bd.name == *value) {
+                    if let Some(box_def) = doc.box_defs.iter().find(|bd| bd.name == p.value) {
                         return Some(format_box_def_info(box_def));
                     }
                 }
@@ -721,13 +721,13 @@ fn format_box_def_info(box_def: &diagramy::ast::BoxDef) -> String {
     for item in &box_def.body.items {
         match item {
             BoxItem::Prop(prop) => {
-                if let Prop::PropDim { key, value, .. } = prop {
-                    if key == "grid" {
-                        grid = format!("{}x{}", value.height, value.width);
+                if let Prop::PropDim(p) = prop {
+                    if p.key == "grid" {
+                        grid = format!("{}x{}", p.value.height, p.value.width);
                     }
-                } else if let Prop::PropString { key, value, .. } = prop {
-                    if key == "text" {
-                        text_content = Some(value.join("\n"));
+                } else if let Prop::PropString(p) = prop {
+                    if p.key == "text" {
+                        text_content = Some(p.value.join("\n"));
                     }
                 }
             }
@@ -822,17 +822,17 @@ fn check_property_hover(
 
         // Get the property key
         let key = match prop {
-            Prop::PropIdent { key, .. } => key,
-            Prop::PropString { key, .. } => key,
-            Prop::PropNumber { key, .. } => key,
-            Prop::PropFrac { key, .. } => key,
-            Prop::PropCoords { key, .. } => key,
-            Prop::PropDim { key, .. } => key,
+            Prop::PropIdent(p) => &p.key,
+            Prop::PropString(p) => &p.key,
+            Prop::PropNumber(p) => &p.key,
+            Prop::PropFrac(p) => &p.key,
+            Prop::PropCoords(p) => &p.key,
+            Prop::PropDim(p) => &p.key,
         };
 
         // Check if hovering over a Coords value
-        if let Prop::PropCoords { value, .. } = prop {
-            let coords_span = value.span;
+        if let Prop::PropCoords(p) = prop {
+            let coords_span = p.value.span;
             let coords_start = coords_span.start();
             let coords_end = coords_span.end();
             if is_position_in_span(line, col, coords_start.line(), coords_start.col(), coords_end.line(), coords_end.col()) {
@@ -841,8 +841,8 @@ fn check_property_hover(
         }
 
         // Check if hovering over a Dim value
-        if let Prop::PropDim { value, .. } = prop {
-            let dim_span = value.span;
+        if let Prop::PropDim(p) = prop {
+            let dim_span = p.value.span;
             let dim_start = dim_span.start();
             let dim_end = dim_span.end();
             if is_position_in_span(line, col, dim_start.line(), dim_start.col(), dim_end.line(), dim_end.col()) {

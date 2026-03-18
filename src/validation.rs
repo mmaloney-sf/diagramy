@@ -44,12 +44,12 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
         let span = prop.span();
         let start = span.start();
         let key = match prop {
-            Prop::PropIdent { key, .. } => key,
-            Prop::PropString { key, .. } => key,
-            Prop::PropNumber { key, .. } => key,
-            Prop::PropFrac { key, .. } => key,
-            Prop::PropCoords { key, .. } => key,
-            Prop::PropDim { key, .. } => key,
+            Prop::PropIdent(p) => &p.key,
+            Prop::PropString(p) => &p.key,
+            Prop::PropNumber(p) => &p.key,
+            Prop::PropFrac(p) => &p.key,
+            Prop::PropCoords(p) => &p.key,
+            Prop::PropDim(p) => &p.key,
         };
 
         // Check if property is known
@@ -67,29 +67,29 @@ fn validate_diagram_props(props: &[Prop], filename: &str) -> Result<(), String> 
         // Validate property types
         match key.as_str() {
             "width" => {
-                if !matches!(prop, Prop::PropNumber { .. }) {
+                if !matches!(prop, Prop::PropNumber(_)) {
                     return Err(format!("{}:{}:{}: Property 'width' must be a number", filename, start.line(), start.col()));
                 }
             }
             "color" => {
-                if let Prop::PropIdent { value, .. } = prop {
-                    validate_color(value, filename, span)?;
+                if let Prop::PropIdent(p) = prop {
+                    validate_color(&p.value, filename, span)?;
                 } else {
                     return Err(format!("{}:{}:{}: Property 'color' must be an identifier", filename, start.line(), start.col()));
                 }
             }
             "title" => {
-                if !matches!(prop, Prop::PropString { .. }) {
+                if !matches!(prop, Prop::PropString(_)) {
                     return Err(format!("{}:{}:{}: Property 'title' must be a string", filename, start.line(), start.col()));
                 }
             }
             "top" => {
-                if !matches!(prop, Prop::PropIdent { .. }) {
+                if !matches!(prop, Prop::PropIdent(_)) {
                     return Err(format!("{}:{}:{}: Property 'top' must be an identifier", filename, start.line(), start.col()));
                 }
             }
             "version" => {
-                if !matches!(prop, Prop::PropString { .. }) {
+                if !matches!(prop, Prop::PropString(_)) {
                     return Err(format!("{}:{}:{}: Property 'version' must be a string", filename, start.line(), start.col()));
                 }
             }
@@ -161,12 +161,12 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
     let span = prop.span();
     let start = span.start();
     let key = match prop {
-        Prop::PropIdent { key, .. } => key,
-        Prop::PropString { key, .. } => key,
-        Prop::PropNumber { key, .. } => key,
-        Prop::PropFrac { key, .. } => key,
-        Prop::PropCoords { key, .. } => key,
-        Prop::PropDim { key, .. } => key,
+        Prop::PropIdent(p) => &p.key,
+        Prop::PropString(p) => &p.key,
+        Prop::PropNumber(p) => &p.key,
+        Prop::PropFrac(p) => &p.key,
+        Prop::PropCoords(p) => &p.key,
+        Prop::PropDim(p) => &p.key,
     };
 
     // Check if property is known
@@ -184,26 +184,26 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
     // Validate property types
     match key.as_str() {
         "grid" => {
-            if !matches!(prop, Prop::PropDim { .. }) {
+            if !matches!(prop, Prop::PropDim(_)) {
                 return Err(format!("{}:{}:{}: Property 'grid' must be dimensions (heightxwidth)", filename, start.line(), start.col()));
             }
         }
         "text" => {
-            if !matches!(prop, Prop::PropString { .. }) {
+            if !matches!(prop, Prop::PropString(_)) {
                 return Err(format!("{}:{}:{}: Property 'text' must be a string", filename, start.line(), start.col()));
             }
         }
         "color" => {
-            if let Prop::PropIdent { value, .. } = prop {
-                validate_color(value, filename, span)?;
+            if let Prop::PropIdent(p) = prop {
+                validate_color(&p.value, filename, span)?;
             } else {
                 return Err(format!("{}:{}:{}: Property 'color' must be an identifier", filename, start.line(), start.col()));
             }
         }
         "margin" => {
             let margin_value = match prop {
-                Prop::PropNumber { value, .. } => *value as f64,
-                Prop::PropFrac { value, .. } => *value,
+                Prop::PropNumber(p) => p.value as f64,
+                Prop::PropFrac(p) => p.value,
                 _ => {
                     return Err(format!("{}:{}:{}: Property 'margin' must be a number", filename, start.line(), start.col()));
                 }
@@ -219,14 +219,14 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
             }
         }
         "borderStyle" => {
-            if let Prop::PropIdent { value, .. } = prop {
-                if !VALID_BORDER_STYLES.contains(&value.as_str()) {
+            if let Prop::PropIdent(p) = prop {
+                if !VALID_BORDER_STYLES.contains(&p.value.as_str()) {
                     return Err(format!(
                         "{}:{}:{}: Unknown borderStyle: '{}'. Valid styles are: {}",
                         filename,
                         start.line(),
                         start.col(),
-                        value,
+                        p.value,
                         VALID_BORDER_STYLES.join(", ")
                     ));
                 }
@@ -235,7 +235,7 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
             }
         }
         "bold" => {
-            if !matches!(prop, Prop::PropIdent { value, .. } if value == "true" || value == "false") {
+            if !matches!(prop, Prop::PropIdent(p) if p.value == "true" || p.value == "false") {
                 return Err(format!("{}:{}:{}: Property 'bold' must be 'true' or 'false'", filename, start.line(), start.col()));
             }
         }
@@ -264,9 +264,9 @@ fn validate_color(color: &str, filename: &str, span: crate::ast::Span) -> Result
 /// Extract grid size from box properties
 fn get_grid_size(body: &BoxBody) -> Option<crate::ast::Dim> {
     for item in &body.items {
-        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
-            if key == "grid" {
-                return Some(value.clone());
+        if let BoxItem::Prop(Prop::PropDim(p)) = item {
+            if p.key == "grid" {
+                return Some(p.value.clone());
             }
         }
     }
@@ -400,9 +400,9 @@ fn validate_unique_box_names(body: &BoxBody, filename: &str) -> Result<(), Strin
 fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result<(), String> {
     // Check if this box has a text property
     let text_prop = body.items.iter().find_map(|item| {
-        if let BoxItem::Prop(Prop::PropString { key, span, .. }) = item {
-            if key == "text" {
-                return Some(*span);
+        if let BoxItem::Prop(Prop::PropString(p)) = item {
+            if p.key == "text" {
+                return Some(p.span);
             }
         }
         None
@@ -462,8 +462,8 @@ fn validate_grid_required_for_children(body: &BoxBody, filename: &str) -> Result
     // If there are child boxes, check for grid property
     if let Some(child_span) = child_box {
         let has_grid = body.items.iter().any(|item| {
-            if let BoxItem::Prop(Prop::PropDim { key, .. }) = item {
-                key == "grid"
+            if let BoxItem::Prop(Prop::PropDim(p)) = item {
+                p.key == "grid"
             } else {
                 false
             }
@@ -553,20 +553,20 @@ fn validate_no_name_conflicts(body: &BoxBody, filename: &str) -> Result<(), Stri
 fn validate_top_property(doc: &Document, source: &str, filename: &str) -> Result<(), String> {
     // Find the top: property in diagram props
     for prop in &doc.diagram.props {
-        if let Prop::PropIdent { key, value, value_location, .. } = prop {
-            if key == "top" {
+        if let Prop::PropIdent(p) = prop {
+            if p.key == "top" {
                 // Check if a box with this name exists
-                let box_exists = doc.box_defs.iter().any(|bd| bd.name == *value);
+                let box_exists = doc.box_defs.iter().any(|bd| bd.name == p.value);
                 if !box_exists {
                     // Get the span for the value to report the error at the right location
-                    let value_span = crate::ast::Span::from_offsets(source, value_location.0, value_location.1);
+                    let value_span = crate::ast::Span::from_offsets(source, p.value_location.0, p.value_location.1);
                     let start = value_span.start();
                     return Err(format!(
                         "{}:{}:{}: No such box: {}",
                         filename,
                         start.line(),
                         start.col(),
-                        value
+                        p.value
                     ));
                 }
             }
@@ -625,9 +625,9 @@ fn validate_port_bounds(port: &Port, body: &BoxBody, filename: &str) -> Result<(
     // Extract the grid dimensions from the box body
     let mut grid = (1, 1); // default grid
     for item in &body.items {
-        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
-            if key == "grid" {
-                grid = (value.height, value.width);
+        if let BoxItem::Prop(Prop::PropDim(p)) = item {
+            if p.key == "grid" {
+                grid = (p.value.height, p.value.width);
                 break;
             }
         }
@@ -748,9 +748,9 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
     // Get grid dimensions
     let mut grid = (1, 1);
     for item in &body.items {
-        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
-            if key == "grid" {
-                grid = (value.height, value.width);
+        if let BoxItem::Prop(Prop::PropDim(p)) = item {
+            if p.key == "grid" {
+                grid = (p.value.height, p.value.width);
                 break;
             }
         }
@@ -844,9 +844,9 @@ fn validate_port_not_near_corners(port: &Port, body: &BoxBody, filename: &str) -
     // Get grid dimensions
     let mut grid = (1, 1);
     for item in &body.items {
-        if let BoxItem::Prop(Prop::PropDim { key, value, .. }) = item {
-            if key == "grid" {
-                grid = (value.height, value.width);
+        if let BoxItem::Prop(Prop::PropDim(p)) = item {
+            if p.key == "grid" {
+                grid = (p.value.height, p.value.width);
                 break;
             }
         }

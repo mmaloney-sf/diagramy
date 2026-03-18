@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, Port, Arrow, Coords, CoordsFrac, Path, Dim, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Coords, CoordsFrac, Path, Dim, Span};
 
 grammar(source: &str);
 
@@ -54,12 +54,12 @@ BoxInst: BoxInst = {
 };
 
 Prop: Prop = {
-    <ll:@L> <key:Ident> ":" <l:@L> <value:Ident> <r:@R> <rr:@R> => Prop::PropIdent { key, value, value_location: (l, r), span: Span::from_offsets(source, ll, rr) },
-    <ll:@L> <key:Ident> ":" <value:String+> <rr:@R> => Prop::PropString { key, value, span: Span::from_offsets(source, ll, rr) },
-    <ll:@L> <key:Ident> ":" <value:Frac> <rr:@R> => Prop::PropFrac { key, value, span: Span::from_offsets(source, ll, rr) },
-    <ll:@L> <key:Ident> ":" <value:Num> <rr:@R> => Prop::PropNumber { key, value, span: Span::from_offsets(source, ll, rr) },
-    <ll:@L> <key:Ident> ":" <value:Coords> <rr:@R> => Prop::PropCoords { key, value, span: Span::from_offsets(source, ll, rr) },
-    <ll:@L> <key:Ident> ":" <value:Dim> <rr:@R> => Prop::PropDim { key, value, span: Span::from_offsets(source, ll, rr) },
+    <ll:@L> <key:Ident> ":" <l:@L> <value:Ident> <r:@R> <rr:@R> => Prop::PropIdent(PropIdent { key, value, value_location: (l, r), span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:Ident> ":" <value:String+> <rr:@R> => Prop::PropString(PropString { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:Ident> ":" <value:Frac> <rr:@R> => Prop::PropFrac(PropFrac { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:Ident> ":" <value:Num> <rr:@R> => Prop::PropNumber(PropNumber { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:Ident> ":" <value:Coords> <rr:@R> => Prop::PropCoords(PropCoords { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:Ident> ":" <value:Dim> <rr:@R> => Prop::PropDim(PropDim { key, value, span: Span::from_offsets(source, ll, rr) }),
 };
 
 Port: Port = {

@@ -72,12 +72,12 @@ pub fn from_ast(
         box_def_map,
     };
 
-    elaborator.from_ast_impl(doc)
+    elaborator.from_ast(doc)
 }
 
 impl<'ast> Elaborator<'ast> {
     /// Convert an ast::Document into a diagram::Diagram
-    fn from_ast_impl(
+    fn from_ast(
         &mut self,
         doc: &ast::Document,
     ) -> Result<ElaboratedDiagram, String> {
@@ -89,17 +89,17 @@ impl<'ast> Elaborator<'ast> {
 
         for prop in &doc.diagram.props {
             match prop {
-                ast::Prop::PropIdent { key, value, .. } if key == "color" => {
-                    color = value.clone();
+                ast::Prop::PropIdent(p) if p.key == "color" => {
+                    color = p.value.clone();
                 }
-                ast::Prop::PropIdent { key, value, .. } if key == "top" => {
-                    top_name = Some(value.clone());
+                ast::Prop::PropIdent(p) if p.key == "top" => {
+                    top_name = Some(p.value.clone());
                 }
-                ast::Prop::PropNumber { key, value, .. } if key == "width" => {
-                    width = Some(*value as usize);
+                ast::Prop::PropNumber(p) if p.key == "width" => {
+                    width = Some(p.value as usize);
                 }
-                ast::Prop::PropString { key, value, .. } if key == "title" => {
-                    title = Some(value.join("\n"));
+                ast::Prop::PropString(p) if p.key == "title" => {
+                    title = Some(p.value.join("\n"));
                 }
                 _ => {}
             }
@@ -126,10 +126,7 @@ impl<'ast> Elaborator<'ast> {
         };
 
         // Convert the top box definition
-        let top_box_def = self.convert_ast_box_body(
-            &top_ast_def.body,
-            "top",
-        )?;
+        let top_box_def = self.convert_ast_box_body(&top_ast_def.body, "top")?;
 
         // Calculate size from width and grid aspect ratio
         // grid is now (rows, cols), so aspect_ratio = rows / cols
@@ -306,23 +303,23 @@ impl<'ast> Elaborator<'ast> {
         for item in &body.items {
             match item {
                 ast::BoxItem::Prop(prop) => match prop {
-                    ast::Prop::PropDim { key, value, .. } if key == "grid" => {
-                        grid = (value.height as usize, value.width as usize);
+                    ast::Prop::PropDim(p) if p.key == "grid" => {
+                        grid = (p.value.height as usize, p.value.width as usize);
                     }
-                    ast::Prop::PropString { key, value, .. } if key == "text" => {
-                        title = Some(value.join("\n"));
+                    ast::Prop::PropString(p) if p.key == "text" => {
+                        title = Some(p.value.join("\n"));
                     }
-                    ast::Prop::PropIdent { key, value, .. } if key == "color" => {
-                        color = Some(value.clone());
+                    ast::Prop::PropIdent(p) if p.key == "color" => {
+                        color = Some(p.value.clone());
                     }
-                    ast::Prop::PropIdent { key, value, .. } if key == "borderStyle" => {
-                        border_style = Some(value.clone());
+                    ast::Prop::PropIdent(p) if p.key == "borderStyle" => {
+                        border_style = Some(p.value.clone());
                     }
-                    ast::Prop::PropIdent { key, value, .. } if key == "bold" => {
-                        bold = Some(value == "true");
+                    ast::Prop::PropIdent(p) if p.key == "bold" => {
+                        bold = Some(p.value == "true");
                     }
-                    ast::Prop::PropFrac { key, value, .. } if key == "margin" => {
-                        margin = Some(*value);
+                    ast::Prop::PropFrac(p) if p.key == "margin" => {
+                        margin = Some(p.value);
                     }
                     _ => {}
                 },
