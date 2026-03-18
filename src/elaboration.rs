@@ -378,7 +378,7 @@ fn route_arrows(
         let (height, width) = child_box.dim;
 
         // Box at position (row, col) with dimensions (height, width)
-        // Add +1 to both row and col
+        // Note: pos is 0-based indexing
 
         // Get margin from parent box
         // Margin is a scale factor (default 0.1 = 10% of cell size)
@@ -386,10 +386,10 @@ fn route_arrows(
         let margin_scale = parent_margin.unwrap_or(0.1);
         let margin = margin_scale * 0.1;
 
-        let min_row = (row - height + 1) as f64 + margin;
-        let min_col = (col - width + 1) as f64 + margin;
-        let max_row = (row + 1) as f64 - margin;
-        let max_col = (col + 1) as f64 - margin;
+        let min_row = row as f64 + margin;
+        let min_col = col as f64 + margin;
+        let max_row = (row + height) as f64 - margin;
+        let max_col = (col + width) as f64 - margin;
 
         eprintln!("Child box at ({}, {}) with dim ({}x{}): bbox min=({}, {}), max=({}, {})",
                  row, col, height, width, min_row, min_col, max_row, max_col);
