@@ -69,6 +69,10 @@ impl ArrowRouter {
         let mut came_from: HashMap<Point, Point> = HashMap::new();
         let mut g_score: HashMap<Point, f64> = HashMap::new();
 
+        // Grid dimensions in discretized coordinates
+        let grid_width = (self.grid_width as i32) * self.grid_resolution;
+        let grid_height = (self.grid_height as i32) * self.grid_resolution;
+
         // Initialize start node
         let h = self.heuristic(start, end);
         open_set.push(Node::new(
@@ -76,6 +80,8 @@ impl ArrowRouter {
             0.0,
             h,
             None,
+            grid_width,
+            grid_height,
         ));
         g_score.insert(start, 0.0);
 
@@ -88,18 +94,7 @@ impl ArrowRouter {
             }
 
             // Explore neighbors
-            let neighbors = self.get_neighbors(current_point);
-            for (neighbor_point, _direction) in neighbors {
-                // Skip if neighbor is out of bounds
-                if !self.is_in_bounds(neighbor_point) {
-                    continue;
-                }
-
-                // Skip if neighbor is inside a bounding box
-                if let Some(_bbox) = self.find_containing_bounding_box(neighbor_point) {
-                    continue;
-                }
-
+            for neighbor_point in self.get_neighbors(current_point) {
                 // Calculate movement cost (uniform cost)
                 let move_cost = 1.0;
                 let tentative_g = g_score.get(&current_point).unwrap_or(&f64::INFINITY) + move_cost;
@@ -116,6 +111,8 @@ impl ArrowRouter {
                         tentative_g,
                         h,
                         Some(current.position),
+                        grid_width,
+                        grid_height,
                     ));
                 }
             }
@@ -131,13 +128,28 @@ impl ArrowRouter {
     }
 
     /// Get neighboring points (4-connected grid)
-    fn get_neighbors(&self, point: Point) -> Vec<(Point, Direction)> {
-        vec![
-            ((point.0 - 1, point.1), Direction::Up),
-            ((point.0 + 1, point.1), Direction::Down),
-            ((point.0, point.1 - 1), Direction::Left),
-            ((point.0, point.1 + 1), Direction::Right),
-        ]
+    fn get_neighbors(&self, point: Point) -> Vec<Point> {
+        let mut neighbors = vec![];
+        let candidates = &[
+            (point.0 - 1, point.1), // Up
+            (point.0 + 1, point.1), // Down
+            (point.0, point.1 - 1), // Left
+            (point.0, point.1 + 1), // Right
+        ];
+        for candidate in candidates {
+            // Skip if neighbor is out of bounds
+            if !self.is_in_bounds(*candidate) {
+                continue;
+            }
+
+            // Skip if neighbor is inside a bounding box
+            if let Some(_bbox) = self.find_containing_bounding_box(*candidate) {
+                continue;
+            }
+
+            neighbors.push(*candidate);
+        }
+        neighbors
     }
 
     /// Check if a point is within the grid bounds

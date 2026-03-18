@@ -73,6 +73,7 @@ impl Direction {
 #[derive(Debug, Clone)]
 pub struct Node {
     pub position: Point,
+    pub direction: Option<Direction>,
     pub g_cost: f64, // Cost from start to this node
     pub h_cost: f64, // Heuristic cost from this node to end
     pub f_cost: f64, // Total cost (g + h)
@@ -85,9 +86,37 @@ impl Node {
         g_cost: f64,
         h_cost: f64,
         parent: Option<Point>,
+        grid_width: i32,
+        grid_height: i32,
     ) -> Self {
+        let (row, col) = position;
+
+        // Check for corner positions (not allowed)
+        if (row == 0 && col == 0) || (row == grid_height - 1 && col == grid_width - 1) {
+            panic!("Corner positions are not allowed: ({}, {})", row, col);
+        }
+
+        // Determine direction based on wall position
+        let direction = if row == 0 {
+            // Top wall - direction should be Down (away from wall)
+            Some(Direction::Down)
+        } else if row == grid_height - 1 {
+            // Bottom wall - direction should be Up (away from wall)
+            Some(Direction::Up)
+        } else if col == 0 {
+            // Left wall - direction should be Right (away from wall)
+            Some(Direction::Right)
+        } else if col == grid_width - 1 {
+            // Right wall - direction should be Left (away from wall)
+            Some(Direction::Left)
+        } else {
+            // Not on a wall
+            None
+        };
+
         Node {
             position,
+            direction,
             g_cost,
             h_cost,
             f_cost: g_cost + h_cost,

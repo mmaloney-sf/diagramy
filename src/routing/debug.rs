@@ -3,7 +3,7 @@
 use crate::routing::{debug, ArrowRouter};
 
 use super::types::{ArrowPath, BoundingBox, Point};
-use svg::node::element::{Line, Path as SvgPath, Rectangle, Text};
+use svg::node::element::{Line, Rectangle, Text};
 use svg::Document as SvgDocument;
 
 impl ArrowRouter {
@@ -172,26 +172,21 @@ pub fn generate_routing_debug_svg(
 
     // Draw the routed path if it exists
     if let Some(arrow_path) = path {
-        let mut path_data = String::new();
-
-        for (i, point) in arrow_path.points.iter().enumerate() {
+        // Fill each grid square in the path with light yellow (transparent)
+        for point in &arrow_path.points {
             let px = (point.1 as f64 * scale) as i32;
             let py = (point.0 as f64 * scale) as i32;
 
-            if i == 0 {
-                path_data.push_str(&format!("M {} {} ", px, py));
-            } else {
-                path_data.push_str(&format!("L {} {} ", px, py));
-            }
+            let rect = Rectangle::new()
+                .set("x", px)
+                .set("y", py)
+                .set("width", scale as i32)
+                .set("height", scale as i32)
+                .set("fill", "#aaaaaa")
+                .set("fill-opacity", "0.7")
+                .set("stroke", "none");
+            svg_doc = svg_doc.add(rect);
         }
-
-        let path_elem = SvgPath::new()
-            .set("d", path_data)
-            .set("stroke", "#ff00ff")
-            .set("stroke-width", 3)
-            .set("fill", "none")
-            .set("opacity", 0.7);
-        svg_doc = svg_doc.add(path_elem);
     }
 
     // Save to file
