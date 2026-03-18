@@ -247,9 +247,6 @@ fn render(doc: diagramy::ast::Document, input: String, args: Args) {
         }
     };
 
-    // Convert elaboration diagram to renderable diagram
-    let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
-
     // Determine output filename
     let output_file = args.output.unwrap_or_else(|| {
         let input_path = Path::new(&args.file);
@@ -259,21 +256,21 @@ fn render(doc: diagramy::ast::Document, input: String, args: Args) {
 
     // Render to SVG
     let (width, height) = elab_diagram.size;
-    match diagram.render_to_svg(&output_file, width, height, args.font_size) {
-        Ok(_) => {
-            println!("Rendered diagram to: {}", output_file);
 
-            // Open the file if requested
-            if args.open {
-                match open_file(&output_file) {
-                    Ok(_) => println!("Opened {}", output_file),
-                    Err(e) => eprintln!("Warning: {}", e),
-                }
-            }
-        }
-        Err(e) => {
-            eprintln!("Error rendering diagram: {}", e);
-            std::process::exit(1);
+    // Convert elaboration diagram to renderable diagram
+    let diagram = diagramy::diagram::from_elaboration(&elab_diagram);
+    if let Err(e) = diagram.render_to_svg(&output_file, width, height, args.font_size) {
+        eprintln!("Error rendering diagram: {}", e);
+        std::process::exit(1);
+    }
+
+    println!("Rendered diagram to: {}", output_file);
+
+    // Open the file if requested
+    if args.open {
+        match open_file(&output_file) {
+            Ok(_) => println!("Opened {}", output_file),
+            Err(e) => eprintln!("Warning: {}", e),
         }
     }
 }

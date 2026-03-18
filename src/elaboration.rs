@@ -1,7 +1,7 @@
-use std::sync::Arc;
+use crate::ast;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use crate::ast;
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct ElaboratedDiagram {
@@ -44,7 +44,12 @@ pub struct Box {
 }
 
 /// Convert an ast::Document into a diagram::Diagram
-pub fn from_ast(doc: &ast::Document, source: &str, filename: &str, debug_dir: Option<&str>) -> Result<ElaboratedDiagram, String> {
+pub fn from_ast(
+    doc: &ast::Document,
+    source: &str,
+    filename: &str,
+    debug_dir: Option<&str>,
+) -> Result<ElaboratedDiagram, String> {
     // Extract diagram-level properties
     let mut color = String::from("transparent");
     let mut width: Option<usize> = None;
@@ -81,16 +86,29 @@ pub fn from_ast(doc: &ast::Document, source: &str, filename: &str, debug_dir: Op
     // 3. If no box definitions exist, error out
     let top_ast_def = if let Some(ref name) = top_name {
         // top: property was specified, look it up
-        box_def_map.get(name).copied()
+        box_def_map
+            .get(name)
+            .copied()
             .ok_or_else(|| format!("{}:0:0: No such box: {}", filename, name))?
     } else {
         // No top: property, use first box
-        doc.box_defs.first()
-            .ok_or_else(|| format!("{}:0:0: Document must have at least one box definition", filename))?
+        doc.box_defs.first().ok_or_else(|| {
+            format!(
+                "{}:0:0: Document must have at least one box definition",
+                filename
+            )
+        })?
     };
 
     // Convert the top box definition
-    let top_box_def = convert_ast_box_body(&top_ast_def.body, &box_def_map, source, filename, debug_dir, "top")?;
+    let top_box_def = convert_ast_box_body(
+        &top_ast_def.body,
+        &box_def_map,
+        source,
+        filename,
+        debug_dir,
+        "top",
+    )?;
 
     // Calculate size from width and grid aspect ratio
     // grid is now (rows, cols), so aspect_ratio = rows / cols
@@ -133,7 +151,12 @@ fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
 /// Find the next free grid position that can fit a box with the given dimensions
 /// Starts scanning from the position FOLLOWING last_pos
 /// Returns Some((row, col)) in 1-based indexing, or None if no position found
-fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize), dim: (i32, i32), last_pos: (i32, i32)) -> Option<(i32, i32)> {
+fn find_next_free_position(
+    occupied: &HashSet<(i32, i32)>,
+    grid: (usize, usize),
+    dim: (i32, i32),
+    last_pos: (i32, i32),
+) -> Option<(i32, i32)> {
     let (grid_rows, grid_cols) = grid;
     let (dim_height, dim_width) = dim;
     let (last_row, last_col) = last_pos;
@@ -182,7 +205,14 @@ fn find_next_free_position(occupied: &HashSet<(i32, i32)>, grid: (usize, usize),
 }
 
 /// Convert an ast::BoxBody into a BoxDef, processing all items
-fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast::BoxDef>, source: &str, filename: &str, debug_dir: Option<&str>, box_name: &str) -> Result<BoxDef, String> {
+fn convert_ast_box_body(
+    body: &ast::BoxBody,
+    box_def_map: &HashMap<String, &ast::BoxDef>,
+    source: &str,
+    filename: &str,
+    debug_dir: Option<&str>,
+    box_name: &str,
+) -> Result<BoxDef, String> {
     let mut grid = (1, 1); // default grid
     let mut title: Option<String> = None;
     let mut color: Option<String> = None;
@@ -195,26 +225,24 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     // First pass: extract properties, ports, and arrows
     for item in &body.items {
         match item {
-            ast::BoxItem::Prop(prop) => {
-                match prop {
-                    ast::Prop::PropDim { key, value, .. } if key == "grid" => {
-                        grid = (value.height as usize, value.width as usize);
-                    }
-                    ast::Prop::PropString { key, value, .. } if key == "text" => {
-                        title = Some(value.join("\n"));
-                    }
-                    ast::Prop::PropIdent { key, value, .. } if key == "color" => {
-                        color = Some(value.clone());
-                    }
-                    ast::Prop::PropIdent { key, value, .. } if key == "borderStyle" => {
-                        border_style = Some(value.clone());
-                    }
-                    ast::Prop::PropFrac { key, value, .. } if key == "margin" => {
-                        margin = Some(*value);
-                    }
-                    _ => {}
+            ast::BoxItem::Prop(prop) => match prop {
+                ast::Prop::PropDim { key, value, .. } if key == "grid" => {
+                    grid = (value.height as usize, value.width as usize);
                 }
-            }
+                ast::Prop::PropString { key, value, .. } if key == "text" => {
+                    title = Some(value.join("\n"));
+                }
+                ast::Prop::PropIdent { key, value, .. } if key == "color" => {
+                    color = Some(value.clone());
+                }
+                ast::Prop::PropIdent { key, value, .. } if key == "borderStyle" => {
+                    border_style = Some(value.clone());
+                }
+                ast::Prop::PropFrac { key, value, .. } if key == "margin" => {
+                    margin = Some(*value);
+                }
+                _ => {}
+            },
             ast::BoxItem::Port(port) => {
                 ports.push(Port {
                     name: port.name.clone(),
@@ -240,12 +268,23 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     for item in &body.items {
         if let ast::BoxItem::BoxInst(box_inst) = item {
             match box_inst {
-                ast::BoxInst::WithBody { id: _, coords, dim, body, span } => {
+                ast::BoxInst::WithBody {
+                    id: _,
+                    coords,
+                    dim,
+                    body,
+                    span,
+                } => {
                     // Determine position (auto-position if coords is None)
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
                     } else {
-                        match find_next_free_position(&occupied, grid, (dim.height, dim.width), last_pos) {
+                        match find_next_free_position(
+                            &occupied,
+                            grid,
+                            (dim.height, dim.width),
+                            last_pos,
+                        ) {
                             Some(pos) => pos,
                             None => {
                                 let start = span.start();
@@ -275,7 +314,14 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                     }
 
                     // Recursively convert the nested box body
-                    let nested_def = convert_ast_box_body(body, box_def_map, source, filename, debug_dir, &format!("{}.inline", box_name))?;
+                    let nested_def = convert_ast_box_body(
+                        body,
+                        box_def_map,
+                        source,
+                        filename,
+                        debug_dir,
+                        &format!("{}.inline", box_name),
+                    )?;
                     boxes.push(Box {
                         def: Arc::new(nested_def),
                         // Convert from 1-based to 0-based indexing
@@ -283,12 +329,24 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         dim: (dim.height as usize, dim.width as usize),
                     });
                 }
-                ast::BoxInst::Reference { id: _, coords, dim, def_name, location: _, span } => {
+                ast::BoxInst::Reference {
+                    id: _,
+                    coords,
+                    dim,
+                    def_name,
+                    location: _,
+                    span,
+                } => {
                     // Determine position (auto-position if coords is None)
                     let (row, col) = if let Some(c) = coords {
                         (c.row, c.col)
                     } else {
-                        match find_next_free_position(&occupied, grid, (dim.height, dim.width), last_pos) {
+                        match find_next_free_position(
+                            &occupied,
+                            grid,
+                            (dim.height, dim.width),
+                            last_pos,
+                        ) {
                             Some(pos) => pos,
                             None => {
                                 let start = span.start();
@@ -319,7 +377,14 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
 
                     // Look up the referenced box definition
                     if let Some(referenced_def) = box_def_map.get(def_name) {
-                        let nested_def = convert_ast_box_body(&referenced_def.body, box_def_map, source, filename, debug_dir, def_name)?;
+                        let nested_def = convert_ast_box_body(
+                            &referenced_def.body,
+                            box_def_map,
+                            source,
+                            filename,
+                            debug_dir,
+                            def_name,
+                        )?;
                         boxes.push(Box {
                             def: Arc::new(nested_def),
                             // Convert from 1-based to 0-based indexing
@@ -330,7 +395,13 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
                         // Error: referenced box definition not found
                         // Use span information for better error reporting
                         let start = span.start();
-                        return Err(format!("{}:{}:{}: No such box: {}", filename, start.line(), start.col(), def_name));
+                        return Err(format!(
+                            "{}:{}:{}: No such box: {}",
+                            filename,
+                            start.line(),
+                            start.col(),
+                            def_name
+                        ));
                     }
                 }
             }
@@ -338,7 +409,8 @@ fn convert_ast_box_body(body: &ast::BoxBody, box_def_map: &HashMap<String, &ast:
     }
 
     // Route arrows using A* pathfinding
-    let routed_arrow_paths = route_arrows(&arrows, &ports, &boxes, grid, margin, debug_dir, box_name);
+    let routed_arrow_paths =
+        route_arrows(&arrows, &ports, &boxes, grid, margin, debug_dir, box_name);
 
     Ok(BoxDef {
         grid,
@@ -420,9 +492,14 @@ fn route_arrows(
         if let (Some(&start), Some(&end)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
             if let Some(path) = router.route(start, end) {
                 // Convert i32 points back to f64 for storage
-                let f64_points: Vec<(f64, f64)> = path.points.iter()
+                let f64_points: Vec<(f64, f64)> = path
+                    .points
+                    .iter()
                     .map(|(row, col)| {
-                        (*row as f64 / grid_resolution as f64, *col as f64 / grid_resolution as f64)
+                        (
+                            *row as f64 / grid_resolution as f64,
+                            *col as f64 / grid_resolution as f64,
+                        )
                     })
                     .collect();
                 routed_paths.push(f64_points);
