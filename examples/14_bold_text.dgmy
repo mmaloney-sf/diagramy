@@ -1,0 +1,59 @@
+// Example 13: Bold Text
+// The bold property allows you to make text bold
+// bold: true makes the text bold, bold: false (or omitting it) keeps it normal
+// Note: bold cannot be used on boxes with child boxes
+diagram {
+    version: "0.1.0"
+    width: 600
+    color: white
+    title: "Bold Text Example"
+}
+
+box top {
+    grid: 2x3
+
+    // Bold text
+    box at (1, 1) is {
+        color: red
+        text: "Bold"
+        bold: true
+    }
+
+    // Normal text (default)
+    box at (1, 2) is {
+        color: blue
+        text: "Normal"
+    }
+
+    // Explicitly non-bold
+    box at (1, 3) is {
+        color: green
+        text: "Not Bold"
+        bold: false
+    }
+
+    // Bold multi-line text
+    box at (2, 1) is {
+        color: yellow
+        text: "Bold"
+              "Multi-line"
+              "Text"
+        bold: true
+    }
+
+    // Normal multi-line text
+    box at (2, 2) is {
+        color: purple
+        text: "Normal"
+              "Multi-line"
+              "Text"
+    }
+
+    // Bold with different color
+    box at (2, 3) is {
+        color: cyan
+        text: "Bold Cyan"
+        bold: true
+    }
+}
+

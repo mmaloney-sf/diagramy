@@ -1,0 +1,30 @@
+// Example 16: Labels
+// Labels are a convenient way to add text without creating full boxes
+// They support multi-line text and optional positioning
+
+diagram {
+    version: "0.1.0"
+    width: 600
+    color: white
+    title: "Label Example"
+}
+
+box top {
+    grid: 2x3
+
+    box is {
+        color: green
+        label "Green Box"
+    }
+
+    label "This is" "a label"
+
+    box is {
+        color: blue
+        label "Blue Box"
+    }
+
+    label "This label is" "manually positioned" at (2, 3)
+
+    label "This label is wide has has dimension 1x2" at (2, 1) dim 1x2
+}
