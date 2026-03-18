@@ -427,12 +427,12 @@ fn route_arrows(
                     .collect();
                 routed_paths.push(f64_points);
             } else {
-                // No path found - this means the arrow cannot be routed
-                panic!("Failed to route arrow from {} to {}", arrow.from, arrow.to);
+                // Fallback to straight line if routing fails
+                routed_paths.push(vec![start, end]);
             }
         } else {
-            // Port not found
-            panic!("Port not found for arrow from {} to {}", arrow.from, arrow.to);
+            // Port not found, push empty path
+            routed_paths.push(Vec::new());
         }
     }
 
