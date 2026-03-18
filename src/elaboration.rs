@@ -126,28 +126,6 @@ pub fn from_ast(
     })
 }
 
-/// Convert byte offset to line and column numbers
-/// This function is deprecated - use Span::from_offsets instead
-#[allow(dead_code)]
-fn offset_to_line_col(source: &str, offset: usize) -> (usize, usize) {
-    let mut line = 1;
-    let mut col = 1;
-
-    for (i, ch) in source.chars().enumerate() {
-        if i >= offset {
-            break;
-        }
-        if ch == '\n' {
-            line += 1;
-            col = 1;
-        } else {
-            col += 1;
-        }
-    }
-
-    (line, col)
-}
-
 /// Process an inline box instance (WithBody variant)
 fn process_inline_box(
     with_body: &ast::WithBody,
