@@ -105,6 +105,7 @@ impl<'ast> Elaborator<'ast> {
         let mut title: Option<String> = None;
         let mut top_name: Option<String> = None;
         let mut cheat_ports = false;
+        let mut diagram_debug: Option<bool> = None;
 
         for prop in &doc.diagram.props {
             match prop {
@@ -117,6 +118,9 @@ impl<'ast> Elaborator<'ast> {
                 ast::Prop::PropIdent(p) if p.key == "cheatPorts" => {
                     cheat_ports = p.value == "true";
                     self.cheat_ports = cheat_ports;
+                }
+                ast::Prop::PropIdent(p) if p.key == "debug" => {
+                    diagram_debug = Some(p.value == "true");
                 }
                 ast::Prop::PropNumber(p) if p.key == "width" => {
                     width = Some(p.value as usize);
@@ -149,7 +153,12 @@ impl<'ast> Elaborator<'ast> {
         };
 
         // Convert the top box definition
-        let top_box_def = self.convert_ast_box_body(&top_ast_def.body, "top")?;
+        let mut top_box_def = self.convert_ast_box_body(&top_ast_def.body, "top")?;
+
+        // Apply diagram-level debug property to the top box if specified
+        if let Some(debug) = diagram_debug {
+            top_box_def.debug = Some(debug);
+        }
 
         // Calculate size from width and grid aspect ratio
         // grid is now (rows, cols), so aspect_ratio = rows / cols

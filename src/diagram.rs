@@ -224,6 +224,13 @@ impl Diagram {
             }
         }
 
+        // Render debug grids on top of all other elements
+        for diagram_box in &self.boxes {
+            if diagram_box.debug {
+                svg_doc = render_debug_grid(svg_doc, diagram_box)?;
+            }
+        }
+
         // Add debug overlay if debug mode is enabled
         if debug {
             svg_doc = render_debug_overlay(svg_doc, self, width, height, font_size)?;
@@ -302,6 +309,13 @@ impl Diagram {
             }
         }
 
+        // Render debug grids on top of all other elements
+        for diagram_box in &self.boxes {
+            if diagram_box.debug {
+                svg_doc = render_debug_grid(svg_doc, diagram_box)?;
+            }
+        }
+
         // Add debug overlay if debug mode is enabled
         if debug {
             svg_doc = render_debug_overlay(svg_doc, self, width, height, font_size)?;
@@ -368,11 +382,6 @@ fn render_box_rectangle(
 
     svg_doc = svg_doc.add(rect);
 
-    // Add debug grid overlay if debug is enabled
-    if diagram_box.debug {
-        svg_doc = render_debug_grid(svg_doc, diagram_box)?;
-    }
-
     Ok(svg_doc)
 }
 
@@ -395,8 +404,10 @@ fn render_debug_grid(
     let cell_width = width / grid_cols as f64;
     let cell_height = height / grid_rows as f64;
 
-    let grid_color = "#FF0000"; // Red color
+    let grid_color = "#FF0000"; // Red color for grid lines
     let grid_opacity = 0.3; // 30% opacity (70% transparent)
+    let debug_font_size = 10; // Small font size for debug numbers
+    let text_color = "#FF6666"; // Light red color for debug numbers
 
     // Draw vertical grid lines (grid_cols + 1 lines)
     for i in 0..=grid_cols {
@@ -408,6 +419,7 @@ fn render_debug_grid(
             .set("y2", y + height)
             .set("stroke", grid_color)
             .set("stroke-width", 1)
+            .set("stroke-dasharray", "2,2")
             .set("opacity", grid_opacity);
         debug_group = debug_group.add(line);
     }
@@ -422,8 +434,71 @@ fn render_debug_grid(
             .set("y2", grid_y)
             .set("stroke", grid_color)
             .set("stroke-width", 1)
+            .set("stroke-dasharray", "2,2")
             .set("opacity", grid_opacity);
         debug_group = debug_group.add(line);
+    }
+
+    // Add column numbers above the box (1-indexed)
+    // Draw a single dark background rectangle for all column numbers (half as tall as cell height)
+    // Position it so the bottom is flush with the top of the box
+    // Extend it to the left by half the grid size to align with the row rectangle (creates a "corner" effect)
+    // Scale the height based on vertical scaling factor
+    let col_bg_height = (cell_height / 2.0) * diagram_box.vertical_scaling;
+    let col_bg_y = y - col_bg_height;
+    let col_bg_x = x - (cell_width / 2.0);
+    let col_bg_width = width + (cell_width / 2.0);
+    let col_bg_rect = Rectangle::new()
+        .set("x", col_bg_x)
+        .set("y", col_bg_y)
+        .set("width", col_bg_width)
+        .set("height", col_bg_height)
+        .set("fill", "rgba(0, 0, 0, 1.0)");
+    debug_group = debug_group.add(col_bg_rect);
+
+    for col in 1..=grid_cols {
+        let col_x = x + ((col as f64 - 0.5) * cell_width);
+        // Position numbers in the vertical center of the background rectangle
+        let col_y = col_bg_y + col_bg_height / 2.0;
+
+        let text = Text::new(col.to_string())
+            .set("x", col_x)
+            .set("y", col_y)
+            .set("text-anchor", "middle")
+            .set("dominant-baseline", "middle")
+            .set("font-size", debug_font_size)
+            .set("font-family", "Arial, sans-serif")
+            .set("fill", text_color);
+        debug_group = debug_group.add(text);
+    }
+
+    // Add row numbers to the left of the box (1-indexed)
+    // Draw a single dark background rectangle for all row numbers (half as wide as cell width)
+    // Scale the width based on horizontal scaling factor
+    let row_bg_width = (cell_width / 2.0) * diagram_box.horizontal_scaling;
+    let row_bg_x = x - row_bg_width;
+    let row_bg_rect = Rectangle::new()
+        .set("x", row_bg_x)
+        .set("y", y)
+        .set("width", row_bg_width)
+        .set("height", height)
+        .set("fill", "rgba(0, 0, 0, 1.0)");
+    debug_group = debug_group.add(row_bg_rect);
+
+    for row in 1..=grid_rows {
+        // Center the row numbers horizontally in the background rectangle
+        let row_x = row_bg_x + row_bg_width / 2.0;
+        let row_y = y + ((row as f64 - 0.5) * cell_height);
+
+        let text = Text::new(row.to_string())
+            .set("x", row_x)
+            .set("y", row_y)
+            .set("text-anchor", "middle")
+            .set("dominant-baseline", "middle")
+            .set("font-size", debug_font_size)
+            .set("font-family", "Arial, sans-serif")
+            .set("fill", text_color);
+        debug_group = debug_group.add(text);
     }
 
     svg_doc = svg_doc.add(debug_group);
