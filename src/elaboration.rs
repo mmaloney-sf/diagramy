@@ -555,7 +555,7 @@ impl<'ast> Elaborator<'ast> {
         Option<bool>,
         Vec<Arrow>,
     ) {
-        let mut grid = (1, 1); // default grid
+        let mut grid: Option<(usize, usize)> = None; // Will be calculated if not specified
         let mut title: Option<String> = None;
         let mut color: Option<String> = None;
         let mut margin: Option<f64> = None;
@@ -563,12 +563,13 @@ impl<'ast> Elaborator<'ast> {
         let mut bold: Option<bool> = None;
         let mut debug: Option<bool> = None;
         let mut arrows: Vec<Arrow> = Vec::new();
+        let mut child_count = 0;
 
         for item in &body.items {
             match item {
                 ast::BoxItem::Prop(prop) => match prop {
                     ast::Prop::PropDim(p) if p.key == "grid" => {
-                        grid = (p.value.height as usize, p.value.width as usize);
+                        grid = Some((p.value.height as usize, p.value.width as usize));
                     }
                     ast::Prop::PropString(p) if p.key == "text" => {
                         title = Some(p.value.join("\n"));
@@ -601,11 +602,23 @@ impl<'ast> Elaborator<'ast> {
                         to: arrow.to.to_string(),
                     });
                 }
-                _ => {}
+                ast::BoxItem::BoxInst(_) | ast::BoxItem::Label(_) => {
+                    child_count += 1;
+                }
             }
         }
 
-        (grid, title, color, margin, border_style, bold, debug, arrows)
+        // Calculate default grid if not specified: NxN where N = ceil(sqrt(# children))
+        let final_grid = grid.unwrap_or_else(|| {
+            if child_count == 0 {
+                (1, 1) // No children, default to 1x1
+            } else {
+                let n = (child_count as f64).sqrt().ceil() as usize;
+                (n, n)
+            }
+        });
+
+        (final_grid, title, color, margin, border_style, bold, debug, arrows)
     }
 
     /// Find the next free grid position that can fit a box with the given dimensions
