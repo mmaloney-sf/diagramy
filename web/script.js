@@ -82,7 +82,7 @@ function zoom(delta) {
 }
 
 // Render diagram from editor content
-function renderDiagram() {
+function renderDiagram(shouldResetView = false) {
     const svgContainer = document.getElementById('svg-container');
     const content = editor.getValue();
 
@@ -115,8 +115,12 @@ function renderDiagram() {
         const svg = result.svg;
         if (svg) {
             svgContainer.innerHTML = svg;
-            // Reset view when new diagram is rendered
-            resetView();
+            // Reset view if requested (e.g., when loading a new example), otherwise preserve pan/zoom
+            if (shouldResetView) {
+                resetView();
+            } else {
+                applyTransform();
+            }
             // Set up pan and zoom event listeners
             setupPanZoom();
         } else {
@@ -253,8 +257,8 @@ document.getElementById('example-select').addEventListener('change', function() 
         // Set the editor content
         editor.setValue(selectedOption.dataset.content, -1); // -1 moves cursor to start
 
-        // Render immediately
-        renderDiagram();
+        // Render immediately and reset view for new example
+        renderDiagram(true);
     }
 });
 
@@ -305,11 +309,11 @@ async function initApp() {
         // Listen for changes in the editor and save to localStorage
         editor.session.on('change', function() {
             saveEditorContent();
-            renderDiagram();
+            renderDiagram(); // Don't reset view on editor changes
         });
 
-        // Initial render
-        renderDiagram();
+        // Initial render - reset view for first load
+        renderDiagram(true);
     } catch (error) {
         console.error('Failed to initialize WebAssembly:', error);
         document.getElementById('svg-container').innerHTML =
