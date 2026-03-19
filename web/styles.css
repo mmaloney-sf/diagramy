@@ -19,14 +19,25 @@ body {
 .left-panel {
     width: 50%;
     height: 100%;
-    border-right: 2px solid #333;
     overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
+.resizer {
+    width: 5px;
+    height: 100%;
+    background-color: #333;
+    cursor: col-resize;
+    flex-shrink: 0;
+}
+
+.resizer:hover {
+    background-color: #555;
+}
+
 .right-panel {
-    width: 50%;
+    flex: 1;
     height: 100%;
     display: flex;
     flex-direction: column;

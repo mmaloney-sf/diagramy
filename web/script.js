@@ -34,6 +34,13 @@ keybindingSelect.addEventListener('change', function() {
     }
 });
 
+// Resizer state
+let resizer = {
+    isResizing: false,
+    startX: 0,
+    startWidth: 0
+};
+
 // Pan and zoom state
 let panZoom = {
     scale: 1,
@@ -197,6 +204,47 @@ document.getElementById('zoom-reset-btn').addEventListener('click', function() {
     resetView();
 });
 
+// Set up resizer functionality
+function setupResizer() {
+    const resizerElement = document.querySelector('.resizer');
+    const leftPanel = document.querySelector('.left-panel');
+    const container = document.querySelector('.container');
+
+    resizerElement.addEventListener('mousedown', function(e) {
+        resizer.isResizing = true;
+        resizer.startX = e.clientX;
+        resizer.startWidth = leftPanel.offsetWidth;
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!resizer.isResizing) return;
+
+        const deltaX = e.clientX - resizer.startX;
+        const newWidth = resizer.startWidth + deltaX;
+        const containerWidth = container.offsetWidth;
+
+        // Set minimum and maximum widths (20% to 80% of container)
+        const minWidth = containerWidth * 0.2;
+        const maxWidth = containerWidth * 0.8;
+
+        if (newWidth >= minWidth && newWidth <= maxWidth) {
+            const percentage = (newWidth / containerWidth) * 100;
+            leftPanel.style.width = percentage + '%';
+        }
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (resizer.isResizing) {
+            resizer.isResizing = false;
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
+    });
+}
+
 // Handle example selection - load automatically when an example is selected
 document.getElementById('example-select').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
@@ -250,6 +298,9 @@ async function initApp() {
 
         // Load initial content (saved or first example)
         loadInitialContent();
+
+        // Set up resizer
+        setupResizer();
 
         // Listen for changes in the editor and save to localStorage
         editor.session.on('change', function() {
