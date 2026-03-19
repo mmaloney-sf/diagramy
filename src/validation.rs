@@ -467,18 +467,34 @@ fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result
     Ok(())
 }
 
-/// Validate that boxes with child boxes have a grid property
+/// Validate that boxes with grandchild boxes have a grid property
 fn validate_grid_required_for_children(body: &BoxBody, filename: &str) -> Result<(), String> {
-    // Check if this box has child boxes
-    let child_box = body.items.iter().find_map(|item| {
+    // Check if this box has grandchild boxes (children that have their own child boxes)
+    // Note: grandchild labels don't count, only grandchild boxes
+    let grandchild_span = body.items.iter().find_map(|item| {
         if let BoxItem::BoxInst(box_inst) = item {
-            return Some(box_inst.span());
+            // Check if this child box has its own child boxes
+            let child_body = match box_inst {
+                crate::ast::BoxInst::WithBody(with_body) => Some(&with_body.body),
+                crate::ast::BoxInst::Reference(_) => None, // References don't have inline bodies to check
+            };
+
+            if let Some(child_body) = child_body {
+                // Check if the child has any box instances (labels don't count)
+                let has_child_boxes = child_body.items.iter().any(|child_item| {
+                    matches!(child_item, BoxItem::BoxInst(_))
+                });
+
+                if has_child_boxes {
+                    return Some(box_inst.span());
+                }
+            }
         }
         None
     });
 
-    // If there are child boxes, check for grid property
-    if let Some(child_span) = child_box {
+    // If there are grandchild boxes, check for grid property
+    if let Some(grandchild_span) = grandchild_span {
         let has_grid = body.items.iter().any(|item| {
             if let BoxItem::Prop(Prop::PropDim(p)) = item {
                 p.key == "grid"
@@ -488,12 +504,12 @@ fn validate_grid_required_for_children(body: &BoxBody, filename: &str) -> Result
         });
 
         if !has_grid {
-            let child_start = child_span.start();
+            let grandchild_start = grandchild_span.start();
             return Err(format!(
-                "{}:{}:{}: Box with child boxes must have a 'grid:' property",
+                "{}:{}:{}: Box with grandchild boxes must have a 'grid:' property",
                 filename,
-                child_start.line(),
-                child_start.col()
+                grandchild_start.line(),
+                grandchild_start.col()
             ));
         }
     }
