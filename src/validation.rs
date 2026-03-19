@@ -671,20 +671,8 @@ fn validate_port_bounds(port: &Port, body: &BoxBody, filename: &str) -> Result<(
         ));
     }
 
-    // Validate "on" clause value if present
-    if let Some(ref on_value) = port.on {
-        if !matches!(on_value.as_str(), "top" | "bottom" | "left" | "right") {
-            let start = port.span.start();
-            return Err(format!(
-                "{}:{}:{}: Port '{}' has invalid 'on' value '{}'. Must be one of: top, bottom, left, right",
-                filename,
-                start.line(),
-                start.col(),
-                port.name,
-                on_value
-            ));
-        }
-    }
+    // Note: "on" clause validation is now handled by the Side enum type
+    // No need to validate the value here since the parser ensures it's valid
 
     // If "at" clause is present, validate coordinates are within bounds
     if let Some(ref coords) = port.coords {

@@ -13,6 +13,10 @@ pub mod diagram;
 pub mod ast;
 pub mod validation;
 pub mod routing;
+
+#[cfg(test)]
+mod tests;
+
 // TODO: Update imports for new AST
 // use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
 

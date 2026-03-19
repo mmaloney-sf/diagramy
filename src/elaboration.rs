@@ -424,7 +424,13 @@ impl<'ast> Elaborator<'ast> {
                     (coords_frac.row, coords_frac.col)
                 } else {
                     // Use "on" clause (or default to "right")
-                    let side = port.on.as_deref().unwrap_or("right");
+                    let side = match &port.on {
+                        Some(ast::Side::Top) => "top",
+                        Some(ast::Side::Right) => "right",
+                        Some(ast::Side::Bottom) => "bottom",
+                        Some(ast::Side::Left) => "left",
+                        None => "right",
+                    };
                     self.find_port_position_on_side(side, grid, &mut used_positions, port)?
                 };
 

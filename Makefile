@@ -4,6 +4,9 @@ build:
 install:
 	cargo install --locked --path .
 
+test:
+	cargo test
+
 clean:
 	cargo clean
 
@@ -22,4 +25,4 @@ serve-web:
 	cd web
 	python3 -m http.server 8002
 
-.PHONY: build install clean assets web serve-web
+.PHONY: build install clean assets web serve-web test

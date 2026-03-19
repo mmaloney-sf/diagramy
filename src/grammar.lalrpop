@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Label, Coords, CoordsFrac, Path, Dim, Alignment, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Label, Coords, CoordsFrac, Path, Dim, Alignment, Side, Span};
 
 grammar(source: &str);
 
@@ -64,7 +64,7 @@ Prop: Prop = {
 };
 
 Port: Port = {
-    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Ident>)?> <alignment:("align" <Alignment>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
+    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Side>)?> <alignment:("align" <Alignment>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
         Port { name, coords, on, alignment, body, span: Span::from_offsets(source, ll, rr) }
     },
 };
@@ -143,4 +143,12 @@ Alignment: Alignment = {
     "bottom" => Alignment::Bottom,
     "left" => Alignment::Left,
     "center" => Alignment::Center,
+};
+
+// Side keywords for port positioning
+Side: Side = {
+    "top" => Side::Top,
+    "right" => Side::Right,
+    "bottom" => Side::Bottom,
+    "left" => Side::Left,
 };

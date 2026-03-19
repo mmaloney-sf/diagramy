@@ -51,6 +51,10 @@ let panZoom = {
     startY: 0
 };
 
+// Konami Code state
+let konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a', 'Enter'];
+let konamiIndex = 0;
+
 // Apply transform to SVG
 function applyTransform() {
     const svgContainer = document.getElementById('svg-container');
@@ -71,7 +75,8 @@ function resetView() {
 // Zoom in/out
 function zoom(delta) {
     const oldScale = panZoom.scale;
-    panZoom.scale = Math.max(0.1, Math.min(5, panZoom.scale + delta));
+    // Allow arbitrary zoom in, but keep minimum zoom at 0.1
+    panZoom.scale = Math.max(0.1, panZoom.scale + delta);
 
     // Adjust translation to zoom towards center
     const scaleFactor = panZoom.scale / oldScale;
@@ -249,6 +254,26 @@ function setupResizer() {
     });
 }
 
+// Set up Konami Code listener
+function setupKonamiCode() {
+    document.addEventListener('keydown', function(e) {
+        // Check if the pressed key matches the next key in the sequence
+        if (e.key === konamiCode[konamiIndex]) {
+            konamiIndex++;
+
+            // If the entire sequence is completed
+            if (konamiIndex === konamiCode.length) {
+                // Clear the editor
+                editor.setValue('', -1);
+                konamiIndex = 0; // Reset the sequence
+            }
+        } else {
+            // Reset if wrong key is pressed
+            konamiIndex = 0;
+        }
+    });
+}
+
 // Handle example selection - load automatically when an example is selected
 document.getElementById('example-select').addEventListener('change', function() {
     const selectedOption = this.options[this.selectedIndex];
@@ -305,6 +330,9 @@ async function initApp() {
 
         // Set up resizer
         setupResizer();
+
+        // Set up Konami Code listener
+        setupKonamiCode();
 
         // Listen for changes in the editor and save to localStorage
         editor.session.on('change', function() {

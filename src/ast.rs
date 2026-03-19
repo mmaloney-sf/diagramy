@@ -225,7 +225,7 @@ impl Prop {
 pub struct Port {
     pub name: String,
     pub coords: Option<CoordsFrac>,  // Optional "at" clause
-    pub on: Option<String>,           // Optional "on" clause (top, bottom, left, right)
+    pub on: Option<Side>,             // Optional "on" clause (top, bottom, left, right)
     pub alignment: Option<Alignment>, // Optional "align" clause
     pub body: Option<BoxBody>,        // Optional body (can contain labels, props, etc.)
     pub span: Span,
@@ -255,6 +255,14 @@ pub enum Alignment {
     Bottom,
     Left,
     Center,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Side {
+    Top,
+    Right,
+    Bottom,
+    Left,
 }
 
 #[derive(Debug, Clone)]
