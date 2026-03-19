@@ -67,6 +67,10 @@ pub struct DiagramBox {
     pub debug: bool,
     /// Grid dimensions (rows, cols) for debug overlay
     pub grid: (usize, usize),
+    /// Name of the box definition (None for inline boxes)
+    pub def_name: Option<String>,
+    /// Line number where the box was defined
+    pub line_number: Option<usize>,
 }
 
 impl DiagramBox {
@@ -501,6 +505,52 @@ fn render_debug_grid(
         debug_group = debug_group.add(text);
     }
 
+    // Add debug label at bottom right showing box def name and line number
+    // Aligned with the grid
+    if let Some(line_num) = diagram_box.line_number {
+        let label_text = if let Some(ref def_name) = diagram_box.def_name {
+            format!("{} line {}", def_name, line_num)
+        } else {
+            format!("line {}", line_num)
+        };
+
+        let label_font_size = 10.0 * diagram_box.vertical_scaling;
+
+        // Calculate approximate text dimensions
+        let char_width = label_font_size * 0.6;
+        let text_width = label_text.len() as f64 * char_width;
+        let text_height = label_font_size;
+
+        // Position in lower right corner, aligned with grid
+        // The rectangle should be aligned with the grid cell boundaries
+        let bg_width = text_width + 4.0;
+        let bg_height = text_height + 4.0;
+
+        // Align with the bottom-right grid cell
+        let label_x = x + width - bg_width;
+        let label_y = y + height - bg_height;
+
+        // Add background rectangle
+        let bg_rect = Rectangle::new()
+            .set("x", label_x)
+            .set("y", label_y)
+            .set("width", bg_width)
+            .set("height", bg_height)
+            .set("fill", "rgba(0, 0, 0, 1.0)");
+        debug_group = debug_group.add(bg_rect);
+
+        // Add text label (positioned inside the rectangle)
+        let label = Text::new(label_text)
+            .set("x", label_x + 2.0)
+            .set("y", label_y + bg_height - 2.0)
+            .set("text-anchor", "start")
+            .set("dominant-baseline", "auto")
+            .set("font-size", label_font_size)
+            .set("font-family", "Arial, sans-serif")
+            .set("fill", text_color);
+        debug_group = debug_group.add(label);
+    }
+
     svg_doc = svg_doc.add(debug_group);
     Ok(svg_doc)
 }
@@ -813,6 +863,8 @@ fn flatten_boxes(
             vertical_scaling,
             debug: box_def.debug.unwrap_or(false),
             grid: box_def.grid,
+            def_name: box_def.def_name.clone(),
+            line_number: box_def.line_number,
         });
     }
 
@@ -942,8 +994,13 @@ fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocume
 
     svg_doc = svg_doc.add(circle);
 
-    // Render label (use custom label if present, otherwise use port name)
-    let label_text = port.label.as_ref().unwrap_or(&port.name);
+    // Only render label if the port has a body with a label inside it
+    // Don't render the port name
+    if port.label.is_none() {
+        return Ok(svg_doc);
+    }
+
+    let label_text = port.label.as_ref().unwrap();
     let font_size = 12;
     let offset = 10.0; // Distance from port center
     let char_width = font_size as f64 * 0.6; // Approximate character width

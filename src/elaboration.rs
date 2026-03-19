@@ -21,6 +21,8 @@ pub struct BoxDef {
     pub border_style: Option<String>,
     pub bold: Option<bool>,
     pub debug: Option<bool>,
+    pub def_name: Option<String>, // Name of the box definition (None for inline boxes)
+    pub line_number: Option<usize>, // Line number where the box was defined
     pub boxes: Vec<Box>,
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
@@ -153,7 +155,9 @@ impl<'ast> Elaborator<'ast> {
         };
 
         // Convert the top box definition
-        let mut top_box_def = self.convert_ast_box_body(&top_ast_def.body, "top")?;
+        let top_def_name = Some(top_ast_def.name.clone());
+        let top_line_number = Some(top_ast_def.span.start().line());
+        let mut top_box_def = self.convert_ast_box_body(&top_ast_def.body, "top", top_def_name, top_line_number)?;
 
         // Apply diagram-level debug property to the top box if specified
         if let Some(debug) = diagram_debug {
@@ -225,9 +229,13 @@ impl<'ast> Elaborator<'ast> {
         }
 
         // Recursively convert the nested box body
+        // Inline boxes have no def_name, but we track their line number
+        let line_number = Some(with_body.span.start().line());
         let nested_def = self.convert_ast_box_body(
             &with_body.body,
             &format!("{}.inline", box_name),
+            None, // No def_name for inline boxes
+            line_number,
         )?;
 
         Ok(Box {
@@ -297,9 +305,13 @@ impl<'ast> Elaborator<'ast> {
             )
         })?;
 
+        let def_name = Some(referenced_def.name.clone());
+        let line_number = Some(referenced_def.span.start().line());
         let nested_def = self.convert_ast_box_body(
             &referenced_def.body,
             &reference.def_name,
+            def_name,
+            line_number,
         )?;
 
         Ok(Box {
@@ -375,6 +387,8 @@ impl<'ast> Elaborator<'ast> {
             border_style: Some("none".to_string()), // Labels have no border by default
             bold: None,
             debug: None,
+            def_name: None, // Labels don't have def names
+            line_number: Some(label.span.start().line()),
             boxes: Vec::new(),
             ports: Vec::new(),
             arrows: Vec::new(),
@@ -652,6 +666,8 @@ impl<'ast> Elaborator<'ast> {
         &mut self,
         body: &ast::BoxBody,
         box_name: &str,
+        def_name: Option<String>,
+        line_number: Option<usize>,
     ) -> Result<BoxDef, String> {
         // First pass: extract properties and arrows
         let (grid, title, color, margin, border_style, bold, debug, arrows) = self.extract_box_items(body);
@@ -717,6 +733,8 @@ impl<'ast> Elaborator<'ast> {
             border_style,
             bold,
             debug,
+            def_name,
+            line_number,
             boxes,
             ports,
             arrows,
