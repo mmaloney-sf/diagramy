@@ -13,6 +13,7 @@ pub mod diagram;
 pub mod ast;
 pub mod validation;
 pub mod routing;
+pub mod graphviz;
 // TODO: Update imports for new AST
 // use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};
 

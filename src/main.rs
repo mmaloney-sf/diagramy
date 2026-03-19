@@ -41,6 +41,14 @@ struct Args {
     /// Debug directory for routing SVGs
     #[arg(long)]
     debug: Option<String>,
+
+    /// Output GraphViz DOT format instead of SVG
+    #[arg(long)]
+    graphviz: bool,
+
+    /// Run dot to convert GraphViz output to SVG (requires --graphviz)
+    #[arg(long)]
+    run_dot: bool,
 }
 
 // Helper function to convert byte offset to line and column
@@ -165,6 +173,12 @@ where
 fn main() {
     let args = Args::parse();
 
+    // Validate flag combinations
+    if args.run_dot && !args.graphviz {
+        eprintln!("Error: --run-dot requires --graphviz to be set");
+        std::process::exit(1);
+    }
+
     // Read the input file
     let input = match fs::read_to_string(&args.file) {
         Ok(content) => content,
@@ -187,6 +201,8 @@ fn main() {
                 validate(doc, input, args);
             } else if args.convert {
                 convert(doc, input, args);
+            } else if args.graphviz {
+                render_graphviz(doc, input, args);
             } else {
                 render(doc, input, args);
             }
@@ -288,6 +304,83 @@ fn render(doc: diagramy::ast::Document, input: String, args: Args) {
         match open_file(&output_file) {
             Ok(_) => println!("Opened {}", output_file),
             Err(e) => eprintln!("Warning: {}", e),
+        }
+    }
+}
+
+fn render_graphviz(doc: diagramy::ast::Document, input: String, args: Args) {
+    if let Err(e) = diagramy::validation::validate(&doc, &input, &args.file) {
+        eprintln!("Validation error: {}", e);
+        std::process::exit(1);
+    }
+
+    // Convert AST to elaboration diagram
+    let elab_diagram = match diagramy::elaboration::from_ast(&doc, &args.file, args.debug.as_deref()) {
+        Ok(diagram) => diagram,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // Convert to GraphViz DOT format
+    let dot_content = diagramy::graphviz::to_dot(&elab_diagram);
+
+    // Determine output filename for DOT file
+    let dot_output_file = args.output.clone().unwrap_or_else(|| {
+        let input_path = Path::new(&args.file);
+        let stem = input_path.file_stem().unwrap().to_str().unwrap();
+        format!("{}.dot", stem)
+    });
+
+    // Write DOT file
+    if let Err(e) = diagramy::graphviz::write_dot_file(&dot_output_file, &dot_content) {
+        eprintln!("Error writing DOT file: {}", e);
+        std::process::exit(1);
+    }
+
+    println!("Generated GraphViz DOT file: {}", dot_output_file);
+
+    // If --run-dot is specified, run dot to generate SVG
+    if args.run_dot {
+        // Determine SVG output filename
+        let svg_output_file = {
+            let input_path = Path::new(&args.file);
+            let stem = input_path.file_stem().unwrap().to_str().unwrap();
+            format!("{}.svg", stem)
+        };
+
+        // Run dot command
+        let output = Command::new("dot")
+            .arg("-Tsvg")
+            .arg(&dot_output_file)
+            .arg("-o")
+            .arg(&svg_output_file)
+            .output();
+
+        match output {
+            Ok(result) => {
+                if result.status.success() {
+                    println!("Generated SVG from GraphViz: {}", svg_output_file);
+
+                    // Open the SVG file if requested
+                    if args.open {
+                        match open_file(&svg_output_file) {
+                            Ok(_) => println!("Opened {}", svg_output_file),
+                            Err(e) => eprintln!("Warning: {}", e),
+                        }
+                    }
+                } else {
+                    eprintln!("Error running dot command:");
+                    eprintln!("{}", String::from_utf8_lossy(&result.stderr));
+                    std::process::exit(1);
+                }
+            }
+            Err(e) => {
+                eprintln!("Failed to run dot command: {}", e);
+                eprintln!("Make sure GraphViz is installed and 'dot' is in your PATH");
+                std::process::exit(1);
+            }
         }
     }
 }
