@@ -1,5 +1,5 @@
 build:
-	cargo build --release
+	cargo build --release --features lsp
 
 install:
 	cargo install --locked --path .
