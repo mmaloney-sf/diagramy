@@ -2,10 +2,10 @@
 // Combines multiple features: auto-positioning, dimensions, nesting,
 // reusable definitions, border styles, and multi-line text
 diagram {
-    version: "0.1.0"
     width: 900
     color: grey
     title: "Mixed Features Demo"
+    top: Top
 }
 
 // Reusable component with custom styling
@@ -20,7 +20,7 @@ box Module {
     label "Control" at (2, 2)
 }
 
-box top {
+box Top {
     grid: 4x6
 
     // Large header box spanning the width

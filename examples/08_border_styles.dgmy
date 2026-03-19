@@ -2,13 +2,13 @@
 // Boxes can have different border styles: solid, dotted, dashed, or none
 // The default border style is solid
 diagram {
-    version: "0.1.0"
     width: 600
     color: grey
     title: "Border Styles"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 2x3
 
     // Default border (solid)

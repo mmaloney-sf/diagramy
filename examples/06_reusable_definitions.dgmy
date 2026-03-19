@@ -2,10 +2,10 @@
 // Define boxes once and reuse them multiple times
 // This is useful for repeated components in your diagram
 diagram {
-    version: "0.1.0"
     width: 700
     color: grey
     title: "Reusable Components"
+    top: Top
 }
 
 // Define a reusable CPU core component
@@ -35,7 +35,7 @@ box MemoryBlock {
 }
 
 // Use the defined components in the main diagram
-box top {
+box Top {
     grid: 2x4
 
     // Instantiate CPUCore multiple times

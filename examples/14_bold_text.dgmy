@@ -3,13 +3,13 @@
 // bold: true makes the text bold, bold: false (or omitting it) keeps it normal
 // Note: bold cannot be used on boxes with child boxes
 diagram {
-    version: "0.1.0"
     width: 600
     color: white
     title: "Bold Text Example"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 2x3
 
     // Bold text

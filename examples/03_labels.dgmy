@@ -3,13 +3,13 @@
 // They support multi-line text and optional positioning
 
 diagram {
-    version: "0.1.0"
     width: 600
     color: white
     title: "Label Example"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 2x3
 
     box is {

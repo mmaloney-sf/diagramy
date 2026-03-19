@@ -4,10 +4,10 @@
 // If neither "at" nor "on" is specified, ports default to the right side
 
 diagram {
-    version: "0.1.0"
     width: 600
     color: white
     title: "Auto-Positioned Ports"
+    top: Top
 }
 
 box Processor {
@@ -40,7 +40,7 @@ box ALU {
     port carry
 }
 
-box top {
+box Top {
     grid: 3x3
 
     box cpu at (2, 2) is Processor

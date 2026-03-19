@@ -2,10 +2,10 @@
 // A comprehensive example showing a modern microservice system
 // Demonstrates deep nesting, reusable components, and complex layouts
 diagram {
-    version: "0.1.0"
     width: 1000
     color: white
     title: "Microservice Architecture"
+    top: Top
 }
 
 // Define a microservice component
@@ -42,7 +42,7 @@ box LoadBalancer {
     }
 }
 
-box top {
+box Top {
     grid: 5x4
 
     // Client layer

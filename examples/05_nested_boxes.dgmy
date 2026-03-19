@@ -2,13 +2,13 @@
 // Boxes can contain other boxes, creating hierarchical layouts
 // Each box defines its own grid for positioning child boxes
 diagram {
-    version: "0.1.0"
     width: 600
     color: white
     title: "Nested Boxes"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 2x2
 
     // A parent box containing nested children

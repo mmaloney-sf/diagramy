@@ -5,7 +5,6 @@
 // to avoid obstacles (child boxes). This example shows an arrow routing around
 // two boxes positioned in the grid.
 diagram {
-    version: "0.1.0"
     width: 600
     color: white
     title: "Ports and Arrows"

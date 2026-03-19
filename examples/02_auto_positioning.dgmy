@@ -2,13 +2,13 @@
 // Boxes without explicit "at" clauses are automatically positioned
 // in the next available grid cell, scanning left-to-right, top-to-bottom
 diagram {
-    version: "0.1.0"
     width: 500
     color: white
     title: "Auto-Positioning Demo"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 3x3
 
     // First box auto-positions to (1, 1)

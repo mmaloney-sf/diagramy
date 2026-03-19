@@ -2,10 +2,10 @@
 // A practical example showing a computer system architecture
 // Demonstrates nested boxes, dimensions, and reusable components
 diagram {
-    version: "0.1.0"
     width: 800
     color: grey
     title: "Computer System Architecture"
+    top: Top
 }
 
 // Define a processor core
@@ -34,7 +34,7 @@ box Memory {
     label "Controller" at (2, 1)
 }
 
-box top {
+box Top {
     grid: 3x3
 
     // CPU section with two cores

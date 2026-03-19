@@ -2,11 +2,10 @@
 // Shows a network layout with routers, switches, and servers
 // Demonstrates practical use of colors and labels
 diagram {
-    version: "0.1.0"
     width: 700
     color: white
     title: "Network Topology"
-    top: top
+    top: Top
 }
 
 // Define a server rack
@@ -20,7 +19,7 @@ box ServerRack {
     label "Cache" at (4, 1)
 }
 
-box top {
+box Top {
     grid: 4x3
 
     // Internet gateway

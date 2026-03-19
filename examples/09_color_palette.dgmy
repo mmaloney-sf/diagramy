@@ -2,13 +2,13 @@
 // Demonstrates the available color options
 // Supported colors: red, green, blue, yellow, purple, cyan, orange, pink, white, grey
 diagram {
-    version: "0.1.0"
     width: 800
     color: white
     title: "Color Palette"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 2x5
 
     box at (1, 1) is {

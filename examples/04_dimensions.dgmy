@@ -2,13 +2,13 @@
 // The "dim" property allows boxes to span multiple grid cells
 // Format: dim HEIGHTxWIDTH (e.g., dim 2x3 means 2 rows, 3 columns)
 diagram {
-    version: "0.1.0"
     width: 600
     color: grey
     title: "Box Dimensions"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 4x4
 
     // A box spanning 2 rows and 3 columns

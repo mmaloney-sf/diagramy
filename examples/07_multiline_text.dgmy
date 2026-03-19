@@ -2,13 +2,13 @@
 // Text can span multiple lines for better readability
 // Each line is specified separately and will be rendered on its own line
 diagram {
-    version: "0.1.0"
     width: 500
     color: white
     title: "Multi-line Text Demo"
+    top: Top
 }
 
-box top {
+box Top {
     grid: 2x2
 
     // Single-line text
