@@ -34,6 +34,46 @@ keybindingSelect.addEventListener('change', function() {
     }
 });
 
+// Pan and zoom state
+let panZoom = {
+    scale: 1,
+    translateX: 0,
+    translateY: 0,
+    isDragging: false,
+    startX: 0,
+    startY: 0
+};
+
+// Apply transform to SVG
+function applyTransform() {
+    const svgContainer = document.getElementById('svg-container');
+    const svg = svgContainer.querySelector('svg');
+    if (svg) {
+        svg.style.transform = `translate(${panZoom.translateX}px, ${panZoom.translateY}px) scale(${panZoom.scale})`;
+    }
+}
+
+// Reset pan and zoom
+function resetView() {
+    panZoom.scale = 1;
+    panZoom.translateX = 0;
+    panZoom.translateY = 0;
+    applyTransform();
+}
+
+// Zoom in/out
+function zoom(delta) {
+    const oldScale = panZoom.scale;
+    panZoom.scale = Math.max(0.1, Math.min(5, panZoom.scale + delta));
+
+    // Adjust translation to zoom towards center
+    const scaleFactor = panZoom.scale / oldScale;
+    panZoom.translateX *= scaleFactor;
+    panZoom.translateY *= scaleFactor;
+
+    applyTransform();
+}
+
 // Render diagram from editor content
 function renderDiagram() {
     const svgContainer = document.getElementById('svg-container');
@@ -68,6 +108,10 @@ function renderDiagram() {
         const svg = result.svg;
         if (svg) {
             svgContainer.innerHTML = svg;
+            // Reset view when new diagram is rendered
+            resetView();
+            // Set up pan and zoom event listeners
+            setupPanZoom();
         } else {
             // Show error message in the right panel as well
             const errorMessages = diagnostics.map(d => `Line ${d.line}, Col ${d.column}: ${d.message}`).join('\n');
@@ -99,6 +143,59 @@ async function loadExamples() {
         console.error('Failed to load examples:', error);
     }
 }
+
+// Set up pan and zoom event listeners
+function setupPanZoom() {
+    const svgContainer = document.getElementById('svg-container');
+
+    // Mouse wheel zoom
+    svgContainer.addEventListener('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.1 : 0.1;
+        zoom(delta);
+    });
+
+    // Click and drag to pan
+    svgContainer.addEventListener('mousedown', function(e) {
+        if (e.button === 0) { // Left mouse button
+            panZoom.isDragging = true;
+            panZoom.startX = e.clientX - panZoom.translateX;
+            panZoom.startY = e.clientY - panZoom.translateY;
+            svgContainer.classList.add('grabbing');
+        }
+    });
+
+    svgContainer.addEventListener('mousemove', function(e) {
+        if (panZoom.isDragging) {
+            panZoom.translateX = e.clientX - panZoom.startX;
+            panZoom.translateY = e.clientY - panZoom.startY;
+            applyTransform();
+        }
+    });
+
+    svgContainer.addEventListener('mouseup', function() {
+        panZoom.isDragging = false;
+        svgContainer.classList.remove('grabbing');
+    });
+
+    svgContainer.addEventListener('mouseleave', function() {
+        panZoom.isDragging = false;
+        svgContainer.classList.remove('grabbing');
+    });
+}
+
+// Zoom control buttons
+document.getElementById('zoom-in-btn').addEventListener('click', function() {
+    zoom(0.2);
+});
+
+document.getElementById('zoom-out-btn').addEventListener('click', function() {
+    zoom(-0.2);
+});
+
+document.getElementById('zoom-reset-btn').addEventListener('click', function() {
+    resetView();
+});
 
 // Handle example selection - load automatically when an example is selected
 document.getElementById('example-select').addEventListener('change', function() {
