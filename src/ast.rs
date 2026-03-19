@@ -126,6 +126,7 @@ pub struct WithBody {
     pub id: Option<String>,
     pub coords: Option<Coords>,
     pub dim: Dim,
+    pub alignment: Option<Alignment>,
     pub body: BoxBody,
     pub span: Span,
 }
@@ -135,6 +136,7 @@ pub struct Reference {
     pub id: Option<String>,
     pub coords: Option<Coords>,
     pub dim: Dim,
+    pub alignment: Option<Alignment>,
     pub def_name: String,
     pub location: (usize, usize), // (line, column) - deprecated, use span instead
     pub span: Span,
@@ -224,6 +226,7 @@ pub struct Port {
     pub name: String,
     pub coords: Option<CoordsFrac>,  // Optional "at" clause
     pub on: Option<String>,           // Optional "on" clause (top, bottom, left, right)
+    pub alignment: Option<Alignment>, // Optional "align" clause
     pub body: Option<BoxBody>,        // Optional body (can contain labels, props, etc.)
     pub span: Span,
 }
@@ -241,7 +244,17 @@ pub struct Label {
     pub text: Vec<String>,
     pub coords: Option<Coords>,
     pub dim: Option<Dim>,
+    pub alignment: Option<Alignment>,
     pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Alignment {
+    Top,
+    Right,
+    Bottom,
+    Left,
+    Center,
 }
 
 #[derive(Debug, Clone)]

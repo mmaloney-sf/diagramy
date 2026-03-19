@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Label, Coords, CoordsFrac, Path, Dim, Span};
+use crate::ast::{Document, Diagram, BoxDef, BoxBody, BoxItem, BoxInst, WithBody, Reference, Prop, PropIdent, PropString, PropNumber, PropFrac, PropCoords, PropDim, Port, Arrow, Label, Coords, CoordsFrac, Path, Dim, Alignment, Span};
 
 grammar(source: &str);
 
@@ -43,29 +43,29 @@ BoxItem: BoxItem = {
 
 BoxInst: BoxInst = {
     // Box with body (has braces) - requires "is" keyword
-    <ll:@L> "box" <id:Ident?> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> "is" <body:BoxBody> <rr:@R> => {
+    <ll:@L> "box" <id:Ident?> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> <alignment:("align" <Alignment>)?> "is" <body:BoxBody> <rr:@R> => {
         let dim = dim.unwrap_or(Dim { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
-        BoxInst::WithBody(WithBody { id, coords, dim, body, span: Span::from_offsets(source, ll, rr) })
+        BoxInst::WithBody(WithBody { id, coords, dim, alignment, body, span: Span::from_offsets(source, ll, rr) })
     },
     // Box reference (ends with identifier) - requires "is" keyword
-    <ll:@L> "box" <id:Ident?> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> "is" <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
+    <ll:@L> "box" <id:Ident?> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> <alignment:("align" <Alignment>)?> "is" <l:@L> <def_name:Ident> <r:@R> <rr:@R> => {
         let dim = dim.unwrap_or(Dim { height: 1, width: 1, span: Span::from_offsets(source, ll, rr) });
-        BoxInst::Reference(Reference { id, coords, dim, def_name, location: (l, r), span: Span::from_offsets(source, ll, rr) })
+        BoxInst::Reference(Reference { id, coords, dim, alignment, def_name, location: (l, r), span: Span::from_offsets(source, ll, rr) })
     },
 };
 
 Prop: Prop = {
-    <ll:@L> <key:Ident> ":" <l:@L> <value:Ident> <r:@R> <rr:@R> => Prop::PropIdent(PropIdent { key, value, value_location: (l, r), span: Span::from_offsets(source, ll, rr) }),
-    <ll:@L> <key:Ident> ":" <value:String+> <rr:@R> => Prop::PropString(PropString { key, value, span: Span::from_offsets(source, ll, rr) }),
-    <ll:@L> <key:Ident> ":" <value:Frac> <rr:@R> => Prop::PropFrac(PropFrac { key, value, span: Span::from_offsets(source, ll, rr) }),
-    <ll:@L> <key:Ident> ":" <value:Num> <rr:@R> => Prop::PropNumber(PropNumber { key, value, span: Span::from_offsets(source, ll, rr) }),
-    <ll:@L> <key:Ident> ":" <value:Coords> <rr:@R> => Prop::PropCoords(PropCoords { key, value, span: Span::from_offsets(source, ll, rr) }),
-    <ll:@L> <key:Ident> ":" <value:Dim> <rr:@R> => Prop::PropDim(PropDim { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:PropKey> ":" <l:@L> <value:Ident> <r:@R> <rr:@R> => Prop::PropIdent(PropIdent { key, value, value_location: (l, r), span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:PropKey> ":" <value:String+> <rr:@R> => Prop::PropString(PropString { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:PropKey> ":" <value:Frac> <rr:@R> => Prop::PropFrac(PropFrac { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:PropKey> ":" <value:Num> <rr:@R> => Prop::PropNumber(PropNumber { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:PropKey> ":" <value:Coords> <rr:@R> => Prop::PropCoords(PropCoords { key, value, span: Span::from_offsets(source, ll, rr) }),
+    <ll:@L> <key:PropKey> ":" <value:Dim> <rr:@R> => Prop::PropDim(PropDim { key, value, span: Span::from_offsets(source, ll, rr) }),
 };
 
 Port: Port = {
-    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Ident>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
-        Port { name, coords, on, body, span: Span::from_offsets(source, ll, rr) }
+    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Ident>)?> <alignment:("align" <Alignment>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
+        Port { name, coords, on, alignment, body, span: Span::from_offsets(source, ll, rr) }
     },
 };
 
@@ -76,8 +76,8 @@ Arrow: Arrow = {
 };
 
 Label: Label = {
-    <ll:@L> "label" <text:String+> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> <rr:@R> => {
-        Label { text, coords, dim, span: Span::from_offsets(source, ll, rr) }
+    <ll:@L> "label" <text:String+> <coords:("at" <Coords>)?> <dim:("dim" <Dim>)?> <alignment:("align" <Alignment>)?> <rr:@R> => {
+        Label { text, coords, dim, alignment, span: Span::from_offsets(source, ll, rr) }
     },
 };
 
@@ -108,6 +108,17 @@ Ident: String = {
     r"[a-zA-Z_][a-zA-Z0-9_]*" => <>.to_string(),
 };
 
+// PropKey can be an identifier or one of the alignment keywords
+// This allows using "top", "left", etc. as property names
+PropKey: String = {
+    Ident => <>,
+    "top" => "top".to_string(),
+    "bottom" => "bottom".to_string(),
+    "left" => "left".to_string(),
+    "right" => "right".to_string(),
+    "center" => "center".to_string(),
+};
+
 Num: i32 = {
     r"[0-9]+" => i32::from_str(<>).unwrap(),
 };
@@ -123,4 +134,13 @@ Dim: Dim = {
         let width = i32::from_str(parts[1]).unwrap();
         Dim { height, width, span: Span::from_offsets(source, ll, rr) }
     },
+};
+
+// Alignment keywords - single word only
+Alignment: Alignment = {
+    "top" => Alignment::Top,
+    "right" => Alignment::Right,
+    "bottom" => Alignment::Bottom,
+    "left" => Alignment::Left,
+    "center" => Alignment::Center,
 };

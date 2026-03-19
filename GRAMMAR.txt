@@ -28,8 +28,8 @@
         | Label
 
     BoxInst :=
-          "box" Ident? ("at" Coords)? ("dim" Dim)? "is" Body
-        | "box" Ident? ("at" Coords)? ("dim" Dim)? "is" Ident
+          "box" Ident? ("at" Coords)? ("dim" Dim)? ("align" Alignment)? "is" Body
+        | "box" Ident? ("at" Coords)? ("dim" Dim)? ("align" Alignment)? "is" Ident
 
     Prop :=
           PropIdent
@@ -39,12 +39,19 @@
         | PropCoords
         | PropDim
 
+    Alignment :=
+          "top"
+        | "right"
+        | "bottom"
+        | "left"
+        | "center"
+
 ////////////////////////////////////////
 // Ports and Arrows
 ////////////////////////////////////////
 
     Port :=
-        "port" Ident ("at" CoordsFrac)? ("on" Ident)? ("is" Body)?
+        "port" Ident ("at" CoordsFrac)? ("on" Ident)? ("align" Alignment)? ("is" Body)?
 
     Arrow :=
         "arrow" Path "to" Path ("is" Body)?
@@ -55,7 +62,7 @@
 ////////////////////////////////////////
 
     Label :=
-        "label" String+ ("at" Coords)? ("dim" Dim)?
+        "label" String+ ("at" Coords)? ("dim" Dim)? ("align" Alignment)?
 
 
 ////////////////////////////////////////

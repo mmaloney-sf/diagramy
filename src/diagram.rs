@@ -4,7 +4,7 @@ pub mod debug;
 
 use svg::Document as SvgDocument;
 use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
-use crate::elaboration;
+use crate::{ast, elaboration};
 
 // Minimum font size as a fraction of the base font size
 const MIN_FONTSIZE: f64 = 0.7;
@@ -699,6 +699,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     let top_box_height = top_height;
 
     // Process the top-level box
+    // Top box always uses center alignment
     flatten_boxes(
         &elab_diagram.top,
         None, // Top-level box has no ID
@@ -709,6 +710,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
         canvas_width as f64, // canvas width for font scaling
         top_box_width,
         top_box_height,
+        &ast::Alignment::Center,
         &mut boxes,
         &mut ports,
     );
@@ -830,6 +832,7 @@ fn flatten_boxes(
     canvas_width: f64,
     top_box_width: f64,
     top_box_height: f64,
+    alignment: &ast::Alignment,
     output: &mut Vec<DiagramBox>,
     ports_output: &mut Vec<DiagramPort>,
 ) {
@@ -852,9 +855,14 @@ fn flatten_boxes(
     let actual_width = natural_width_at_top_scale * uniform_scaling;
     let actual_height = natural_height_at_top_scale * uniform_scaling;
 
-    // Center the box within the allocated space
-    let offset_x = (parent_width - actual_width) / 2.0;
-    let offset_y = (parent_height - actual_height) / 2.0;
+    // Position the box within the allocated space based on alignment
+    let (offset_x, offset_y) = match alignment {
+        ast::Alignment::Top => ((parent_width - actual_width) / 2.0, 0.0),
+        ast::Alignment::Right => (parent_width - actual_width, (parent_height - actual_height) / 2.0),
+        ast::Alignment::Bottom => ((parent_width - actual_width) / 2.0, parent_height - actual_height),
+        ast::Alignment::Left => (0.0, (parent_height - actual_height) / 2.0),
+        ast::Alignment::Center => ((parent_width - actual_width) / 2.0, (parent_height - actual_height) / 2.0),
+    };
     let actual_x = parent_x + offset_x;
     let actual_y = parent_y + offset_y;
 
@@ -961,6 +969,7 @@ fn flatten_boxes(
             canvas_width,
             top_box_width,
             top_box_height,
+            &child_box.alignment,
             output,
             ports_output,
         );
