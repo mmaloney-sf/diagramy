@@ -100,10 +100,9 @@ async function loadExamples() {
     }
 }
 
-// Handle Load button click
-document.getElementById('load-example-btn').addEventListener('click', function() {
-    const exampleSelect = document.getElementById('example-select');
-    const selectedOption = exampleSelect.options[exampleSelect.selectedIndex];
+// Handle example selection - load automatically when an example is selected
+document.getElementById('example-select').addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
 
     if (selectedOption.value && selectedOption.dataset.content) {
         // Set the editor content
