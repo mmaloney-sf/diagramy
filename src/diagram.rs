@@ -833,6 +833,35 @@ fn flatten_boxes(
     output: &mut Vec<DiagramBox>,
     ports_output: &mut Vec<DiagramPort>,
 ) {
+    // Calculate the natural aspect ratio of this box based on its grid
+    let (grid_rows, grid_cols) = box_def.grid;
+    let natural_aspect_ratio = grid_rows as f64 / grid_cols as f64;
+
+    // Calculate what the natural width and height would be at the top box scale
+    // We use the top box as a reference unit
+    let natural_width_at_top_scale = top_box_width / grid_cols as f64 * grid_cols as f64;
+    let natural_height_at_top_scale = natural_width_at_top_scale * natural_aspect_ratio;
+
+    // Calculate uniform scaling factor to fit this box in the allocated space
+    // Use the minimum scaling to preserve aspect ratio
+    let horizontal_ratio = parent_width / natural_width_at_top_scale;
+    let vertical_ratio = parent_height / natural_height_at_top_scale;
+    let uniform_scaling = horizontal_ratio.min(vertical_ratio);
+
+    // Calculate actual box size based on uniform scaling to preserve aspect ratio
+    let actual_width = natural_width_at_top_scale * uniform_scaling;
+    let actual_height = natural_height_at_top_scale * uniform_scaling;
+
+    // Center the box within the allocated space
+    let offset_x = (parent_width - actual_width) / 2.0;
+    let offset_y = (parent_height - actual_height) / 2.0;
+    let actual_x = parent_x + offset_x;
+    let actual_y = parent_y + offset_y;
+
+    // For legacy purposes, set both horizontal and vertical scaling to the same value
+    let horizontal_scaling = uniform_scaling;
+    let vertical_scaling = uniform_scaling;
+
     // First, add the current box itself (if it has a title, color, children, ports, or arrows)
     // Boxes with children, ports, or arrows should always be rendered to show their border
     if box_def.title.is_some()
@@ -846,13 +875,9 @@ fn flatten_boxes(
         // Scale linearly from MIN_FONTSIZE to 1.0 based on width
         let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
 
-        // Calculate scaling factors relative to top box
-        let horizontal_scaling = parent_width / top_box_width;
-        let vertical_scaling = parent_height / top_box_height;
-
         output.push(DiagramBox {
-            pos: (parent_x, parent_y),
-            size: (parent_width, parent_height),
+            pos: (actual_x, actual_y),
+            size: (actual_width, actual_height),
             id: box_id.map(|s| s.to_string()),
             title: box_def.title.clone(),
             color: box_def.color.clone(),
@@ -868,10 +893,16 @@ fn flatten_boxes(
         });
     }
 
+    // Use actual box dimensions for child positioning
+    let box_width_for_children = actual_width;
+    let box_height_for_children = actual_height;
+    let box_x_for_children = actual_x;
+    let box_y_for_children = actual_y;
+
     // If this box has a title and children, add padding on all sides for the title
     let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
-        // Calculate padding based on box size (matches border radius calculation)
-        let min_dimension = parent_width.min(parent_height);
+        // Calculate padding based on actual box size (matches border radius calculation)
+        let min_dimension = box_width_for_children.min(box_height_for_children);
         let padding = (min_dimension / 20.0).max(2.0).min(15.0);
 
         // Apply margin scaling if specified
@@ -886,12 +917,10 @@ fn flatten_boxes(
         (0.0, 0.0, 0.0, 0.0)
     };
 
-    let (grid_rows, grid_cols) = box_def.grid;
-
-    // Calculate cell size based on parent dimensions and grid
+    // Calculate cell size based on actual box dimensions and grid
     // Subtract padding from available space
-    let available_width = parent_width - (padding_left + padding_right);
-    let available_height = parent_height - (padding_top + padding_bottom);
+    let available_width = box_width_for_children - (padding_left + padding_right);
+    let available_height = box_height_for_children - (padding_top + padding_bottom);
     let cell_width = available_width / grid_cols as f64;
     let cell_height = available_height / grid_rows as f64;
 
@@ -902,8 +931,8 @@ fn flatten_boxes(
 
         // Calculate absolute position
         // Add padding to position to account for the title and side padding
-        let abs_x = parent_x + padding_left + (grid_col as f64 * cell_width);
-        let abs_y = parent_y + padding_top + (grid_row as f64 * cell_height);
+        let abs_x = box_x_for_children + padding_left + (grid_col as f64 * cell_width);
+        let abs_y = box_y_for_children + padding_top + (grid_row as f64 * cell_height);
 
         // Box spans multiple cells based on dim field
         let box_width = cell_width * span_width as f64;
