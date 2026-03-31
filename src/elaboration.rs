@@ -404,6 +404,111 @@ impl<'ast> Elaborator<'ast> {
         })
     }
 
+    /// Process a group (like a box with borderStyle: none)
+    fn process_group(
+        &mut self,
+        group: &ast::Group,
+        box_name: &str,
+        grid: (usize, usize),
+        occupied: &mut HashSet<(i32, i32)>,
+        last_pos: &mut (i32, i32),
+    ) -> Result<Box, String> {
+        // Count the number of children (BoxInst, Label, and Group items)
+        let num_children = group.body.items.iter().filter(|item| {
+            matches!(item, ast::BoxItem::BoxInst(_) | ast::BoxItem::Label(_) | ast::BoxItem::Group(_))
+        }).count();
+
+        // Extract properties from the group body
+        let (group_grid, _title, _color, _margin, _border_style, _bold, _debug, _arrows) =
+            self.extract_box_items(&group.body);
+
+        // The default dim for a group is 1xN where N is the number of children
+        // If grid is explicitly set, use it; otherwise default to 1xN
+        let (dim_height, dim_width) = if group_grid == (1, 1) && num_children > 0 {
+            // No explicit grid set, use default 1xN
+            (1, num_children)
+        } else {
+            // Explicit grid was set, use it
+            group_grid
+        };
+
+        // Auto-position the group (groups don't have explicit coords)
+        let (row, col) = match self.find_next_free_position(
+            occupied,
+            grid,
+            (dim_height as i32, dim_width as i32),
+            *last_pos,
+        ) {
+            Some(pos) => pos,
+            None => {
+                let start = group.span.start();
+                return Err(format!(
+                    "{}:{}:{}: Cannot auto-position group with dim {}x{}. No free space available in {}x{} grid",
+                    self.filename, start.line(), start.col(), dim_height, dim_width, grid.0, grid.1
+                ));
+            }
+        };
+
+        // Update last position
+        *last_pos = (row, col);
+
+        // Check for overlaps and mark all occupied cells
+        for r in row..(row + dim_height as i32) {
+            for c in col..(col + dim_width as i32) {
+                if occupied.contains(&(r, c)) {
+                    let start = group.span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Group at ({}, {}) with dim {}x{} overlaps with another box at ({}, {})",
+                        self.filename, start.line(), start.col(), row, col, dim_height, dim_width, r, c
+                    ));
+                }
+                occupied.insert((r, c));
+            }
+        }
+
+        // Create a modified body with the grid property set
+        // This ensures the grid is correct when processing children
+        let mut modified_body = group.body.clone();
+
+        // Remove any existing grid property and add the correct one
+        modified_body.items.retain(|item| {
+            !matches!(item, ast::BoxItem::Prop(ast::Prop::PropDim(p)) if p.key == "grid")
+        });
+
+        // Add the grid property
+        let grid_prop = ast::Prop::PropDim(ast::PropDim {
+            key: "grid".to_string(),
+            value: ast::Dim {
+                height: dim_height as i32,
+                width: dim_width as i32,
+                span: group.span.clone(),
+            },
+            span: group.span.clone(),
+        });
+        modified_body.items.insert(0, ast::BoxItem::Prop(grid_prop));
+
+        // Recursively convert the modified group body
+        // Groups do not add a layer of dotting to names - they're transparent
+        let line_number = Some(group.span.start().line());
+        let mut nested_def = self.convert_ast_box_body(
+            &modified_body,
+            box_name, // Use the parent's box name directly, no .group suffix
+            None, // Groups don't have def names
+            line_number,
+        )?;
+
+        // Groups always have borderStyle: none
+        nested_def.border_style = Some("none".to_string());
+
+        Ok(Box {
+            id: None, // Groups don't have IDs
+            def: Arc::new(nested_def),
+            // Convert from 1-based to 0-based indexing
+            pos: ((row - 1) as usize, (col - 1) as usize),
+            dim: (dim_height, dim_width),
+        })
+    }
+
     /// Process ports from AST, handling both "at" and "on" clauses
     fn process_ports(
         &mut self,
@@ -711,6 +816,16 @@ impl<'ast> Elaborator<'ast> {
                 ast::BoxItem::Label(label) => {
                     let box_def = self.process_label(
                         label,
+                        grid,
+                        &mut occupied,
+                        &mut last_pos,
+                    )?;
+                    boxes.push(box_def);
+                }
+                ast::BoxItem::Group(group) => {
+                    let box_def = self.process_group(
+                        group,
+                        box_name,
                         grid,
                         &mut occupied,
                         &mut last_pos,

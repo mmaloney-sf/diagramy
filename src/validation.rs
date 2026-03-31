@@ -1,6 +1,6 @@
 // Validation for the AST
 
-use crate::ast::{Document, Prop, BoxBody, BoxItem, Port};
+use crate::ast::{Document, Prop, BoxBody, BoxItem, BoxInst, Port};
 use std::collections::HashSet;
 
 // Valid colors from the color table in lib.rs
@@ -152,6 +152,11 @@ fn validate_box_body(body: &BoxBody, filename: &str) -> Result<(), String> {
             }
             BoxItem::Label(_label) => {
                 // Labels are converted to boxes during elaboration, no special validation needed
+            }
+            BoxItem::Group(group) => {
+                // Groups are like boxes, validate their body
+                // But groups don't require an explicit grid property
+                validate_group_body(&group.body, filename)?;
             }
         }
     }
@@ -467,6 +472,55 @@ fn validate_text_and_children_conflict(body: &BoxBody, filename: &str) -> Result
     Ok(())
 }
 
+/// Validate a group body (like validate_box_body but without grid requirement)
+fn validate_group_body(body: &BoxBody, filename: &str) -> Result<(), String> {
+    // Validate each item in the body
+    for item in &body.items {
+        match item {
+            BoxItem::BoxInst(box_inst) => {
+                match box_inst {
+                    BoxInst::WithBody(with_body) => {
+                        validate_box_body(&with_body.body, filename)?;
+                    }
+                    BoxInst::Reference(_) => {
+                        // References are validated when the definition is validated
+                    }
+                }
+            }
+            BoxItem::Prop(_) => {
+                // Properties are validated elsewhere
+            }
+            BoxItem::Port(_) => {
+                // Ports are validated elsewhere
+            }
+            BoxItem::Arrow(_) => {
+                // Arrows are validated elsewhere
+            }
+            BoxItem::Label(_label) => {
+                // Labels are converted to boxes during elaboration, no special validation needed
+            }
+            BoxItem::Group(group) => {
+                // Recursively validate nested groups
+                validate_group_body(&group.body, filename)?;
+            }
+        }
+    }
+
+    // Validate box positions if this group has a grid
+    validate_box_positions(body, filename)?;
+
+    // Validate that boxes don't have both text property and child boxes
+    validate_text_and_children_conflict(body, filename)?;
+
+    // Groups don't require a grid property - it's set automatically
+    // So we skip validate_grid_required_for_children
+
+    // Validate no name conflicts among boxes, ports, and arrows
+    validate_no_name_conflicts(body, filename)?;
+
+    Ok(())
+}
+
 /// Validate that boxes with child boxes have a grid property
 fn validate_grid_required_for_children(body: &BoxBody, filename: &str) -> Result<(), String> {
     // Check if this box has child boxes
@@ -563,6 +617,9 @@ fn validate_no_name_conflicts(body: &BoxBody, filename: &str) -> Result<(), Stri
             }
             BoxItem::Label(_label) => {
                 // Labels are converted to boxes during elaboration, no name conflicts
+            }
+            BoxItem::Group(_group) => {
+                // Groups don't have names, no conflicts
             }
         }
     }

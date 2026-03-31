@@ -942,6 +942,12 @@ fn check_box_body_hover(
                     return Some(hover);
                 }
             }
+            BoxItem::Group(group) => {
+                // Recursively check the group's body for hover information
+                if let Some(hover) = check_box_body_hover(&group.body, text, line, col) {
+                    return Some(hover);
+                }
+            }
         }
     }
 

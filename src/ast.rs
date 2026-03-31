@@ -101,6 +101,7 @@ pub enum BoxItem {
     Port(Port),
     Arrow(Arrow),
     Label(Label),
+    Group(Group),
 }
 
 impl BoxItem {
@@ -111,6 +112,7 @@ impl BoxItem {
             BoxItem::Port(port) => port.span,
             BoxItem::Arrow(arrow) => arrow.span,
             BoxItem::Label(label) => label.span,
+            BoxItem::Group(group) => group.span,
         }
     }
 }
@@ -241,6 +243,12 @@ pub struct Label {
     pub text: Vec<String>,
     pub coords: Option<Coords>,
     pub dim: Option<Dim>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone)]
+pub struct Group {
+    pub body: BoxBody,
     pub span: Span,
 }
 
