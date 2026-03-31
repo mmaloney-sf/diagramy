@@ -246,6 +246,7 @@ fn render(doc: diagramy::ast::Document, input: String, args: Args) {
             std::process::exit(1);
         }
     };
+    dbg!(&elab_diagram);
 
     // Determine output filename
     let output_file = args.output.unwrap_or_else(|| {

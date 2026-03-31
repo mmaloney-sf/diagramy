@@ -741,7 +741,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
 
 /// Recursively collect and convert routed paths from fractional to pixel coordinates
 fn collect_routed_paths(
-    box_def: &elaboration::BoxDef,
+    box_def: &elaboration::BoxInst,
     parent_x: f64,
     parent_y: f64,
     parent_width: f64,
@@ -823,7 +823,7 @@ fn collect_routed_paths(
 
 /// Recursively flatten hierarchical boxes into absolute-positioned boxes
 fn flatten_boxes(
-    box_def: &elaboration::BoxDef,
+    box_def: &elaboration::BoxInst,
     box_id: Option<&str>,
     parent_x: f64,
     parent_y: f64,
@@ -1002,7 +1002,7 @@ fn flatten_boxes(
 }
 
 /// Recursively collect all arrows from a box and its children
-fn collect_arrows(box_def: &elaboration::BoxDef, output: &mut Vec<DiagramArrow>) {
+fn collect_arrows(box_def: &elaboration::BoxInst, output: &mut Vec<DiagramArrow>) {
     // Add arrows from this box
     for arrow in &box_def.arrows {
         output.push(DiagramArrow {

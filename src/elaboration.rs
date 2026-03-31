@@ -9,11 +9,11 @@ pub struct ElaboratedDiagram {
     pub size: (usize, usize),
     pub title: Option<String>,
     pub cheat_ports: bool,
-    pub top: Arc<BoxDef>,
+    pub top: Arc<BoxInst>,
 }
 
 #[derive(Debug)]
-pub struct BoxDef {
+pub struct BoxInst {
     pub grid: (usize, usize),
     pub title: Option<String>,
     pub color: Option<String>,
@@ -60,7 +60,7 @@ pub struct Arrow {
 #[derive(Debug)]
 pub struct Box {
     pub id: Option<String>, // Optional identifier for the box instance
-    pub def: Arc<BoxDef>,
+    pub def: Arc<BoxInst>,
     pub pos: (usize, usize),
     pub dim: (usize, usize), // (height, width) - number of grid cells to span
     pub alignment: ast::Alignment, // Alignment within the grid cell (defaults to Center)
@@ -382,7 +382,7 @@ impl<'ast> Elaborator<'ast> {
         // Create a box definition with the text property
         // The label text becomes the title (which is rendered as text in the box)
         // Multi-line labels are joined with newlines
-        let box_def = BoxDef {
+        let box_def = BoxInst {
             grid: (1, 1),
             title: Some(label.text.join("\n")),
             color: None,
@@ -691,7 +691,7 @@ impl<'ast> Elaborator<'ast> {
         box_name: &str,
         def_name: Option<String>,
         line_number: Option<usize>,
-    ) -> Result<BoxDef, String> {
+    ) -> Result<BoxInst, String> {
         // First pass: extract properties and arrows
         let (grid, title, color, margin, border_style, bold, debug, arrows) = self.extract_box_items(body);
 
@@ -748,7 +748,7 @@ impl<'ast> Elaborator<'ast> {
         let routed_arrow_paths =
             self.route_arrows(&arrows, &ports, &boxes, grid, margin, box_name);
 
-        Ok(BoxDef {
+        Ok(BoxInst {
             grid,
             title,
             color,
