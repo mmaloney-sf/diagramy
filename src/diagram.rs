@@ -28,13 +28,61 @@ pub struct Diagram {
     pub color: Option<String>,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct Rect {
+    /// Absolute position in the diagram coordinate space
+    pub pos : (f64, f64),
+    /// Absolute size (width, height) in the diagram coordinate space
+    pub size : (f64, f64),
+}
+
+impl Rect {
+    /// Create a new Rect
+    pub fn new(x: f64, y: f64, width: f64, height: f64) -> Self {
+        Rect {
+            pos: (x, y),
+            size: (width, height),
+        }
+    }
+
+    /// Get x coordinate
+    pub fn x(&self) -> f64 {
+        self.pos.0
+    }
+
+    /// Get y coordinate
+    pub fn y(&self) -> f64 {
+        self.pos.1
+    }
+
+    /// Get width
+    pub fn width(&self) -> f64 {
+        self.size.0
+    }
+
+    /// Get height
+    pub fn height(&self) -> f64 {
+        self.size.1
+    }
+
+    /// Get right edge x coordinate
+    pub fn right(&self) -> f64 {
+        self.pos.0 + self.size.0
+    }
+
+    /// Get bottom edge y coordinate
+    pub fn bottom(&self) -> f64 {
+        self.pos.1 + self.size.1
+    }
+}
+
 /// A port in the diagram with absolute position
 #[derive(Debug)]
 pub struct DiagramPort {
     pub name: String,
     pub pos: (f64, f64), // Absolute position
     pub label: Option<String>, // Optional label text
-    pub parent_box: (f64, f64, f64, f64), // Parent box bounds (x, y, width, height)
+    pub parent_rect: Rect,
 }
 
 /// An arrow in the diagram connecting two ports
@@ -47,10 +95,8 @@ pub struct DiagramArrow {
 /// A box in the diagram with absolute position and size
 #[derive(Debug)]
 pub struct DiagramBox {
-    /// Absolute position in the diagram coordinate space
-    pub pos: (f64, f64),
-    /// Absolute size (width, height) in the diagram coordinate space
-    pub size: (f64, f64),
+    pub rect: Rect,
+
     pub id: Option<String>,
     pub title: Option<String>,
     pub color: Option<String>,
@@ -78,6 +124,16 @@ impl DiagramBox {
     /// Returns the average scaling factor (average of horizontal and vertical scaling)
     pub fn scaling(&self) -> f64 {
         (self.horizontal_scaling + self.vertical_scaling) / 2.0
+    }
+
+    /// Get the position (x, y) of the box
+    pub fn pos(&self) -> (f64, f64) {
+        self.rect.pos
+    }
+
+    /// Get the size (width, height) of the box
+    pub fn size(&self) -> (f64, f64) {
+        self.rect.size
     }
 }
 
@@ -167,10 +223,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     flatten_boxes(
         &elab_diagram.top,
         None, // Top-level box has no ID
-        top_x,
-        top_y,
-        top_width,
-        top_height,
+        Rect::new(top_x, top_y, top_width, top_height),
         canvas_width as f64, // canvas width for font scaling
         top_box_width,
         top_box_height,
@@ -289,10 +342,7 @@ fn collect_routed_paths(
 fn flatten_boxes(
     box_def: &elaboration::BoxInst,
     box_id: Option<&str>,
-    parent_x: f64,
-    parent_y: f64,
-    parent_width: f64,
-    parent_height: f64,
+    parent_rect: Rect,
     canvas_width: f64,
     top_box_width: f64,
     top_box_height: f64,
@@ -311,8 +361,8 @@ fn flatten_boxes(
 
     // Calculate uniform scaling factor to fit this box in the allocated space
     // Use the minimum scaling to preserve aspect ratio
-    let horizontal_ratio = parent_width / natural_width_at_top_scale;
-    let vertical_ratio = parent_height / natural_height_at_top_scale;
+    let horizontal_ratio = parent_rect.width() / natural_width_at_top_scale;
+    let vertical_ratio = parent_rect.height() / natural_height_at_top_scale;
     let uniform_scaling = horizontal_ratio.min(vertical_ratio);
 
     // Calculate actual box size based on uniform scaling to preserve aspect ratio
@@ -321,14 +371,14 @@ fn flatten_boxes(
 
     // Position the box within the allocated space based on alignment
     let (offset_x, offset_y) = match alignment {
-        ast::Alignment::Top => ((parent_width - actual_width) / 2.0, 0.0),
-        ast::Alignment::Right => (parent_width - actual_width, (parent_height - actual_height) / 2.0),
-        ast::Alignment::Bottom => ((parent_width - actual_width) / 2.0, parent_height - actual_height),
-        ast::Alignment::Left => (0.0, (parent_height - actual_height) / 2.0),
-        ast::Alignment::Center => ((parent_width - actual_width) / 2.0, (parent_height - actual_height) / 2.0),
+        ast::Alignment::Top => ((parent_rect.width() - actual_width) / 2.0, 0.0),
+        ast::Alignment::Right => (parent_rect.width() - actual_width, (parent_rect.height() - actual_height) / 2.0),
+        ast::Alignment::Bottom => ((parent_rect.width() - actual_width) / 2.0, parent_rect.height() - actual_height),
+        ast::Alignment::Left => (0.0, (parent_rect.height() - actual_height) / 2.0),
+        ast::Alignment::Center => ((parent_rect.width() - actual_width) / 2.0, (parent_rect.height() - actual_height) / 2.0),
     };
-    let actual_x = parent_x + offset_x;
-    let actual_y = parent_y + offset_y;
+    let actual_x = parent_rect.x() + offset_x;
+    let actual_y = parent_rect.y() + offset_y;
 
     // For legacy purposes, set both horizontal and vertical scaling to the same value
     let horizontal_scaling = uniform_scaling;
@@ -342,14 +392,13 @@ fn flatten_boxes(
         || !box_def.ports.is_empty()
         || !box_def.arrows.is_empty() {
         // Linear scaling based on box width relative to canvas
-        let width_ratio = parent_width / canvas_width;
+        let width_ratio = parent_rect.width() / canvas_width;
         let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
         // Scale linearly from MIN_FONTSIZE to 1.0 based on width
         let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
 
         output.push(DiagramBox {
-            pos: (actual_x, actual_y),
-            size: (actual_width, actual_height),
+            rect: Rect::new(actual_x, actual_y, actual_width, actual_height),
             id: box_id.map(|s| s.to_string()),
             title: box_def.title.clone(),
             color: box_def.color.clone(),
@@ -426,10 +475,7 @@ fn flatten_boxes(
         flatten_boxes(
             &child_box.def,
             child_box.id.as_deref(),
-            final_x,
-            final_y,
-            final_width,
-            final_height,
+            Rect::new(final_x, final_y, final_width, final_height),
             canvas_width,
             top_box_width,
             top_box_height,
@@ -453,14 +499,14 @@ fn flatten_boxes(
 
         // Map to actual box dimensions, accounting for padding
         // Ports should be positioned within the available space (after padding)
-        let abs_x = parent_x + padding_left + (frac_x * available_width); // col is x
-        let abs_y = parent_y + padding_top + (frac_y * available_height); // row is y
+        let abs_x = parent_rect.x() + padding_left + (frac_x * available_width); // col is x
+        let abs_y = parent_rect.y() + padding_top + (frac_y * available_height); // row is y
 
         ports_output.push(DiagramPort {
             name: port.name.clone(),
             pos: (abs_x, abs_y),
             label: port.label.clone(),
-            parent_box: (parent_x, parent_y, parent_width, parent_height),
+            parent_rect,
         });
     }
 }

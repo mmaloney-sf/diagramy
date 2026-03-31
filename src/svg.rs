@@ -116,8 +116,8 @@ fn render_box_rectangle(
     mut svg_doc: SvgDocument,
     diagram_box: &DiagramBox,
 ) -> Result<SvgDocument, String> {
-    let (x, y) = diagram_box.pos;
-    let (width, height) = diagram_box.size;
+    let (x, y) = diagram_box.rect.pos;
+    let (width, height) = diagram_box.rect.size;
 
     // Determine fill color
     let fill_color = if let Some(ref color) = diagram_box.color {
@@ -196,8 +196,8 @@ fn render_box_title(
 ) -> Result<SvgDocument, String> {
     // Only render if title is present
     if let Some(ref title) = diagram_box.title {
-        let (x, y) = diagram_box.pos;
-        let (width, height) = diagram_box.size;
+        let (x, y) = diagram_box.rect.pos;
+        let (width, height) = diagram_box.rect.size;
 
         // Determine fill color for contrast calculation
         let fill_color = if let Some(ref color) = diagram_box.color {
@@ -336,9 +336,10 @@ fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocume
     let char_width = font_size as f64 * 0.6; // Approximate character width
 
     // Get parent box boundaries
-    let (box_x, box_y, box_width, box_height) = port.parent_box;
-    let box_right = box_x + box_width;
-    let box_bottom = box_y + box_height;
+    let box_x = port.parent_rect.x();
+    let box_y = port.parent_rect.y();
+    let box_right = port.parent_rect.right();
+    let box_bottom = port.parent_rect.bottom();
 
     // Split label by newlines
     let lines: Vec<&str> = label_text.split('\n').collect();
@@ -485,8 +486,8 @@ fn render_debug_grid(
 ) -> Result<SvgDocument, String> {
     use svg::node::element::Group;
 
-    let (x, y) = diagram_box.pos;
-    let (width, height) = diagram_box.size;
+    let (x, y) = diagram_box.rect.pos;
+    let (width, height) = diagram_box.rect.size;
     let (grid_rows, grid_cols) = diagram_box.grid;
 
     // Create a group for the debug grid
@@ -695,8 +696,8 @@ fn render_debug_overlay(
 
     // Label each box with its index
     for (i, diagram_box) in diagram.boxes.iter().enumerate() {
-        let (x, y) = diagram_box.pos;
-        let (box_width, box_height) = diagram_box.size;
+        let (x, y) = diagram_box.rect.pos;
+        let (box_width, box_height) = diagram_box.rect.size;
 
         // Position label at top-left corner of the box
         let label_x = x + 5.0;

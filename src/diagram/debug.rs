@@ -25,8 +25,8 @@ pub fn debug(diagram: &super::Diagram) -> String {
     // Write all boxes
     for (i, box_item) in diagram.boxes.iter().enumerate() {
         writeln!(output, "    box #{} {{", i).unwrap();
-        writeln!(output, "        pos: {:?}", box_item.pos).unwrap();
-        writeln!(output, "        size: {:?}", box_item.size).unwrap();
+        writeln!(output, "        pos: {:?}", box_item.rect.pos).unwrap();
+        writeln!(output, "        size: {:?}", box_item.rect.size).unwrap();
 
         if let Some(ref title) = box_item.title {
             writeln!(output, "        title: \"{}\"", title).unwrap();
