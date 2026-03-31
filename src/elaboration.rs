@@ -173,13 +173,13 @@ impl<'ast> Elaborator<'ast> {
         let height = (width as f64 * aspect_ratio) as usize;
         let size = (width, height);
 
-        Ok(ElaboratedDiagram {
+        Ok(dbg!(ElaboratedDiagram {
             color,
             size,
             title,
             cheat_ports,
             top: Arc::new(top_box_def),
-        })
+        }))
     }
 
     /// Process an inline box instance (WithBody variant)

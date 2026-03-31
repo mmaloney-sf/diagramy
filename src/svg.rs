@@ -1,5 +1,6 @@
 // SVG rendering for diagrams
 
+use svg::node::element::Group;
 use svg::Document as SvgDocument;
 use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
 use crate::diagram::{Diagram, DiagramBox, DiagramPort, DiagramArrow};
@@ -55,140 +56,175 @@ fn create_svg_document(diagram: &Diagram, width: usize, height: usize, font_size
         svg_doc = svg_doc.add(background);
     }
 
-    // First pass: Render all box rectangles
-    for diagram_box in &diagram.boxes {
-        svg_doc = render_box_rectangle(svg_doc, diagram_box)?;
-    }
+    // Create the content group and apply vertical flip
+    let mut content_group = create_content_group(diagram, width, height, font_size, debug)?.set("transform", "translate(0, 0)");
 
-    // Second pass: Render all box titles on top
-    for diagram_box in &diagram.boxes {
-        svg_doc = render_box_title(svg_doc, diagram_box, font_size)?;
-    }
+//    if debug {
+//        content_group = content_group.set("transform", "translate(-100, -100)");
+//    }
 
-    // Third pass: Render arrows (before ports so ports appear on top)
-    svg_doc = render_arrows(svg_doc, &diagram.arrows, &diagram.ports, &diagram.routed_paths)?;
+    svg_doc = svg_doc.add(content_group);
 
-    // Fourth pass: Render ports as small circles
-    for port in &diagram.ports {
-        svg_doc = render_port(svg_doc, port)?;
-    }
-
-    // Render diagram title centered at the top if present (on top of everything)
-    if let Some(ref title) = diagram.title {
-        let title_font_size = (font_size as f64 * 1.5) as usize;
-        let padding = 10;
-
-        // Split title by newlines and render each line centered
-        let lines: Vec<&str> = title.split('\n').collect();
-        let center_x = width / 2;
-        for (i, line) in lines.iter().enumerate() {
-            let line_y = title_font_size + padding + (i * title_font_size);
-            let title_text = Text::new(*line)
-                .set("x", center_x)
-                .set("y", line_y)
-                .set("text-anchor", "middle")
-                .set("font-size", title_font_size)
-                .set("font-family", "Arial, sans-serif")
-                .set("font-weight", "bold")
-                .set("fill", "#2C3E50");
-
-            svg_doc = svg_doc.add(title_text);
-        }
-    }
-
-    // Render debug grids on top of all other elements
-    for diagram_box in &diagram.boxes {
-        if diagram_box.debug {
-            svg_doc = render_debug_grid(svg_doc, diagram_box)?;
-        }
-    }
-
-    // Add debug overlay if debug mode is enabled
-    if debug {
-        svg_doc = render_debug_overlay(svg_doc, diagram, width, height, font_size)?;
-    }
 
     Ok(svg_doc)
 }
 
-/// Render a box rectangle to the SVG document
+/// Create a group containing all diagram content with vertical flip applied
+fn create_content_group(diagram: &Diagram, width: usize, height: usize, font_size: usize, debug: bool) -> Result<svg::node::element::Group, String> {
+    // Create a group that will contain all content
+    let mut content_group = Group::new();
+
+    // First pass: Render all box rectangles
+    for diagram_box in &diagram.boxes {
+        content_group = render_box_rectangle(content_group, diagram_box)?;
+    }
+
+//    // Second pass: Render all box titles on top
+//    for diagram_box in &diagram.boxes {
+//        content_group = render_box_title(content_group, diagram_box, font_size)?;
+//    }
+//
+//    // Third pass: Render arrows (before ports so ports appear on top)
+//    content_group = render_arrows(content_group, &diagram.arrows, &diagram.ports, &diagram.routed_paths)?;
+//
+//    // Fourth pass: Render ports as small circles
+//    for port in &diagram.ports {
+//        content_group = render_port(content_group, port)?;
+//    }
+//
+//    // Render diagram title centered at the top if present (on top of everything)
+//    if let Some(ref title) = diagram.title {
+//        let title_font_size = (font_size as f64 * 1.5) as usize;
+//        let padding = 10;
+//
+//        // Split title by newlines and render each line centered
+//        let lines: Vec<&str> = title.split('\n').collect();
+//        let center_x = width / 2;
+//        for (i, line) in lines.iter().enumerate() {
+//            let line_y = title_font_size + padding + (i * title_font_size);
+//            let title_text = Text::new(*line)
+//                .set("x", center_x)
+//                .set("y", line_y)
+//                .set("text-anchor", "middle")
+//                .set("font-size", title_font_size)
+//                .set("font-family", "Arial, sans-serif")
+//                .set("font-weight", "bold")
+//                .set("fill", "#2C3E50");
+//
+//            content_group = content_group.add(title_text);
+//        }
+//    }
+
+    // Render debug grids on top of all other elements
+//    for diagram_box in &diagram.boxes {
+//        if diagram_box.debug {
+//            content_group = render_debug_grid(content_group, diagram_box)?;
+//        }
+//    }
+
+    // Add debug overlay if debug mode is enabled
+    if debug {
+        content_group = render_debug_overlay(content_group, diagram, width, height, font_size)?;
+    }
+
+    // Apply vertical flip: scale(1, -1) translate(0, -height)
+//    let transform = format!("scale(1, -1) translate(0, -{})", height);
+//    content_group = content_group.set("transform", transform);
+
+    Ok(content_group)
+}
+
+/// Render a box rectangle to a group
 fn render_box_rectangle(
-    mut svg_doc: SvgDocument,
+    mut group: svg::node::element::Group,
     diagram_box: &DiagramBox,
-) -> Result<SvgDocument, String> {
+) -> Result<svg::node::element::Group, String> {
     // Determine border style (default is "solid")
     let border_style = diagram_box.border_style.as_deref().unwrap_or("solid");
 
-    // Create rectangle with appropriate border styling
+    // Determine fill color
+    let fill_color = if let Some(ref color) = diagram_box.color {
+        crate::map_color(color)?
+    } else {
+        "transparent"
+    };
+
+    let box_rect = diagram_box.rect.scale_at_center(0.9);
+
+    let border_radius = box_rect.width() / 40.0;
     let mut rect = Rectangle::new()
-        .set("x", diagram_box.rect.x())
-        .set("y", diagram_box.rect.y())
-        .set("width", diagram_box.rect.width())
-        .set("height", diagram_box.rect.height())
-        .set("fill", "transparent");
-
-    let border_rect = diagram_box.border();
-
-    // Calculate border radius based on box dimensions
-    let min_dimension = border_rect.width().min(border_rect.height());
-    let border_radius = (min_dimension / 20.0).max(2.0).min(15.0);
-
-    let rect_border = Rectangle::new()
-        .set("x", border_rect.x())
-        .set("y", border_rect.y())
-        .set("width", border_rect.width())
-        .set("height", border_rect.height())
+        .set("x",      box_rect.x())
+        .set("y",      box_rect.y())
+        .set("width",  box_rect.width())
+        .set("height", box_rect.height())
         .set("rx", border_radius)
         .set("ry", border_radius)
-        .set("fill", "blue")
         .set("stroke", "blue")
-        .set("stroke-width", 1.0);
+        .set("stroke-width", 1.0)
+        .set("fill", fill_color);
 
-    let grid_rect = diagram_box.grid();
-    let rect_grid = Rectangle::new()
-        .set("x", grid_rect.x())
-        .set("y", grid_rect.y())
-        .set("width", grid_rect.width())
-        .set("height", grid_rect.height())
-        .set("fill", "green")
-        .set("stroke", "green")
-        .set("stroke-width", diagram_box.scaling());
+//    let border_rect = diagram_box.border();
+//
+//    // Calculate border radius based on box dimensions
+//    let min_dimension = border_rect.width().min(border_rect.height());
+//    let border_radius = (min_dimension / 20.0).max(2.0).min(15.0);
+//
+//    let rect_border = Rectangle::new()
+//        .set("x", border_rect.x())
+//        .set("y", border_rect.y())
+//        .set("width", border_rect.width())
+//        .set("height", border_rect.height())
+//        .set("rx", border_radius)
+//        .set("ry", border_radius)
+//        .set("fill", "blue")
+//        .set("stroke", "blue")
+//        .set("stroke-width", 1.0);
+//
+//    let grid_rect = diagram_box.grid();
+//    let rect_grid = Rectangle::new()
+//        .set("x", grid_rect.x())
+//        .set("y", grid_rect.y())
+//        .set("width", grid_rect.width())
+//        .set("height", grid_rect.height())
+//        .set("fill", "green")
+//        .set("stroke", "green")
+//        .set("stroke-width", diagram_box.scaling());
 
     // Apply border style
-    match border_style {
-        "none" => {
-            // Transparent border (no stroke)
-            rect = rect
-                .set("stroke", "transparent")
-                .set("stroke-width", 0);
-        }
-        "dotted" => {
-            // Dotted border
-            rect = rect
-                .set("stroke", "#333")
-                .set("stroke-width", diagram_box.scaling())
-                .set("stroke-dasharray", "4,4");
-        }
-        "dashed" => {
-            // Dashed border
-            rect = rect
-                .set("stroke", "#333")
-                .set("stroke-width", diagram_box.scaling())
-                .set("stroke-dasharray", "12,6");
-        }
-        _ => {
-            // Default: solid border
-            rect = rect
-                .set("stroke", "#333")
-                .set("stroke-width", diagram_box.scaling());
-        }
-    }
+//    match border_style {
+//        "none" => {
+//            // Transparent border (no stroke)
+//            rect = rect
+//                .set("stroke", "transparent")
+//                .set("stroke-width", 0);
+//        }
+//        "dotted" => {
+//            // Dotted border
+//            rect = rect
+//                .set("stroke", "#333")
+//                .set("stroke-width", diagram_box.scaling())
+//                .set("stroke-dasharray", "4,4");
+//        }
+//        "dashed" => {
+//            // Dashed border
+//            rect = rect
+//                .set("stroke", "#333")
+//                .set("stroke-width", diagram_box.scaling())
+//                .set("stroke-dasharray", "12,6");
+//        }
+//        _ => {
+//            // Default: solid border
+//            rect = rect
+//                .set("stroke", "#333")
+//                .set("stroke-width", diagram_box.scaling());
+//        }
+//    }
 
-    svg_doc = svg_doc.add(rect);
-    svg_doc = svg_doc.add(rect_border);
-    svg_doc = svg_doc.add(rect_grid);
+    group = group.add(rect);
+//    group = group.add(rect_border);
+//    group = group.add(rect_grid);
 
-    Ok(svg_doc)
+    Ok(group)
 }
 
 /// Calculate a high-contrast text color based on background color (hex string version)
@@ -209,12 +245,12 @@ fn get_contrast_text_color(hex_color: &str) -> String {
     }
 }
 
-/// Render a box title to the SVG document
+/// Render a box title to a group
 fn render_box_title(
-    mut svg_doc: SvgDocument,
+    mut group: svg::node::element::Group,
     diagram_box: &DiagramBox,
     font_size: usize,
-) -> Result<SvgDocument, String> {
+) -> Result<svg::node::element::Group, String> {
     // Only render if title is present
     if let Some(ref title) = diagram_box.title {
         let border = diagram_box.border();
@@ -291,7 +327,7 @@ fn render_box_title(
                     .set("font-size", final_font_size)
                     .set("font-family", "Arial, sans-serif")
                     .set("fill", text_color.clone());
-                svg_doc = svg_doc.add(text);
+                group = group.add(text);
             }
         } else {
             // Box has no children: center the text
@@ -313,16 +349,16 @@ fn render_box_title(
                     .set("font-size", final_font_size)
                     .set("font-family", "Arial, sans-serif")
                     .set("fill", text_color.clone());
-                svg_doc = svg_doc.add(text);
+                group = group.add(text);
             }
         }
     }
 
-    Ok(svg_doc)
+    Ok(group)
 }
 
-/// Render a port as a small circle with optional label
-fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocument, String> {
+/// Render a port as a small circle with optional label to a group
+fn render_port(mut group: svg::node::element::Group, port: &DiagramPort) -> Result<svg::node::element::Group, String> {
     let (x, y) = port.pos;
     let radius = 5;
 
@@ -334,12 +370,12 @@ fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocume
         .set("stroke", "#333")
         .set("stroke-width", 2);
 
-    svg_doc = svg_doc.add(circle);
+    group = group.add(circle);
 
     // Only render label if the port has a body with a label inside it
     // Don't render the port name
     if port.label.is_none() {
-        return Ok(svg_doc);
+        return Ok(group);
     }
 
     let label_text = port.label.as_ref().unwrap();
@@ -408,19 +444,19 @@ fn render_port(mut svg_doc: SvgDocument, port: &DiagramPort) -> Result<SvgDocume
             .set("font-size", font_size)
             .set("font-family", "Arial, sans-serif")
             .set("fill", "#333");
-        svg_doc = svg_doc.add(text);
+        group = group.add(text);
     }
 
-    Ok(svg_doc)
+    Ok(group)
 }
 
-/// Render arrows connecting ports using routed paths
+/// Render arrows connecting ports using routed paths to a group
 fn render_arrows(
-    mut svg_doc: SvgDocument,
+    mut group: svg::node::element::Group,
     arrows: &[DiagramArrow],
     ports: &[DiagramPort],
     routed_paths: &[Vec<(f64, f64)>],
-) -> Result<SvgDocument, String> {
+) -> Result<svg::node::element::Group, String> {
     // Build a map of port names to positions
     let mut port_map = std::collections::HashMap::new();
     for port in ports {
@@ -443,7 +479,7 @@ fn render_arrows(
         );
 
     let defs = Definitions::new().add(marker);
-    svg_doc = svg_doc.add(defs);
+    group = group.add(defs);
 
     // Render each arrow using routed paths
     for (i, arrow) in arrows.iter().enumerate() {
@@ -467,7 +503,7 @@ fn render_arrows(
                 .set("stroke-width", 2)
                 .set("fill", "none")
                 .set("marker-end", "url(#arrowhead)");
-            svg_doc = svg_doc.add(path_elem);
+            group = group.add(path_elem);
         } else {
             // Fallback to straight line if no routed path
             if let (Some(&from_pos), Some(&to_pos)) = (port_map.get(&arrow.from), port_map.get(&arrow.to)) {
@@ -483,19 +519,19 @@ fn render_arrows(
                     .set("stroke-width", 2)
                     .set("marker-end", "url(#arrowhead)");
 
-                svg_doc = svg_doc.add(line);
+                group = group.add(line);
             }
         }
     }
 
-    Ok(svg_doc)
+    Ok(group)
 }
 
-/// Render debug grid overlay for a box
+/// Render debug grid overlay for a box to a group
 fn render_debug_grid(
-    mut svg_doc: SvgDocument,
+    mut parent_group: svg::node::element::Group,
     diagram_box: &DiagramBox,
-) -> Result<SvgDocument, String> {
+) -> Result<svg::node::element::Group, String> {
     use svg::node::element::Group;
 
     let border = diagram_box.border();
@@ -654,18 +690,18 @@ fn render_debug_grid(
         debug_group = debug_group.add(label);
     }
 
-    svg_doc = svg_doc.add(debug_group);
-    Ok(svg_doc)
+    parent_group = parent_group.add(debug_group);
+    Ok(parent_group)
 }
 
-/// Render debug overlay with grid and labels
+/// Render debug overlay with grid and labels to a group
 fn render_debug_overlay(
-    mut svg_doc: SvgDocument,
+    mut parent_group: svg::node::element::Group,
     diagram: &Diagram,
     width: usize,
     height: usize,
     _font_size: usize,
-) -> Result<SvgDocument, String> {
+) -> Result<svg::node::element::Group, String> {
     use svg::node::element::Group;
 
     // Create a group for debug overlays
@@ -781,6 +817,6 @@ fn render_debug_overlay(
         debug_group = debug_group.add(label);
     }
 
-    svg_doc = svg_doc.add(debug_group);
-    Ok(svg_doc)
+    parent_group = parent_group.add(debug_group);
+    Ok(parent_group)
 }
