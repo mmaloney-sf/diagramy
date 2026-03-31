@@ -74,6 +74,29 @@ impl Rect {
     pub fn bottom(&self) -> f64 {
         self.pos.1 + self.size.1
     }
+
+    /// Scale the rectangle by a factor of s, centered at the center of the box
+    ///
+    /// # Arguments
+    /// * `s` - The scaling factor (e.g., 2.0 doubles the size, 0.5 halves it)
+    ///
+    /// # Returns
+    /// A new Rect that is scaled by the factor s, with the same center point
+    pub fn scale_at_center(&self, s: f64) -> Rect {
+        // Calculate current center
+        let center_x = self.pos.0 + self.size.0 / 2.0;
+        let center_y = self.pos.1 + self.size.1 / 2.0;
+
+        // Calculate new size
+        let new_width = self.size.0 * s;
+        let new_height = self.size.1 * s;
+
+        // Calculate new position to maintain the center
+        let new_x = center_x - new_width / 2.0;
+        let new_y = center_y - new_height / 2.0;
+
+        Rect::new(new_x, new_y, new_width, new_height)
+    }
 }
 
 /// A port in the diagram with absolute position
@@ -126,14 +149,14 @@ impl DiagramBox {
         (self.horizontal_scaling + self.vertical_scaling) / 2.0
     }
 
-    /// Get the position (x, y) of the box
-    pub fn pos(&self) -> (f64, f64) {
-        self.rect.pos
+    /// Returns the rectangle representing the box's border
+    pub fn border(&self) -> Rect {
+        self.rect.scale_at_center(0.025)
     }
 
-    /// Get the size (width, height) of the box
-    pub fn size(&self) -> (f64, f64) {
-        self.rect.size
+    /// Returns the rectangle representing the box's border
+    pub fn grid(&self) -> Rect {
+        self.rect.scale_at_center(0.05)
     }
 }
 
