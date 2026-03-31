@@ -116,7 +116,7 @@ pub struct DiagramArrow {
 }
 
 /// A box in the diagram with absolute position and size
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DiagramBox {
     pub rect: Rect,
 
@@ -151,12 +151,12 @@ impl DiagramBox {
 
     /// Returns the rectangle representing the box's border
     pub fn border(&self) -> Rect {
-        self.rect.scale_at_center(0.025)
+        self.rect.scale_at_center(0.90)
     }
 
     /// Returns the rectangle representing the box's border
     pub fn grid(&self) -> Rect {
-        self.rect.scale_at_center(0.05)
+        self.rect.scale_at_center(0.80)
     }
 }
 
@@ -246,7 +246,7 @@ pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagra
     flatten_boxes(
         &elab_diagram.top,
         None, // Top-level box has no ID
-        Rect::new(top_x, top_y, top_width, top_height),
+        None, // Top-level box has no parent
         canvas_width as f64, // canvas width for font scaling
         top_box_width,
         top_box_height,
@@ -365,7 +365,7 @@ fn collect_routed_paths(
 fn flatten_boxes(
     box_def: &elaboration::BoxInst,
     box_id: Option<&str>,
-    parent_rect: Rect,
+    parent: Option<&DiagramBox>,
     canvas_width: f64,
     top_box_width: f64,
     top_box_height: f64,
@@ -373,6 +373,17 @@ fn flatten_boxes(
     output: &mut Vec<DiagramBox>,
     ports_output: &mut Vec<DiagramPort>,
 ) {
+    // Get the parent grid rectangle - for top-level, use the full canvas dimensions
+    let parent_grid = if let Some(p) = parent {
+        p.grid()
+    } else {
+        // Top-level box: create a rect representing the full canvas with margin
+        let margin = TOP_LEVEL_MARGIN as f64;
+        let top_x = margin;
+        let top_y = margin;
+        Rect::new(top_x, top_y, top_box_width, top_box_height)
+    };
+
     // Calculate the natural aspect ratio of this box based on its grid
     let (grid_rows, grid_cols) = box_def.grid;
     let natural_aspect_ratio = grid_rows as f64 / grid_cols as f64;
@@ -383,44 +394,53 @@ fn flatten_boxes(
     let natural_height_at_top_scale = natural_width_at_top_scale * natural_aspect_ratio;
 
     // Calculate uniform scaling factor to fit this box in the allocated space
-    // Use the minimum scaling to preserve aspect ratio
-    let horizontal_ratio = parent_rect.width() / natural_width_at_top_scale;
-    let vertical_ratio = parent_rect.height() / natural_height_at_top_scale;
+    // Use the minimum scaling to preserve aspect ratio and ensure it fits
+    let horizontal_ratio = parent_grid.width() / natural_width_at_top_scale;
+    let vertical_ratio = parent_grid.height() / natural_height_at_top_scale;
     let uniform_scaling = horizontal_ratio.min(vertical_ratio);
 
     // Calculate actual box size based on uniform scaling to preserve aspect ratio
     let actual_width = natural_width_at_top_scale * uniform_scaling;
     let actual_height = natural_height_at_top_scale * uniform_scaling;
 
-    // Position the box within the allocated space based on alignment
+    // Calculate the center of the parent grid space
+    let parent_center_x = parent_grid.x() + parent_grid.width() / 2.0;
+    let parent_center_y = parent_grid.y() + parent_grid.height() / 2.0;
+
+    // Start with the box centered in the grid space
+    let centered_x = parent_center_x - actual_width / 2.0;
+    let centered_y = parent_center_y - actual_height / 2.0;
+
+    // Apply alignment offset from center
     let (offset_x, offset_y) = match alignment {
-        ast::Alignment::Top => ((parent_rect.width() - actual_width) / 2.0, 0.0),
-        ast::Alignment::Right => (parent_rect.width() - actual_width, (parent_rect.height() - actual_height) / 2.0),
-        ast::Alignment::Bottom => ((parent_rect.width() - actual_width) / 2.0, parent_rect.height() - actual_height),
-        ast::Alignment::Left => (0.0, (parent_rect.height() - actual_height) / 2.0),
-        ast::Alignment::Center => ((parent_rect.width() - actual_width) / 2.0, (parent_rect.height() - actual_height) / 2.0),
+        ast::Alignment::Top => (0.0, -(parent_center_y - parent_grid.y() - actual_height / 2.0)),
+        ast::Alignment::Right => ((parent_grid.right() - parent_center_x - actual_width / 2.0), 0.0),
+        ast::Alignment::Bottom => (0.0, (parent_grid.bottom() - parent_center_y - actual_height / 2.0)),
+        ast::Alignment::Left => (-(parent_center_x - parent_grid.x() - actual_width / 2.0), 0.0),
+        ast::Alignment::Center => (0.0, 0.0),
     };
-    let actual_x = parent_rect.x() + offset_x;
-    let actual_y = parent_rect.y() + offset_y;
+
+    let actual_x = centered_x + offset_x;
+    let actual_y = centered_y + offset_y;
 
     // For legacy purposes, set both horizontal and vertical scaling to the same value
     let horizontal_scaling = uniform_scaling;
     let vertical_scaling = uniform_scaling;
 
-    // First, add the current box itself (if it has a title, color, children, ports, or arrows)
+    // First, create the current box itself (if it has a title, color, children, ports, or arrows)
     // Boxes with children, ports, or arrows should always be rendered to show their border
-    if box_def.title.is_some()
+    let _current_box = if box_def.title.is_some()
         || box_def.color.is_some()
         || !box_def.boxes.is_empty()
         || !box_def.ports.is_empty()
         || !box_def.arrows.is_empty() {
         // Linear scaling based on box width relative to canvas
-        let width_ratio = parent_rect.width() / canvas_width;
+        let width_ratio = parent_grid.width() / canvas_width;
         let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
         // Scale linearly from MIN_FONTSIZE to 1.0 based on width
         let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
 
-        output.push(DiagramBox {
+        let diagram_box = DiagramBox {
             rect: Rect::new(actual_x, actual_y, actual_width, actual_height),
             id: box_id.map(|s| s.to_string()),
             title: box_def.title.clone(),
@@ -434,8 +454,12 @@ fn flatten_boxes(
             grid: box_def.grid,
             def_name: box_def.def_name.clone(),
             line_number: box_def.line_number,
-        });
-    }
+        };
+        output.push(diagram_box.clone());
+        Some(diagram_box)
+    } else {
+        None
+    };
 
     // Use actual box dimensions for child positioning
     let box_width_for_children = actual_width;
@@ -493,12 +517,29 @@ fn flatten_boxes(
         let final_width = box_width - (2.0 * margin_x);
         let final_height = box_height - (2.0 * margin_y);
 
+        // Create a synthetic parent box for the child with the allocated rect (including margins)
+        let child_parent = DiagramBox {
+            rect: Rect::new(final_x, final_y, final_width, final_height),
+            id: None,
+            title: None,
+            color: None,
+            font_scale: 1.0,
+            has_children: false,
+            border_style: None,
+            horizontal_scaling: 1.0,
+            vertical_scaling: 1.0,
+            debug: false,
+            grid: (1, 1),
+            def_name: None,
+            line_number: None,
+        };
+
         // Recursively process this box and its children
-        // Use the box with margins for child positioning
+        // Use the synthetic parent with margins applied
         flatten_boxes(
             &child_box.def,
             child_box.id.as_deref(),
-            Rect::new(final_x, final_y, final_width, final_height),
+            Some(&child_parent),
             canvas_width,
             top_box_width,
             top_box_height,
@@ -522,8 +563,11 @@ fn flatten_boxes(
 
         // Map to actual box dimensions, accounting for padding
         // Ports should be positioned within the available space (after padding)
-        let abs_x = parent_rect.x() + padding_left + (frac_x * available_width); // col is x
-        let abs_y = parent_rect.y() + padding_top + (frac_y * available_height); // row is y
+        let abs_x = box_x_for_children + padding_left + (frac_x * available_width); // col is x
+        let abs_y = box_y_for_children + padding_top + (frac_y * available_height); // row is y
+
+        // Create the parent rect for this port
+        let parent_rect = Rect::new(box_x_for_children, box_y_for_children, box_width_for_children, box_height_for_children);
 
         ports_output.push(DiagramPort {
             name: port.name.clone(),

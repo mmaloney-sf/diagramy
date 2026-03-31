@@ -116,32 +116,51 @@ fn render_box_rectangle(
     mut svg_doc: SvgDocument,
     diagram_box: &DiagramBox,
 ) -> Result<SvgDocument, String> {
-    let (x, y) = diagram_box.rect.pos;
-    let (width, height) = diagram_box.rect.size;
-
-    // Determine fill color
-    let fill_color = if let Some(ref color) = diagram_box.color {
-        crate::map_color(color)?
-    } else {
-        "transparent"
-    };
-
     // Determine border style (default is "solid")
     let border_style = diagram_box.border_style.as_deref().unwrap_or("solid");
 
     // Create rectangle with appropriate border styling
     let mut rect = Rectangle::new()
-        .set("x", x)
-        .set("y", y)
-        .set("width", width)
-        .set("height", height)
-        .set("fill", fill_color);
+        .set("x", diagram_box.rect.x())
+        .set("y", diagram_box.rect.y())
+        .set("width", diagram_box.rect.width())
+        .set("height", diagram_box.rect.height())
+        .set("fill", "transparent");
+
+    let border_rect = diagram_box.border();
+
+    // Calculate border radius based on box dimensions
+    let min_dimension = border_rect.width().min(border_rect.height());
+    let border_radius = (min_dimension / 20.0).max(2.0).min(15.0);
+
+    let rect_border = Rectangle::new()
+        .set("x", border_rect.x())
+        .set("y", border_rect.y())
+        .set("width", border_rect.width())
+        .set("height", border_rect.height())
+        .set("rx", border_radius)
+        .set("ry", border_radius)
+        .set("fill", "blue")
+        .set("stroke", "blue")
+        .set("stroke-width", 1.0);
+
+    let grid_rect = diagram_box.grid();
+    let rect_grid = Rectangle::new()
+        .set("x", grid_rect.x())
+        .set("y", grid_rect.y())
+        .set("width", grid_rect.width())
+        .set("height", grid_rect.height())
+        .set("fill", "green")
+        .set("stroke", "green")
+        .set("stroke-width", diagram_box.scaling());
 
     // Apply border style
     match border_style {
         "none" => {
             // Transparent border (no stroke)
-            rect = rect.set("stroke", "transparent").set("stroke-width", 0);
+            rect = rect
+                .set("stroke", "transparent")
+                .set("stroke-width", 0);
         }
         "dotted" => {
             // Dotted border
@@ -166,6 +185,8 @@ fn render_box_rectangle(
     }
 
     svg_doc = svg_doc.add(rect);
+    svg_doc = svg_doc.add(rect_border);
+    svg_doc = svg_doc.add(rect_grid);
 
     Ok(svg_doc)
 }
@@ -196,8 +217,9 @@ fn render_box_title(
 ) -> Result<SvgDocument, String> {
     // Only render if title is present
     if let Some(ref title) = diagram_box.title {
-        let (x, y) = diagram_box.rect.pos;
-        let (width, height) = diagram_box.rect.size;
+        let border = diagram_box.border();
+        let (x, y) = border.pos;
+        let (width, height) = border.size;
 
         // Determine fill color for contrast calculation
         let fill_color = if let Some(ref color) = diagram_box.color {
@@ -215,19 +237,9 @@ fn render_box_title(
         // Split title by newlines
         let lines: Vec<&str> = title.split('\n').collect();
 
-        // Calculate padding based on box size (matches border radius calculation)
-        let min_dimension = width.min(height);
-        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
-
-        // Calculate available space for text
-        let available_width = if diagram_box.has_children {
-            // For boxes with children, text is left-aligned with padding on both sides
-            width - (2.0 * padding)
-        } else {
-            // For boxes without children, text is centered but still needs padding
-            width - (2.0 * padding)
-        };
-        let available_height = height - (2.0 * padding);
+        // Use the border dimensions directly - no manual padding calculation
+        let available_width = width;
+        let available_height = height;
 
         // Estimate text dimensions and calculate scaling factor
         // Average character width is approximately 0.6 * font_size for Arial
@@ -265,8 +277,8 @@ fn render_box_title(
         // Position the text based on whether the box has children
         if diagram_box.has_children {
             // Box has children: position title in upper left
-            let start_x = x + padding;
-            let start_y = y + final_font_size as f64 + padding;
+            let start_x = x;
+            let start_y = y + final_font_size as f64;
 
             // Render each line separately
             for (i, line) in lines.iter().enumerate() {
@@ -486,8 +498,9 @@ fn render_debug_grid(
 ) -> Result<SvgDocument, String> {
     use svg::node::element::Group;
 
-    let (x, y) = diagram_box.rect.pos;
-    let (width, height) = diagram_box.rect.size;
+    let border = diagram_box.border();
+    let (x, y) = border.pos;
+    let (width, height) = border.size;
     let (grid_rows, grid_cols) = diagram_box.grid;
 
     // Create a group for the debug grid
@@ -696,8 +709,9 @@ fn render_debug_overlay(
 
     // Label each box with its index
     for (i, diagram_box) in diagram.boxes.iter().enumerate() {
-        let (x, y) = diagram_box.rect.pos;
-        let (box_width, box_height) = diagram_box.rect.size;
+        let border = diagram_box.border();
+        let (x, y) = border.pos;
+        let (box_width, box_height) = border.size;
 
         // Position label at top-left corner of the box
         let label_x = x + 5.0;
