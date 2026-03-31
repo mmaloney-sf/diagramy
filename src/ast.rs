@@ -265,6 +265,17 @@ pub enum Side {
     Left,
 }
 
+impl std::fmt::Display for Side {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Side::Top => write!(f, "top"),
+            Side::Right => write!(f, "right"),
+            Side::Bottom => write!(f, "bottom"),
+            Side::Left => write!(f, "left"),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Coords {
     pub row: i32,

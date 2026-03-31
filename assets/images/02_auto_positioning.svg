@@ -1,19 +1,19 @@
 <svg height="500" viewBox="0 0 500 500" width="500" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#F8F9F9" height="100%" width="100%"/>
 <rect fill="transparent" height="406" stroke="#333" stroke-width="1" width="406" x="47" y="47"/>
-<rect fill="#E8DEDD" height="108.26666666666668" stroke="#333" stroke-width="0.2666666666666667" width="108.26666666666668" x="60.53333333333333" y="60.53333333333333"/>
-<rect fill="#DEE8E3" height="108.26666666666668" stroke="#333" stroke-width="0.2666666666666667" width="108.26666666666668" x="195.86666666666667" y="60.53333333333333"/>
-<rect fill="#DEE8ED" height="108.26666666666668" stroke="#333" stroke-width="0.2666666666666667" width="108.26666666666668" x="195.86666666666667" y="195.86666666666667"/>
-<rect fill="#F5F5DC" height="108.26666666666668" stroke="#333" stroke-width="0.2666666666666667" width="108.26666666666668" x="331.20000000000005" y="195.86666666666667"/>
-<rect fill="#E3DEE8" height="108.26666666666668" stroke="#333" stroke-width="0.2666666666666667" width="108.26666666666668" x="60.53333333333333" y="331.20000000000005"/>
-<rect fill="#DEE8E8" height="108.26666666666668" stroke="#333" stroke-width="0.2666666666666667" width="108.26666666666668" x="195.86666666666667" y="331.20000000000005"/>
+<rect fill="#E8DEDD" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="60.533333333333324" y="60.533333333333324"/>
+<rect fill="#DEE8E3" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="195.86666666666667" y="60.533333333333324"/>
+<rect fill="#DEE8ED" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="195.86666666666667" y="195.86666666666667"/>
+<rect fill="#F5F5DC" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="331.20000000000005" y="195.86666666666667"/>
+<rect fill="#E3DEE8" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="60.533333333333324" y="331.20000000000005"/>
+<rect fill="#DEE8E8" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="195.86666666666667" y="331.20000000000005"/>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114.66666666666667" y="121.16666666666667">
 Auto 1
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250" y="121.16666666666667">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250.00000000000003" y="121.16666666666667">
 Auto 2
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250" y="256.5">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250.00000000000003" y="256.5">
 Fixed
 </text>
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="385.33333333333337" y="256.5">
@@ -22,7 +22,7 @@ Auto 3
 <text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114.66666666666667" y="391.83333333333337">
 Auto 4
 </text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250" y="391.83333333333337">
+<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250.00000000000003" y="391.83333333333337">
 Auto 5
 </text>
 <defs>

@@ -13,6 +13,8 @@ pub mod diagram;
 pub mod ast;
 pub mod validation;
 pub mod routing;
+pub mod svg;
+pub mod color;
 
 #[cfg(test)]
 mod tests;
