@@ -13,6 +13,8 @@ const MIN_FONTSIZE: f64 = 0.7;
 // Default base font size
 const DEFAULT_FONT_SIZE: usize = 18;
 
+const MARGIN_FACTOR: f64 = 0.05;
+
 // Margin around the top-level box (in pixels)
 // Should be large enough to fit the title font (1.5x base font size) plus padding
 const TOP_LEVEL_MARGIN: usize = (DEFAULT_FONT_SIZE as f64 * 1.5) as usize + 20;
@@ -290,7 +292,7 @@ impl Diagram {
     }
 
     fn add_box_element(&mut self, box_inst: &elaboration::BoxInst, bounds: Rect) {
-        let margin = bounds.width().min(bounds.height()) as f64 * 0.025;
+        let margin = bounds.width().min(bounds.height()) as f64 * MARGIN_FACTOR;
         let padding = margin;
         // Check if this is a label (has title and border_style "none")
         let is_label = box_inst.title.is_some()

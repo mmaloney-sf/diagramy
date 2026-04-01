@@ -1,12 +1,29 @@
 <svg height="500" viewBox="0 0 500 500" width="500" xmlns="http://www.w3.org/2000/svg">
-<rect fill="#F8F9F9" height="100%" width="100%"/>
 <g transform="translate(0, 0)">
-<rect fill="transparent" height="450" rx="11.25" ry="11.25" stroke="blue" stroke-width="1" width="450" x="25" y="25"/>
-<rect fill="#E8DEDD" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="44.58333333333333" y="44.58333333333333"/>
-<rect fill="#DEE8E3" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="186.25" y="44.58333333333333"/>
-<rect fill="#DEE8ED" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="186.25" y="186.25"/>
-<rect fill="#F5F5DC" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="327.91666666666663" y="186.25"/>
-<rect fill="#E3DEE8" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="44.58333333333333" y="327.91666666666663"/>
-<rect fill="#DEE8E8" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="186.25" y="327.91666666666663"/>
+<rect fill="transparent" height="475" rx="4.75" ry="4.75" stroke="gray" stroke-width="1" width="475" x="12.5" y="12.5"/>
+<rect fill="#E8DEDD" height="142.5" rx="1.425" ry="1.425" stroke="gray" stroke-width="1" width="142.5" x="28.75" y="28.75"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="100" y="107">
+Auto 1
+</text>
+<rect fill="#DEE8E3" height="142.5" rx="1.425" ry="1.425" stroke="gray" stroke-width="1" width="142.5" x="178.75" y="28.75"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="250" y="107">
+Auto 2
+</text>
+<rect fill="#DEE8ED" height="142.5" rx="1.425" ry="1.425" stroke="gray" stroke-width="1" width="142.5" x="178.75" y="178.75"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="250" y="257">
+Fixed
+</text>
+<rect fill="#F5F5DC" height="142.5" rx="1.425" ry="1.425" stroke="gray" stroke-width="1" width="142.5" x="328.75" y="178.75"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="400" y="257">
+Auto 3
+</text>
+<rect fill="#E3DEE8" height="142.5" rx="1.425" ry="1.425" stroke="gray" stroke-width="1" width="142.5" x="28.75" y="328.75"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="100" y="407">
+Auto 4
+</text>
+<rect fill="#DEE8E8" height="142.5" rx="1.425" ry="1.425" stroke="gray" stroke-width="1" width="142.5" x="178.75" y="328.75"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="250" y="407">
+Auto 5
+</text>
 </g>
 </svg>

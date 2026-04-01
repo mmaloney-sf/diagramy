@@ -72,20 +72,20 @@ fn create_svg_document(diagram: &Diagram, width: usize, height: usize, font_size
 }
 
 /// Create a group containing all diagram content with vertical flip applied
-fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_size: usize, _debug: bool) -> Result<svg::node::element::Group, String> {
+fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_size: usize, debug: bool) -> Result<svg::node::element::Group, String> {
     // Create a group that will contain all content
     let mut content_group = Group::new();
 
     for element in &diagram.elements {
         match element {
             crate::diagram::DiagramElement::Box(diagram_box) => {
-                content_group = draw_box(content_group, &diagram_box);
+                content_group = draw_box(content_group, &diagram_box, debug);
             },
             crate::diagram::DiagramElement::Port(_diagram_port) => todo!(),
             crate::diagram::DiagramElement::Arrow(_diagram_arrow) => todo!(),
             crate::diagram::DiagramElement::Path(_items) => todo!(),
             crate::diagram::DiagramElement::Label(diagram_label) => {
-                content_group = draw_label(content_group, &diagram_label);
+                content_group = draw_label(content_group, &diagram_label, debug);
             }
             crate::diagram::DiagramElement::FillColor(_) => todo!(),
         }
@@ -94,29 +94,27 @@ fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_
     Ok(content_group)
 }
 
-fn draw_box(mut content: Group, diagram_box: &DiagramBox) -> Group {
+fn draw_box(mut content: Group, diagram_box: &DiagramBox, debug: bool) -> Group {
     let fill_color = if let Some(ref color) = diagram_box.color {
         crate::map_color(color).unwrap()
     } else {
         "transparent"
     };
 
-    let slot_rect = Rectangle::new()
-        .set("x",      diagram_box.bounds().x())
-        .set("y",      diagram_box.bounds().y())
-        .set("width",  diagram_box.bounds().width())
-        .set("height", diagram_box.bounds().height())
-        .set("stroke", "blue")
-        .set("stroke-width", 1.0)
-        .set("fill", "#00ff0011");
+//    let slot_rect = Rectangle::new()
+//        .set("x",      diagram_box.bounds().x())
+//        .set("y",      diagram_box.bounds().y())
+//        .set("width",  diagram_box.bounds().width())
+//        .set("height", diagram_box.bounds().height())
+//        .set("stroke", "blue")
+//        .set("stroke-width", 1.0)
+//        .set("fill", "#00ff0011");
+//
+//    content = content.add(slot_rect);
 
-    content = content.add(slot_rect); // TODO
-
-//    let margin = 10.0;
-//    let box_rect = diagram_box.border_bounds();
     let box_rect = diagram_box.border_bounds();
 
-    let border_radius = box_rect.width() / 100.0;
+    let border_radius = diagram_box.margin / 3.0;
     let rect = Rectangle::new()
         .set("x",      box_rect.x())
         .set("y",      box_rect.y())
@@ -124,8 +122,8 @@ fn draw_box(mut content: Group, diagram_box: &DiagramBox) -> Group {
         .set("height", box_rect.height())
         .set("rx", border_radius)
         .set("ry", border_radius)
-        .set("stroke", "blue")
-        .set("stroke-width", 2.0)
+        .set("stroke", "gray")
+        .set("stroke-width", 1.0)
         .set("fill", fill_color);
 
 //    match border_style {
@@ -157,75 +155,79 @@ fn draw_box(mut content: Group, diagram_box: &DiagramBox) -> Group {
 //        }
 //    }
 
-//    content = content.add(rect); // TODO
+    content = content.add(rect);
 
-    let debug_grid_width = 2.0;
-    // Draw grid overlay
-    let grid_rect = diagram_box.grid_bounds();
-    let (grid_rows, grid_cols) = diagram_box.grid;
-    let x = grid_rect.x();
-    let y = grid_rect.y();
-    let width = grid_rect.width();
-    let height = grid_rect.height();
-    // Draw red bounding rectangle around the grid
-    let grid_bounds = Rectangle::new()
-        .set("x", x + 1.0)
-        .set("y", y + 1.0)
-        .set("width", width)
-        .set("height", height)
-        .set("fill", "none")
-        .set("stroke", "red")
-        .set("stroke-width", debug_grid_width);
-
-    content = content.add(grid_bounds);
-
-    // Draw vertical grid lines
-    for col in 1..grid_cols {
-        let x_pos = x + (col as f64 * width / grid_cols as f64);
-        let line = svg::node::element::Line::new()
-            .set("x1", x_pos + 1.0)
-            .set("y1", y + 1.0)
-            .set("x2", x_pos + 1.0)
-            .set("y2", y + 1.0 + height)
+    if debug {
+        let debug_grid_width = 2.0;
+        // Draw grid overlay
+        let grid_rect = diagram_box.grid_bounds();
+        let (grid_rows, grid_cols) = diagram_box.grid;
+        let x = grid_rect.x();
+        let y = grid_rect.y();
+        let width = grid_rect.width();
+        let height = grid_rect.height();
+        // Draw red bounding rectangle around the grid
+        let grid_bounds = Rectangle::new()
+            .set("x", x + 1.0)
+            .set("y", y + 1.0)
+            .set("width", width)
+            .set("height", height)
+            .set("fill", "none")
             .set("stroke", "red")
             .set("stroke-width", debug_grid_width);
-        content = content.add(line);
-    }
 
-    // Draw horizontal grid lines
-    for row in 1..grid_rows {
-        let y_pos = y + (row as f64 * height / grid_rows as f64);
-        let line = svg::node::element::Line::new()
-            .set("x1", x + 1.0)
-            .set("y1", y_pos + 1.0)
-            .set("x2", x + 1.0 + width)
-            .set("y2", y_pos + 1.0)
-            .set("stroke", "red")
-            .set("stroke-width", debug_grid_width);
-        content = content.add(line);
+        content = content.add(grid_bounds);
+
+        // Draw vertical grid lines
+        for col in 1..grid_cols {
+            let x_pos = x + (col as f64 * width / grid_cols as f64);
+            let line = svg::node::element::Line::new()
+                .set("x1", x_pos + 1.0)
+                .set("y1", y + 1.0)
+                .set("x2", x_pos + 1.0)
+                .set("y2", y + 1.0 + height)
+                .set("stroke", "red")
+                .set("stroke-width", debug_grid_width);
+            content = content.add(line);
+        }
+
+        // Draw horizontal grid lines
+        for row in 1..grid_rows {
+            let y_pos = y + (row as f64 * height / grid_rows as f64);
+            let line = svg::node::element::Line::new()
+                .set("x1", x + 1.0)
+                .set("y1", y_pos + 1.0)
+                .set("x2", x + 1.0 + width)
+                .set("y2", y_pos + 1.0)
+                .set("stroke", "red")
+                .set("stroke-width", debug_grid_width);
+            content = content.add(line);
+        }
     }
 
     content
 }
 
-fn draw_label(mut content: Group, diagram_label: &DiagramLabel) -> Group {
+fn draw_label(mut content: Group, diagram_label: &DiagramLabel, debug: bool) -> Group {
     let box_rect = diagram_label.bounds;
 
-    // Add dotted border rectangle
-    let border_radius = box_rect.width() / 100.0;
-    let rect = Rectangle::new()
-        .set("x",      box_rect.x())
-        .set("y",      box_rect.y())
-        .set("width",  box_rect.width())
-        .set("height", box_rect.height())
-        .set("rx", border_radius)
-        .set("ry", border_radius)
-        .set("stroke", "gray")
-        .set("stroke-width", 1.0)
-        .set("stroke-dasharray", "4,4")  // Dotted border
-        .set("fill", "transparent");
+    if debug {
+        // Add dotted border rectangle
+        let border_radius = box_rect.width() / 100.0;
+        let rect = Rectangle::new()
+            .set("x",      box_rect.x())
+            .set("y",      box_rect.y())
+            .set("width",  box_rect.width())
+            .set("height", box_rect.height())
+            .set("rx", border_radius)
+            .set("ry", border_radius)
+            .set("stroke", "gray")
+            .set("stroke-width", 1.0)
+            .set("stroke-dasharray", "4,4")  // Dotted border
+            .set("fill", "transparent");
 
-    content = content.add(rect);
+        content = content.add(rect);
+    }
 
     // Render the text centered in the box
     let font_size = 14;
