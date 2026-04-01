@@ -60,7 +60,7 @@ pub struct Arrow {
 #[derive(Debug)]
 pub struct Box {
     pub id: Option<String>, // Optional identifier for the box instance
-    pub def: Arc<BoxInst>,
+    pub inst: Arc<BoxInst>,
     pub pos: (usize, usize),
     pub dim: (usize, usize), // (height, width) - number of grid cells to span
     pub alignment: ast::Alignment, // Alignment within the grid cell (defaults to Center)
@@ -241,7 +241,7 @@ impl<'ast> Elaborator<'ast> {
 
         Ok(Box {
             id: with_body.id.clone(),
-            def: Arc::new(nested_def),
+            inst: Arc::new(nested_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (with_body.dim.height as usize, with_body.dim.width as usize),
@@ -318,7 +318,7 @@ impl<'ast> Elaborator<'ast> {
 
         Ok(Box {
             id: reference.id.clone(),
-            def: Arc::new(nested_def),
+            inst: Arc::new(nested_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (reference.dim.height as usize, reference.dim.width as usize),
@@ -400,7 +400,7 @@ impl<'ast> Elaborator<'ast> {
 
         Ok(Box {
             id: None, // Labels don't have IDs
-            def: Arc::new(box_def),
+            inst: Arc::new(box_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (dim_height as usize, dim_width as usize),
@@ -793,7 +793,7 @@ impl<'ast> Elaborator<'ast> {
                 let (child_height, child_width) = child_box.dim;
 
                 // Add each port from the child box with qualified name
-                for child_port in &child_box.def.ports {
+                for child_port in &child_box.inst.ports {
                     // Calculate the port's position in the parent's coordinate system
                     // Child box occupies cells from (child_row, child_col) to (child_row + child_height, child_col + child_width)
                     // Port coordinates are relative to the child box's grid
@@ -816,7 +816,7 @@ impl<'ast> Elaborator<'ast> {
                     let effective_child_height = (child_height as f64) - (2.0 * margin_in_cells);
                     let effective_child_width = (child_width as f64) - (2.0 * margin_in_cells);
 
-                    let child_grid = child_box.def.grid;
+                    let child_grid = child_box.inst.grid;
                     let (child_grid_rows, child_grid_cols) = child_grid;
 
                     // Port coordinates in child's fractional grid coordinates

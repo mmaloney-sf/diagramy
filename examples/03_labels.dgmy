@@ -3,6 +3,7 @@
 // They support multi-line text and optional positioning
 
 diagram {
+    debug: true
     width: 512
     color: white
     title: "Label Example"

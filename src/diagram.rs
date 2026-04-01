@@ -20,12 +20,17 @@ const TOP_LEVEL_MARGIN: usize = (DEFAULT_FONT_SIZE as f64 * 1.5) as usize + 20;
 /// A diagram containing positioned boxes with absolute coordinates
 #[derive(Debug)]
 pub struct Diagram {
-    pub boxes: Vec<DiagramBox>,
-    pub ports: Vec<DiagramPort>,
-    pub arrows: Vec<DiagramArrow>,
-    pub routed_paths: Vec<Vec<(f64, f64)>>, // Routed arrow paths in pixel coordinates
-    pub title: Option<String>,
-    pub color: Option<String>,
+    pub elements: Vec<DiagramElement>,
+}
+
+#[derive(Debug)]
+pub enum DiagramElement {
+    Box(DiagramBox),
+    Port(DiagramPort),
+    Arrow(DiagramArrow),
+    Path(Vec<(f64, f64)>),
+    Label(DiagramLabel),
+    FillColor(String),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -113,6 +118,15 @@ impl Rect {
 
         Rect::new(new_x, new_y, new_width, new_height)
     }
+
+    pub fn margin(&self, margin: f64) -> Rect {
+        // Calculate new position to maintain the center
+        let new_x = self.x() + margin;
+        let new_y = self.y() + margin;
+        let new_width = self.width() - 2.0 * margin;
+        let new_height = self.height() - 2.0 * margin;
+        Rect::new(new_x, new_y, new_width, new_height)
+    }
 }
 
 /// A port in the diagram with absolute position
@@ -134,35 +148,52 @@ pub struct DiagramArrow {
 /// A box in the diagram with absolute position and size
 #[derive(Debug, Clone)]
 pub struct DiagramBox {
-    pub rect: Rect,
-
-    pub id: Option<String>,
-    pub title: Option<String>,
+    pub bounds: Rect,
     pub color: Option<String>,
-    /// Font scale factor based on width relative to parent
-    pub font_scale: f64,
-    /// Whether this box has child boxes
-    pub has_children: bool,
-    /// Border style: solid, none, dotted, or dashed
-    pub border_style: Option<String>,
-    /// Horizontal scaling factor relative to top box (ratio: box width / top box width)
-    pub horizontal_scaling: f64,
-    /// Vertical scaling factor relative to top box (ratio: box height / top box height)
-    pub vertical_scaling: f64,
-    /// Whether to show debug grid overlay
-    pub debug: bool,
+
     /// Grid dimensions (rows, cols) for debug overlay
     pub grid: (usize, usize),
-    /// Name of the box definition (None for inline boxes)
-    pub def_name: Option<String>,
-    /// Line number where the box was defined
-    pub line_number: Option<usize>,
+
+//    pub id: Option<String>,
+//    pub title: Option<String>,
+//    pub color: Option<String>,
+//    /// Font scale factor based on width relative to parent
+//    pub font_scale: f64,
+//    /// Whether this box has child boxes
+//    pub has_children: bool,
+//    /// Border style: solid, none, dotted, or dashed
+//    pub border_style: Option<String>,
+//    /// Horizontal scaling factor relative to top box (ratio: box width / top box width)
+//    pub horizontal_scaling: f64,
+//    /// Vertical scaling factor relative to top box (ratio: box height / top box height)
+//    pub vertical_scaling: f64,
+//    /// Whether to show debug grid overlay
+//    pub debug: bool,
+//    /// Name of the box definition (None for inline boxes)
+//    pub def_name: Option<String>,
+//    /// Line number where the box was defined
+//    pub line_number: Option<usize>,
+}
+
+
+#[derive(Debug, Clone)]
+pub struct DiagramLabel {
+    pub bounds: Rect,
+    pub text: String,
 }
 
 impl DiagramBox {
-    /// Returns the average scaling factor (average of horizontal and vertical scaling)
-    pub fn scaling(&self) -> f64 {
-        (self.horizontal_scaling + self.vertical_scaling) / 2.0
+    pub fn bounds(&self) -> Rect {
+        self.bounds.clone()
+    }
+
+    pub fn border_bounds(&self) -> Rect {
+        let margin = 20.0;
+        self.bounds.margin(margin)
+    }
+    pub fn grid_bounds(&self) -> Rect {
+        let margin = 20.0;
+        self.border_bounds().margin(margin)
     }
 }
 
@@ -228,248 +259,127 @@ pub fn estimate_text_bbox(text: &str, font_size: usize) -> (usize, usize) {
 
 /// Convert an elaboration::Diagram to a diagram::Diagram with absolute coordinates
 pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagram {
-    let diagrammer = Diagrammer {};
-    diagrammer.from_elaboration(elab_diagram)
+    Diagram::from_elaboration(elab_diagram)
 }
 
-struct Diagrammer {
-}
+impl Diagram {
+    pub fn from_elaboration(elab_diagram: &elaboration::ElaboratedDiagram) -> Diagram {
+//        // Collect all arrows from the top-level box
+//        collect_arrows(&elab_diagram.top, &mut arrows);
+//
+//        // Collect routed paths and convert to pixel coordinates
+//        let mut routed_paths = Vec::new();
+//        collect_routed_paths(
+//            &elab_diagram.top,
+//            top_x,
+//            top_y,
+//            top_width,
+//            top_height,
+//            &mut routed_paths,
+//        );
 
-impl Diagrammer {
-    pub fn from_elaboration(&self, elab_diagram: &elaboration::ElaboratedDiagram) -> Diagram {
+        let mut diagram = Diagram {
+            elements: vec![],
+        };
 
-        let mut boxes = Vec::new();
-        let mut ports = Vec::new();
-        let mut arrows = Vec::new();
-
-        // Calculate absolute positions for all boxes
-        // Add margin around the top-level box
         let (canvas_width, canvas_height) = elab_diagram.size;
-        let margin = TOP_LEVEL_MARGIN as f64;
+        let diagram_bounds = Rect::new(0.0, 0.0, canvas_width as f64, canvas_height as f64);
+        diagram.add_box_element(&elab_diagram.top, diagram_bounds);
+        diagram
+    }
 
-        // The top-level box starts at (margin, margin) and has reduced size
-        let top_x = margin;
-        let top_y = margin;
-        let top_width = (canvas_width as f64) - (2.0 * margin);
-        let top_height = (canvas_height as f64) - (2.0 * margin);
+    fn add_box_element(&mut self, box_inst: &elaboration::BoxInst, bounds: Rect) {
+        // Check if this is a label (has title and border_style "none")
+        let is_label = box_inst.title.is_some()
+            && box_inst.border_style.as_deref() == Some("none");
 
-        flatten_boxes(
-            &elab_diagram.top,
-            None, // Top-level box has no ID
-            Rect::new(0.0, 0.0, canvas_width as f64, canvas_height as f64),
-            &ast::Alignment::Center,
-            &mut boxes,
-            &mut ports,
-        );
+        if is_label {
+            // This is a label - add only the label element
+            self.elements.push(DiagramElement::Label(DiagramLabel {
+                bounds,
+                text: box_inst.title.clone().unwrap(),
+            }));
+        } else {
+            // This is a regular box - add the box element
+            self.elements.push(DiagramElement::Box(DiagramBox {
+                bounds,
+                color: box_inst.color.clone(),
+                grid: box_inst.grid,
+            }));
 
-        dbg!(&boxes);
+            // If this box has a title, add it as a label too
+            if let Some(ref title) = box_inst.title {
+                self.elements.push(DiagramElement::Label(DiagramLabel {
+                    bounds,
+                    text: title.clone(),
+                }));
+            }
+        }
 
-        // Collect all arrows from the top-level box
-        collect_arrows(&elab_diagram.top, &mut arrows);
+        let margin = 20.0;
+        let border_bounds = bounds.margin(margin);
+        let margin = 20.0;
+        let grid_bounds = border_bounds.margin(margin);
+        for child_box in &box_inst.boxes {
+            eprintln!("--------------------------------------------------------------------------------");
+            let (max_row, max_col) = box_inst.grid;
+            let dr = grid_bounds.height() / max_row as f64;
+            let dc = grid_bounds.width() / max_col as f64;
 
-        // Collect routed paths and convert to pixel coordinates
-        let mut routed_paths = Vec::new();
-        collect_routed_paths(
-            &elab_diagram.top,
-            top_x,
-            top_y,
-            top_width,
-            top_height,
-            &mut routed_paths,
-        );
+            dbg!(grid_bounds.height());
+            dbg!(max_row);
+            dbg!(grid_bounds.width());
+            dbg!(max_col);
+            dbg!(&dr, &dc);
 
-        Diagram {
-            boxes,
-            ports,
-            arrows,
-            routed_paths,
-            title: elab_diagram.title.clone(),
-            color: Some(elab_diagram.color.clone()),
+            let (child_pos_row, child_pos_col) = child_box.pos;
+
+            dbg!(&child_pos_row, &child_pos_col);
+            let rendered_child_pos_row = (child_pos_row as f64) * dr;
+            let rendered_child_pos_col = (child_pos_col as f64) * dc;
+            dbg!(&rendered_child_pos_row, &rendered_child_pos_col);
+
+            // dim is (height, width) - number of grid cells to span
+            let (child_dim_height, child_dim_width) = child_box.dim;
+            let rendered_child_dim_height = child_dim_height as f64 * dr;
+            let rendered_child_dim_width  = child_dim_width  as f64 * dc;
+
+            let x = grid_bounds.x() + rendered_child_pos_col;
+            let y = grid_bounds.y() + rendered_child_pos_row;
+
+            dbg!(&child_dim_width);
+            dbg!(&child_dim_height);
+            eprintln!("--------------------------------------------------------------------------------");
+
+            // Rect::new expects (x, y, width, height)
+            let child_bounds = Rect::new(
+                x,
+                y,
+                rendered_child_dim_width,
+                rendered_child_dim_height,
+            );
+
+            self.add_box_element(&child_box.inst, child_bounds);
         }
     }
 }
-
-/// Recursively collect and convert routed paths from fractional to pixel coordinates
-fn collect_routed_paths(
-    box_def: &elaboration::BoxInst,
-    parent_x: f64,
-    parent_y: f64,
-    parent_width: f64,
-    parent_height: f64,
-    output: &mut Vec<Vec<(f64, f64)>>,
-) {
-    let (grid_height, grid_width) = box_def.grid;
-
-    // Calculate padding if this box has a title and children
-    let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
-        let min_dimension = parent_width.min(parent_height);
-        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
-        let margin_scale = box_def.margin.unwrap_or(1.0);
-        (
-            padding * margin_scale,
-            padding * margin_scale,
-            padding * margin_scale,
-            padding * margin_scale,
-        )
-    } else {
-        (0.0, 0.0, 0.0, 0.0)
-    };
-
-    // Calculate available space after padding
-    let available_width = parent_width - (padding_left + padding_right);
-    let available_height = parent_height - (padding_top + padding_bottom);
-
-    // Convert routed paths from this box
-    for path in &box_def.routed_arrow_paths {
-        let pixel_path: Vec<(f64, f64)> = path.iter().map(|(row, col)| {
-            // Scale fractional coordinates to pixel coordinates
-            let frac_y = row / grid_height as f64;
-            let frac_x = col / grid_width as f64;
-
-            // Map to available space, accounting for padding
-            let abs_x = parent_x + padding_left + (frac_x * available_width);
-            let abs_y = parent_y + padding_top + (frac_y * available_height);
-
-            (abs_x, abs_y)
-        }).collect();
-        output.push(pixel_path);
-    }
-
-    // Recursively collect from child boxes
-    for child_box in &box_def.boxes {
-        // Calculate child box's absolute position and size
-        let (child_row, child_col) = child_box.pos;
-        let (child_height, child_width) = child_box.dim;
-
-        let cell_height = available_height / grid_height as f64;
-        let cell_width = available_width / grid_width as f64;
-
-        let abs_x = parent_x + padding_left + (child_col as f64 * cell_width);
-        let abs_y = parent_y + padding_top + (child_row as f64 * cell_height);
-
-        let box_width = cell_width * child_width as f64;
-        let box_height = cell_height * child_height as f64;
-
-        let margin_factor = box_def.margin.unwrap_or(0.1);
-        let margin_x = cell_width * margin_factor;
-        let margin_y = cell_height * margin_factor;
-
-        let child_x = abs_x + margin_x;
-        let child_y = abs_y + margin_y;
-        let child_pixel_width = box_width - (2.0 * margin_x);
-        let child_pixel_height = box_height - (2.0 * margin_y);
-
-        collect_routed_paths(
-            &child_box.def,
-            child_x,
-            child_y,
-            child_pixel_width,
-            child_pixel_height,
-            output,
-        );
-    }
-}
-
-fn flatten_boxes(
-    box_inst: &elaboration::BoxInst,
-    box_id: Option<&str>,
-    rect: Rect,
-    alignment: &ast::Alignment,
-    output: &mut Vec<DiagramBox>,
-    ports_output: &mut Vec<DiagramPort>,
-) {
-//    // Calculate the center of the parent grid space
-//    let parent_center_x = parent_grid.x() + parent_grid.width() / 2.0;
-//    let parent_center_y = parent_grid.y() + parent_grid.height() / 2.0;
 //
-//    // Start with the box centered in the grid space
-//    let centered_x = parent_center_x - actual_width / 2.0;
-//    let centered_y = parent_center_y - actual_height / 2.0;
+///// Recursively collect and convert routed paths from fractional to pixel coordinates
+//fn collect_routed_paths(
+//    box_def: &elaboration::BoxInst,
+//    parent_x: f64,
+//    parent_y: f64,
+//    parent_width: f64,
+//    parent_height: f64,
+//    output: &mut Vec<Vec<(f64, f64)>>,
+//) {
+//    let (grid_height, grid_width) = box_def.grid;
 //
-//    // Apply alignment offset from center
-//    let (offset_x, offset_y) = match alignment {
-//        ast::Alignment::Top => (0.0, -(parent_center_y - parent_grid.y() - actual_height / 2.0)),
-//        ast::Alignment::Right => ((parent_grid.right() - parent_center_x - actual_width / 2.0), 0.0),
-//        ast::Alignment::Bottom => (0.0, (parent_grid.bottom() - parent_center_y - actual_height / 2.0)),
-//        ast::Alignment::Left => (-(parent_center_x - parent_grid.x() - actual_width / 2.0), 0.0),
-//        ast::Alignment::Center => (0.0, 0.0),
-//    };
-//
-//    let actual_x = centered_x + offset_x;
-//    let actual_y = centered_y + offset_y;
-//
-//    // For legacy purposes, set both horizontal and vertical scaling to the same value
-//    let horizontal_scaling = uniform_scaling;
-//    let vertical_scaling = uniform_scaling;
-//
-//    // First, create the current box itself (if it has a title, color, children, ports, or arrows)
-//    // Boxes with children, ports, or arrows should always be rendered to show their border
-//    let _current_box = if box_inst.title.is_some()
-//        || box_inst.color.is_some()
-//        || !box_inst.boxes.is_empty()
-//        || !box_inst.ports.is_empty()
-//        || !box_inst.arrows.is_empty() {
-//        // Linear scaling based on box width relative to canvas
-//        let width_ratio = parent_grid.width() / canvas_width;
-//        let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
-//        // Scale linearly from MIN_FONTSIZE to 1.0 based on width
-//        let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
-//
-//        let diagram_box = DiagramBox {
-//            rect: Rect::new(actual_x, actual_y, actual_width, actual_height),
-//            id: box_id.map(|s| s.to_string()),
-//            title: box_inst.title.clone(),
-//            color: box_inst.color.clone(),
-//            font_scale,
-//            has_children: !box_inst.boxes.is_empty(),
-//            border_style: box_inst.border_style.clone(),
-//            horizontal_scaling,
-//            vertical_scaling,
-//            debug: box_inst.debug.unwrap_or(false),
-//            grid: box_inst.grid,
-//            def_name: box_inst.def_name.clone(),
-//            line_number: box_inst.line_number,
-//        };
-//        output.push(diagram_box.clone());
-//        Some(diagram_box)
-//    } else {
-//        None
-//    };
-
-    let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE);
-    let horizontal_scaling = 0.9;
-    let vertical_scaling = 0.9;
-    let diagram_box = DiagramBox {
-        rect: rect,
-        id: box_id.map(|s| s.to_string()),
-        title: box_inst.title.clone(),
-        color: box_inst.color.clone(),
-        font_scale,
-        has_children: !box_inst.boxes.is_empty(),
-        border_style: box_inst.border_style.clone(),
-        horizontal_scaling,
-        vertical_scaling,
-        debug: box_inst.debug.unwrap_or(false),
-        grid: box_inst.grid,
-        def_name: box_inst.def_name.clone(),
-        line_number: box_inst.line_number,
-    };
-    output.push(diagram_box.clone());
-
-//    // Use actual box dimensions for child positioning
-//    let box_width_for_children = actual_width;
-//    let box_height_for_children = actual_height;
-//    let box_x_for_children = actual_x;
-//    let box_y_for_children = actual_y;
-
-//    // If this box has a title and children, add padding on all sides for the title
-//    let (padding_top, padding_left, padding_right, padding_bottom) = if box_inst.title.is_some() && !box_inst.boxes.is_empty() {
-//        // Calculate padding based on actual box size (matches border radius calculation)
-//        let min_dimension = box_width_for_children.min(box_height_for_children);
+//    // Calculate padding if this box has a title and children
+//    let (padding_top, padding_left, padding_right, padding_bottom) = if box_def.title.is_some() && !box_def.boxes.is_empty() {
+//        let min_dimension = parent_width.min(parent_height);
 //        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
-//
-//        // Apply margin scaling if specified
-//        let margin_scale = box_inst.margin.unwrap_or(1.0);
+//        let margin_scale = box_def.margin.unwrap_or(1.0);
 //        (
 //            padding * margin_scale,
 //            padding * margin_scale,
@@ -479,104 +389,269 @@ fn flatten_boxes(
 //    } else {
 //        (0.0, 0.0, 0.0, 0.0)
 //    };
-
-    // Calculate cell size based on actual box dimensions and grid
-    // Subtract padding from available space
-//    let available_width = box_width_for_children - (padding_left + padding_right);
-//    let available_height = box_height_for_children - (padding_top + padding_bottom);
-//    let cell_width = available_width / grid_cols as f64;
-//    let cell_height = available_height / grid_rows as f64;
-
-    let parent_grid = rect;//.scale_at_center2(0.70, 0.85);
-
-    for child_box in &box_inst.boxes {
-        eprintln!("--------------------------------------------------------------------------------");
-        let (max_row, max_col) = box_inst.grid;
-        let dr = parent_grid.height() / max_row as f64;
-        let dc = parent_grid.width() / max_col as f64;
-
-        dbg!(parent_grid.height());
-        dbg!(max_row);
-        dbg!(parent_grid.width());
-        dbg!(max_col);
-        dbg!(&dr, &dc);
-
-        let (child_pos_row, child_pos_col) = child_box.pos;
-
-        dbg!(&child_pos_row, &child_pos_col);
-        let rendered_child_pos_row = (child_pos_row as f64) * dr;
-        let rendered_child_pos_col = (child_pos_col as f64) * dc;
-        dbg!(&rendered_child_pos_row, &rendered_child_pos_col);
-
-        let (child_dim_width, child_dim_height) = child_box.dim;
-        let rendered_child_dim_height = child_dim_height as f64 * dr;
-        let rendered_child_dim_width  = child_dim_width  as f64 * dc;
-
-        let x = parent_grid.x() + rendered_child_pos_col;
-        let y = parent_grid.y() + rendered_child_pos_row;
-
-        dbg!(&child_dim_width);
-        dbg!(&child_dim_height);
-        eprintln!("--------------------------------------------------------------------------------");
-
-        let rendered_child = Rect::new(
-            x,
-            y,
-            rendered_child_dim_height,
-            rendered_child_dim_width,
-        );
-
-        flatten_boxes(
-            &child_box.def,
-            child_box.id.as_deref(),
-            rendered_child, //.scale_at_center(0.90),
-            &child_box.alignment,
-            output,
-            ports_output,
-        );
-    }
-
-//    // Process ports for this box
-//    for port in &box_inst.ports {
-//        // Calculate absolute position based on fractional coordinates
-//        // Port coordinates are (row, col) where row is y and col is x
-//        // Fractional coordinates range from (0.0, 0.0) to (grid_height, grid_width)
-//        // Need to scale by grid dimensions to get fractional position in box
-//        let (grid_height, grid_width) = box_inst.grid;
 //
-//        // Scale coordinates: divide by grid dimensions to get 0.0-1.0 range
-//        let frac_y = port.coords.0 / grid_height as f64;
-//        let frac_x = port.coords.1 / grid_width as f64;
+//    // Calculate available space after padding
+//    let available_width = parent_width - (padding_left + padding_right);
+//    let available_height = parent_height - (padding_top + padding_bottom);
 //
-//        // Map to actual box dimensions, accounting for padding
-//        // Ports should be positioned within the available space (after padding)
-//        let abs_x = box_x_for_children + padding_left + (frac_x * available_width); // col is x
-//        let abs_y = box_y_for_children + padding_top + (frac_y * available_height); // row is y
+//    // Convert routed paths from this box
+//    for path in &box_def.routed_arrow_paths {
+//        let pixel_path: Vec<(f64, f64)> = path.iter().map(|(row, col)| {
+//            // Scale fractional coordinates to pixel coordinates
+//            let frac_y = row / grid_height as f64;
+//            let frac_x = col / grid_width as f64;
 //
-//        // Create the parent rect for this port
-//        let parent_rect = Rect::new(box_x_for_children, box_y_for_children, box_width_for_children, box_height_for_children);
+//            // Map to available space, accounting for padding
+//            let abs_x = parent_x + padding_left + (frac_x * available_width);
+//            let abs_y = parent_y + padding_top + (frac_y * available_height);
 //
-//        ports_output.push(DiagramPort {
-//            name: port.name.clone(),
-//            pos: (abs_x, abs_y),
-//            label: port.label.clone(),
-//            parent_rect,
+//            (abs_x, abs_y)
+//        }).collect();
+//        output.push(pixel_path);
+//    }
+//
+//    // Recursively collect from child boxes
+//    for child_box in &box_def.boxes {
+//        // Calculate child box's absolute position and size
+//        let (child_row, child_col) = child_box.pos;
+//        let (child_height, child_width) = child_box.dim;
+//
+//        let cell_height = available_height / grid_height as f64;
+//        let cell_width = available_width / grid_width as f64;
+//
+//        let abs_x = parent_x + padding_left + (child_col as f64 * cell_width);
+//        let abs_y = parent_y + padding_top + (child_row as f64 * cell_height);
+//
+//        let box_width = cell_width * child_width as f64;
+//        let box_height = cell_height * child_height as f64;
+//
+//        let margin_factor = box_def.margin.unwrap_or(0.1);
+//        let margin_x = cell_width * margin_factor;
+//        let margin_y = cell_height * margin_factor;
+//
+//        let child_x = abs_x + margin_x;
+//        let child_y = abs_y + margin_y;
+//        let child_pixel_width = box_width - (2.0 * margin_x);
+//        let child_pixel_height = box_height - (2.0 * margin_y);
+//
+//        collect_routed_paths(
+//            &child_box.def,
+//            child_x,
+//            child_y,
+//            child_pixel_width,
+//            child_pixel_height,
+//            output,
+//        );
+//    }
+//}
+//
+//fn flatten_boxes(
+//    box_inst: &elaboration::BoxInst,
+//    box_id: Option<&str>,
+//    rect: Rect,
+//    alignment: &ast::Alignment,
+//    output: &mut Vec<DiagramBox>,
+//    ports_output: &mut Vec<DiagramPort>,
+//) {
+////    // Calculate the center of the parent grid space
+////    let parent_center_x = parent_grid.x() + parent_grid.width() / 2.0;
+////    let parent_center_y = parent_grid.y() + parent_grid.height() / 2.0;
+////
+////    // Start with the box centered in the grid space
+////    let centered_x = parent_center_x - actual_width / 2.0;
+////    let centered_y = parent_center_y - actual_height / 2.0;
+////
+////    // Apply alignment offset from center
+////    let (offset_x, offset_y) = match alignment {
+////        ast::Alignment::Top => (0.0, -(parent_center_y - parent_grid.y() - actual_height / 2.0)),
+////        ast::Alignment::Right => ((parent_grid.right() - parent_center_x - actual_width / 2.0), 0.0),
+////        ast::Alignment::Bottom => (0.0, (parent_grid.bottom() - parent_center_y - actual_height / 2.0)),
+////        ast::Alignment::Left => (-(parent_center_x - parent_grid.x() - actual_width / 2.0), 0.0),
+////        ast::Alignment::Center => (0.0, 0.0),
+////    };
+////
+////    let actual_x = centered_x + offset_x;
+////    let actual_y = centered_y + offset_y;
+////
+////    // For legacy purposes, set both horizontal and vertical scaling to the same value
+////    let horizontal_scaling = uniform_scaling;
+////    let vertical_scaling = uniform_scaling;
+////
+////    // First, create the current box itself (if it has a title, color, children, ports, or arrows)
+////    // Boxes with children, ports, or arrows should always be rendered to show their border
+////    let _current_box = if box_inst.title.is_some()
+////        || box_inst.color.is_some()
+////        || !box_inst.boxes.is_empty()
+////        || !box_inst.ports.is_empty()
+////        || !box_inst.arrows.is_empty() {
+////        // Linear scaling based on box width relative to canvas
+////        let width_ratio = parent_grid.width() / canvas_width;
+////        let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
+////        // Scale linearly from MIN_FONTSIZE to 1.0 based on width
+////        let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
+////
+////        let diagram_box = DiagramBox {
+////            rect: Rect::new(actual_x, actual_y, actual_width, actual_height),
+////            id: box_id.map(|s| s.to_string()),
+////            title: box_inst.title.clone(),
+////            color: box_inst.color.clone(),
+////            font_scale,
+////            has_children: !box_inst.boxes.is_empty(),
+////            border_style: box_inst.border_style.clone(),
+////            horizontal_scaling,
+////            vertical_scaling,
+////            debug: box_inst.debug.unwrap_or(false),
+////            grid: box_inst.grid,
+////            def_name: box_inst.def_name.clone(),
+////            line_number: box_inst.line_number,
+////        };
+////        output.push(diagram_box.clone());
+////        Some(diagram_box)
+////    } else {
+////        None
+////    };
+//
+//    let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE);
+//    let horizontal_scaling = 0.9;
+//    let vertical_scaling = 0.9;
+//    let diagram_box = DiagramBox {
+//        rect: rect,
+//        id: box_id.map(|s| s.to_string()),
+//        title: box_inst.title.clone(),
+//        color: box_inst.color.clone(),
+//        font_scale,
+//        has_children: !box_inst.boxes.is_empty(),
+//        border_style: box_inst.border_style.clone(),
+//        horizontal_scaling,
+//        vertical_scaling,
+//        debug: box_inst.debug.unwrap_or(false),
+//        grid: box_inst.grid,
+//        def_name: box_inst.def_name.clone(),
+//        line_number: box_inst.line_number,
+//    };
+//    output.push(diagram_box.clone());
+//
+////    // Use actual box dimensions for child positioning
+////    let box_width_for_children = actual_width;
+////    let box_height_for_children = actual_height;
+////    let box_x_for_children = actual_x;
+////    let box_y_for_children = actual_y;
+//
+////    // If this box has a title and children, add padding on all sides for the title
+////    let (padding_top, padding_left, padding_right, padding_bottom) = if box_inst.title.is_some() && !box_inst.boxes.is_empty() {
+////        // Calculate padding based on actual box size (matches border radius calculation)
+////        let min_dimension = box_width_for_children.min(box_height_for_children);
+////        let padding = (min_dimension / 20.0).max(2.0).min(15.0);
+////
+////        // Apply margin scaling if specified
+////        let margin_scale = box_inst.margin.unwrap_or(1.0);
+////        (
+////            padding * margin_scale,
+////            padding * margin_scale,
+////            padding * margin_scale,
+////            padding * margin_scale,
+////        )
+////    } else {
+////        (0.0, 0.0, 0.0, 0.0)
+////    };
+//
+//    // Calculate cell size based on actual box dimensions and grid
+//    // Subtract padding from available space
+////    let available_width = box_width_for_children - (padding_left + padding_right);
+////    let available_height = box_height_for_children - (padding_top + padding_bottom);
+////    let cell_width = available_width / grid_cols as f64;
+////    let cell_height = available_height / grid_rows as f64;
+//
+//    let parent_grid = rect;//.scale_at_center2(0.70, 0.85);
+//
+//    for child_box in &box_inst.boxes {
+//        eprintln!("--------------------------------------------------------------------------------");
+//        let (max_row, max_col) = box_inst.grid;
+//        let dr = parent_grid.height() / max_row as f64;
+//        let dc = parent_grid.width() / max_col as f64;
+//
+//        dbg!(parent_grid.height());
+//        dbg!(max_row);
+//        dbg!(parent_grid.width());
+//        dbg!(max_col);
+//        dbg!(&dr, &dc);
+//
+//        let (child_pos_row, child_pos_col) = child_box.pos;
+//
+//        dbg!(&child_pos_row, &child_pos_col);
+//        let rendered_child_pos_row = (child_pos_row as f64) * dr;
+//        let rendered_child_pos_col = (child_pos_col as f64) * dc;
+//        dbg!(&rendered_child_pos_row, &rendered_child_pos_col);
+//
+//        let (child_dim_width, child_dim_height) = child_box.dim;
+//        let rendered_child_dim_height = child_dim_height as f64 * dr;
+//        let rendered_child_dim_width  = child_dim_width  as f64 * dc;
+//
+//        let x = parent_grid.x() + rendered_child_pos_col;
+//        let y = parent_grid.y() + rendered_child_pos_row;
+//
+//        dbg!(&child_dim_width);
+//        dbg!(&child_dim_height);
+//        eprintln!("--------------------------------------------------------------------------------");
+//
+//        let rendered_child = Rect::new(
+//            x,
+//            y,
+//            rendered_child_dim_height,
+//            rendered_child_dim_width,
+//        );
+//
+//        flatten_boxes(
+//            &child_box.def,
+//            child_box.id.as_deref(),
+//            rendered_child, //.scale_at_center(0.90),
+//            &child_box.alignment,
+//            output,
+//            ports_output,
+//        );
+//    }
+//
+////    // Process ports for this box
+////    for port in &box_inst.ports {
+////        // Calculate absolute position based on fractional coordinates
+////        // Port coordinates are (row, col) where row is y and col is x
+////        // Fractional coordinates range from (0.0, 0.0) to (grid_height, grid_width)
+////        // Need to scale by grid dimensions to get fractional position in box
+////        let (grid_height, grid_width) = box_inst.grid;
+////
+////        // Scale coordinates: divide by grid dimensions to get 0.0-1.0 range
+////        let frac_y = port.coords.0 / grid_height as f64;
+////        let frac_x = port.coords.1 / grid_width as f64;
+////
+////        // Map to actual box dimensions, accounting for padding
+////        // Ports should be positioned within the available space (after padding)
+////        let abs_x = box_x_for_children + padding_left + (frac_x * available_width); // col is x
+////        let abs_y = box_y_for_children + padding_top + (frac_y * available_height); // row is y
+////
+////        // Create the parent rect for this port
+////        let parent_rect = Rect::new(box_x_for_children, box_y_for_children, box_width_for_children, box_height_for_children);
+////
+////        ports_output.push(DiagramPort {
+////            name: port.name.clone(),
+////            pos: (abs_x, abs_y),
+////            label: port.label.clone(),
+////            parent_rect,
+////        });
+////    }
+//}
+//
+///// Recursively collect all arrows from a box and its children
+//fn collect_arrows(box_def: &elaboration::BoxInst, output: &mut Vec<DiagramArrow>) {
+//    // Add arrows from this box
+//    for arrow in &box_def.arrows {
+//        output.push(DiagramArrow {
+//            from: arrow.from.clone(),
+//            to: arrow.to.clone(),
 //        });
 //    }
-}
-
-/// Recursively collect all arrows from a box and its children
-fn collect_arrows(box_def: &elaboration::BoxInst, output: &mut Vec<DiagramArrow>) {
-    // Add arrows from this box
-    for arrow in &box_def.arrows {
-        output.push(DiagramArrow {
-            from: arrow.from.clone(),
-            to: arrow.to.clone(),
-        });
-    }
-
-    // Recursively collect from child boxes
-    for child_box in &box_def.boxes {
-        collect_arrows(&child_box.def, output);
-    }
-}
+//
+//    // Recursively collect from child boxes
+//    for child_box in &box_def.boxes {
+//        collect_arrows(&child_box.def, output);
+//    }
+//}
