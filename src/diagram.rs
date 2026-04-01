@@ -154,6 +154,9 @@ pub struct DiagramBox {
     /// Grid dimensions (rows, cols) for debug overlay
     pub grid: (usize, usize),
 
+    pub margin: f64,
+    pub padding: f64,
+
 //    pub id: Option<String>,
 //    pub title: Option<String>,
 //    pub color: Option<String>,
@@ -188,12 +191,10 @@ impl DiagramBox {
     }
 
     pub fn border_bounds(&self) -> Rect {
-        let margin = 20.0;
-        self.bounds.margin(margin)
+        self.bounds.margin(self.margin)
     }
     pub fn grid_bounds(&self) -> Rect {
-        let margin = 20.0;
-        self.border_bounds().margin(margin)
+        self.border_bounds().margin(self.padding)
     }
 }
 
@@ -289,6 +290,8 @@ impl Diagram {
     }
 
     fn add_box_element(&mut self, box_inst: &elaboration::BoxInst, bounds: Rect) {
+        let margin = bounds.width().min(bounds.height()) as f64 * 0.025;
+        let padding = margin;
         // Check if this is a label (has title and border_style "none")
         let is_label = box_inst.title.is_some()
             && box_inst.border_style.as_deref() == Some("none");
@@ -305,6 +308,8 @@ impl Diagram {
                 bounds,
                 color: box_inst.color.clone(),
                 grid: box_inst.grid,
+                margin,
+                padding,
             }));
 
             // If this box has a title, add it as a label too
@@ -316,10 +321,8 @@ impl Diagram {
             }
         }
 
-        let margin = 20.0;
         let border_bounds = bounds.margin(margin);
-        let margin = 20.0;
-        let grid_bounds = border_bounds.margin(margin);
+        let grid_bounds = border_bounds.margin(padding);
         for child_box in &box_inst.boxes {
             eprintln!("--------------------------------------------------------------------------------");
             let (max_row, max_col) = box_inst.grid;
