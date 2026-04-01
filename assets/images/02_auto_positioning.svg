@@ -1,36 +1,12 @@
 <svg height="500" viewBox="0 0 500 500" width="500" xmlns="http://www.w3.org/2000/svg">
 <rect fill="#F8F9F9" height="100%" width="100%"/>
-<rect fill="transparent" height="406" stroke="#333" stroke-width="1" width="406" x="47" y="47"/>
-<rect fill="#E8DEDD" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="60.533333333333324" y="60.533333333333324"/>
-<rect fill="#DEE8E3" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="195.86666666666667" y="60.533333333333324"/>
-<rect fill="#DEE8ED" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="195.86666666666667" y="195.86666666666667"/>
-<rect fill="#F5F5DC" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="331.20000000000005" y="195.86666666666667"/>
-<rect fill="#E3DEE8" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="60.533333333333324" y="331.20000000000005"/>
-<rect fill="#DEE8E8" height="108.2666666666667" stroke="#333" stroke-width="0.2666666666666667" width="108.2666666666667" x="195.86666666666667" y="331.20000000000005"/>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114.66666666666667" y="121.16666666666667">
-Auto 1
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250.00000000000003" y="121.16666666666667">
-Auto 2
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250.00000000000003" y="256.5">
-Fixed
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="385.33333333333337" y="256.5">
-Auto 3
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="114.66666666666667" y="391.83333333333337">
-Auto 4
-</text>
-<text dominant-baseline="auto" fill="#2C3E50" font-family="Arial, sans-serif" font-size="13" text-anchor="middle" x="250.00000000000003" y="391.83333333333337">
-Auto 5
-</text>
-<defs>
-<marker id="arrowhead" markerHeight="10" markerUnits="strokeWidth" markerWidth="10" orient="auto" refX="9" refY="3">
-<polygon fill="#333" points="0,0 0,6 9,3"/>
-</marker>
-</defs>
-<text fill="#2C3E50" font-family="Arial, sans-serif" font-size="27" font-weight="bold" text-anchor="middle" x="250" y="37">
-Auto-Positioning Demo
-</text>
+<g transform="translate(0, 0)">
+<rect fill="transparent" height="450" rx="11.25" ry="11.25" stroke="blue" stroke-width="1" width="450" x="25" y="25"/>
+<rect fill="#E8DEDD" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="44.58333333333333" y="44.58333333333333"/>
+<rect fill="#DEE8E3" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="186.25" y="44.58333333333333"/>
+<rect fill="#DEE8ED" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="186.25" y="186.25"/>
+<rect fill="#F5F5DC" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="327.91666666666663" y="186.25"/>
+<rect fill="#E3DEE8" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="44.58333333333333" y="327.91666666666663"/>
+<rect fill="#DEE8E8" height="127.5" rx="3.1875" ry="3.1875" stroke="blue" stroke-width="1" width="127.5" x="186.25" y="327.91666666666663"/>
+</g>
 </svg>

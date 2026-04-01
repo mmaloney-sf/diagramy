@@ -3,28 +3,21 @@
 // They support multi-line text and optional positioning
 
 diagram {
-    width: 600
+    width: 512
     color: white
     title: "Label Example"
     top: Top
 }
 
 box Top {
-    grid: 2x3
+    grid: 2x4
 
+//    label "test"
     box is {
+        grid: 2x2
         color: green
-        label "Green Box"
+        box at (2, 1) is {
+            color: blue
+        }
     }
-
-    label "This is" "a label"
-
-    box is {
-        color: blue
-        label "Blue Box"
-    }
-
-    label "This label is" "manually positioned" at (2, 3)
-
-    label "This label is wide has has dimension 1x2" at (2, 1) dim 1x2
 }

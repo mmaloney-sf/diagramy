@@ -97,6 +97,22 @@ impl Rect {
 
         Rect::new(new_x, new_y, new_width, new_height)
     }
+
+    pub fn scale_at_center2(&self, s: f64, t: f64) -> Rect {
+        // Calculate current center
+        let center_x = self.pos.0 + self.size.0 / 2.0;
+        let center_y = self.pos.1 + self.size.1 / 2.0;
+
+        // Calculate new size
+        let new_width = self.size.0 * s;
+        let new_height = self.size.1 * t;
+
+        // Calculate new position to maintain the center
+        let new_x = center_x - new_width / 2.0;
+        let new_y = center_y - new_height / 2.0;
+
+        Rect::new(new_x, new_y, new_width, new_height)
+    }
 }
 
 /// A port in the diagram with absolute position
@@ -147,16 +163,6 @@ impl DiagramBox {
     /// Returns the average scaling factor (average of horizontal and vertical scaling)
     pub fn scaling(&self) -> f64 {
         (self.horizontal_scaling + self.vertical_scaling) / 2.0
-    }
-
-    /// Returns the rectangle representing the box's border
-    pub fn border(&self) -> Rect {
-        self.rect.scale_at_center(0.90)
-    }
-
-    /// Returns the rectangle representing the box's border
-    pub fn grid(&self) -> Rect {
-        self.rect.scale_at_center(0.80)
     }
 }
 
@@ -250,7 +256,7 @@ impl Diagrammer {
         flatten_boxes(
             &elab_diagram.top,
             None, // Top-level box has no ID
-            Rect::new(0.0, 0.0, canvas_height as f64, canvas_width as f64),
+            Rect::new(0.0, 0.0, canvas_width as f64, canvas_height as f64),
             &ast::Alignment::Center,
             &mut boxes,
             &mut ports,
@@ -372,26 +378,6 @@ fn flatten_boxes(
     output: &mut Vec<DiagramBox>,
     ports_output: &mut Vec<DiagramPort>,
 ) {
-//    // Get the parent grid rectangle - for top-level, use the full canvas dimensions
-//    // Calculate the natural aspect ratio of this box based on its grid
-//    let (grid_rows, grid_cols) = box_inst.grid;
-//    let natural_aspect_ratio = grid_rows as f64 / grid_cols as f64;
-//
-//    // Calculate what the natural width and height would be at the top box scale
-//    // We use the top box as a reference unit
-//    let natural_width_at_top_scale = top_box_width / grid_cols as f64 * grid_cols as f64;
-//    let natural_height_at_top_scale = natural_width_at_top_scale * natural_aspect_ratio;
-//
-//    // Calculate uniform scaling factor to fit this box in the allocated space
-//    // Use the minimum scaling to preserve aspect ratio and ensure it fits
-//    let horizontal_ratio = parent_grid.width() / natural_width_at_top_scale;
-//    let vertical_ratio = parent_grid.height() / natural_height_at_top_scale;
-//    let uniform_scaling = horizontal_ratio.min(vertical_ratio);
-//
-//    // Calculate actual box size based on uniform scaling to preserve aspect ratio
-//    let actual_width = natural_width_at_top_scale * uniform_scaling;
-//    let actual_height = natural_height_at_top_scale * uniform_scaling;
-//
 //    // Calculate the center of the parent grid space
 //    let parent_center_x = parent_grid.x() + parent_grid.width() / 2.0;
 //    let parent_center_y = parent_grid.y() + parent_grid.height() / 2.0;
@@ -454,7 +440,7 @@ fn flatten_boxes(
     let horizontal_scaling = 0.9;
     let vertical_scaling = 0.9;
     let diagram_box = DiagramBox {
-        rect,
+        rect: rect,
         id: box_id.map(|s| s.to_string()),
         title: box_inst.title.clone(),
         color: box_inst.color.clone(),
@@ -501,13 +487,18 @@ fn flatten_boxes(
 //    let cell_width = available_width / grid_cols as f64;
 //    let cell_height = available_height / grid_rows as f64;
 
-    let parent_grid = rect.scale_at_center(0.85);
+    let parent_grid = rect;//.scale_at_center2(0.70, 0.85);
 
     for child_box in &box_inst.boxes {
+        eprintln!("--------------------------------------------------------------------------------");
         let (max_row, max_col) = box_inst.grid;
         let dr = parent_grid.height() / max_row as f64;
         let dc = parent_grid.width() / max_col as f64;
 
+        dbg!(parent_grid.height());
+        dbg!(max_row);
+        dbg!(parent_grid.width());
+        dbg!(max_col);
         dbg!(&dr, &dc);
 
         let (child_pos_row, child_pos_col) = child_box.pos;
@@ -518,11 +509,15 @@ fn flatten_boxes(
         dbg!(&rendered_child_pos_row, &rendered_child_pos_col);
 
         let (child_dim_width, child_dim_height) = child_box.dim;
-        let rendered_child_dim_height = child_dim_width as f64 * dr;
-        let rendered_child_dim_width = child_dim_height as f64 * dc;
+        let rendered_child_dim_height = child_dim_height as f64 * dr;
+        let rendered_child_dim_width  = child_dim_width  as f64 * dc;
 
         let x = parent_grid.x() + rendered_child_pos_col;
         let y = parent_grid.y() + rendered_child_pos_row;
+
+        dbg!(&child_dim_width);
+        dbg!(&child_dim_height);
+        eprintln!("--------------------------------------------------------------------------------");
 
         let rendered_child = Rect::new(
             x,

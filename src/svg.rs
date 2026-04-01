@@ -76,7 +76,7 @@ fn create_content_group(diagram: &Diagram, width: usize, height: usize, font_siz
 
     // First pass: Render all box rectangles
     for diagram_box in &diagram.boxes {
-        content_group = render_box_rectangle(content_group, diagram_box)?;
+        content_group = render_box_rectangle(content_group, diagram_box, debug)?;
     }
 
 //    // Second pass: Render all box titles on top
@@ -138,6 +138,7 @@ fn create_content_group(diagram: &Diagram, width: usize, height: usize, font_siz
 fn render_box_rectangle(
     mut group: svg::node::element::Group,
     diagram_box: &DiagramBox,
+    debug: bool,
 ) -> Result<svg::node::element::Group, String> {
     // Determine border style (default is "solid")
     let border_style = diagram_box.border_style.as_deref().unwrap_or("solid");
@@ -149,9 +150,10 @@ fn render_box_rectangle(
         "transparent"
     };
 
-    let box_rect = diagram_box.rect.scale_at_center(0.9);
+//    let box_rect = diagram_box.rect.scale_at_center(0.9);
+    let box_rect = diagram_box.rect;
 
-    let border_radius = box_rect.width() / 40.0;
+    let border_radius = box_rect.width() / 100.0;
     let mut rect = Rectangle::new()
         .set("x",      box_rect.x())
         .set("y",      box_rect.y())
@@ -224,6 +226,51 @@ fn render_box_rectangle(
 //    group = group.add(rect_border);
 //    group = group.add(rect_grid);
 
+    // Draw red grid lines and bounding rectangle over the box
+    let grid_rect = box_rect;//.scale_at_center(0.85);
+    let (grid_rows, grid_cols) = diagram_box.grid;
+    let x = grid_rect.x();
+    let y = grid_rect.y();
+    let width = grid_rect.width();
+    let height = grid_rect.height();
+
+    // Draw red bounding rectangle around the grid
+    let grid_bounds = Rectangle::new()
+        .set("x", x)
+        .set("y", y)
+        .set("width", width)
+        .set("height", height)
+        .set("fill", "none")
+        .set("stroke", "red")
+        .set("stroke-width", 2.0);
+    group = group.add(grid_bounds);
+
+    // Draw vertical grid lines
+    for col in 1..grid_cols {
+        let x_pos = x + (col as f64 * width / grid_cols as f64);
+        let line = svg::node::element::Line::new()
+            .set("x1", x_pos)
+            .set("y1", y)
+            .set("x2", x_pos)
+            .set("y2", y + height)
+            .set("stroke", "red")
+            .set("stroke-width", 1.0);
+        group = group.add(line);
+    }
+
+    // Draw horizontal grid lines
+    for row in 1..grid_rows {
+        let y_pos = y + (row as f64 * height / grid_rows as f64);
+        let line = svg::node::element::Line::new()
+            .set("x1", x)
+            .set("y1", y_pos)
+            .set("x2", x + width)
+            .set("y2", y_pos)
+            .set("stroke", "red")
+            .set("stroke-width", 1.0);
+        group = group.add(line);
+    }
+
     Ok(group)
 }
 
@@ -253,7 +300,7 @@ fn render_box_title(
 ) -> Result<svg::node::element::Group, String> {
     // Only render if title is present
     if let Some(ref title) = diagram_box.title {
-        let border = diagram_box.border();
+        let border = diagram_box.rect;
         let (x, y) = border.pos;
         let (width, height) = border.size;
 
@@ -534,7 +581,7 @@ fn render_debug_grid(
 ) -> Result<svg::node::element::Group, String> {
     use svg::node::element::Group;
 
-    let border = diagram_box.border();
+    let border = diagram_box.rect;
     let (x, y) = border.pos;
     let (width, height) = border.size;
     let (grid_rows, grid_cols) = diagram_box.grid;
@@ -745,7 +792,7 @@ fn render_debug_overlay(
 
     // Label each box with its index
     for (i, diagram_box) in diagram.boxes.iter().enumerate() {
-        let border = diagram_box.border();
+        let border = diagram_box.rect;
         let (x, y) = border.pos;
         let (box_width, box_height) = border.size;
 
