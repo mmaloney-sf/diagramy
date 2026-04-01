@@ -9,6 +9,7 @@ pub struct ElaboratedDiagram {
     pub size: (usize, usize),
     pub title: Option<String>,
     pub cheat_ports: bool,
+    pub debug: bool,
     pub top: Arc<BoxInst>,
 }
 
@@ -178,6 +179,7 @@ impl<'ast> Elaborator<'ast> {
             size,
             title,
             cheat_ports,
+            debug: diagram_debug.unwrap_or(false),
             top: Arc::new(top_box_def),
         }))
     }

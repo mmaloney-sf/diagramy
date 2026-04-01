@@ -81,9 +81,16 @@ fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_
             crate::diagram::DiagramElement::Box(diagram_box) => {
                 content_group = draw_box(content_group, &diagram_box, debug);
             },
-            crate::diagram::DiagramElement::Port(_diagram_port) => todo!(),
-            crate::diagram::DiagramElement::Arrow(_diagram_arrow) => todo!(),
-            crate::diagram::DiagramElement::Path(_items) => todo!(),
+            crate::diagram::DiagramElement::Port(diagram_port) => {
+                content_group = draw_port(content_group, &diagram_port);
+            },
+            crate::diagram::DiagramElement::Arrow(_diagram_arrow) => {
+                // Arrows are represented by their routed paths
+                // The actual arrow element is just metadata
+            },
+            crate::diagram::DiagramElement::Path(points) => {
+                content_group = draw_path(content_group, points);
+            },
             crate::diagram::DiagramElement::Label(diagram_label) => {
                 content_group = draw_label(content_group, &diagram_label, debug);
             }
@@ -253,6 +260,84 @@ fn draw_label(mut content: Group, diagram_label: &DiagramLabel, debug: bool) -> 
             .set("fill", "black");
         content = content.add(text);
     }
+
+    content
+}
+
+fn draw_port(mut content: Group, diagram_port: &DiagramPort) -> Group {
+    let (x, y) = diagram_port.pos;
+    let radius = 5.0; // Port circle radius
+
+    // Draw port as a circle
+    let circle = svg::node::element::Circle::new()
+        .set("cx", x)
+        .set("cy", y)
+        .set("r", radius)
+        .set("fill", "red")
+        .set("stroke", "darkred")
+        .set("stroke-width", 1.5);
+
+    content = content.add(circle);
+
+    // Add label if present
+    if let Some(ref label) = diagram_port.label {
+        let label_offset = 8.0; // Distance from port center
+        let text = Text::new(label.as_str())
+            .set("x", x + label_offset)
+            .set("y", y - label_offset)
+            .set("font-size", 10)
+            .set("font-family", "Arial, sans-serif")
+            .set("fill", "black");
+        content = content.add(text);
+    }
+
+    content
+}
+
+fn draw_path(mut content: Group, points: &[(f64, f64)]) -> Group {
+    if points.is_empty() {
+        return content;
+    }
+
+    // Build SVG path data
+    let mut path_data = String::new();
+
+    // Move to first point
+    let (x0, y0) = points[0];
+    path_data.push_str(&format!("M {},{}", x0, y0));
+
+    // Line to subsequent points
+    for &(x, y) in &points[1..] {
+        path_data.push_str(&format!(" L {},{}", x, y));
+    }
+
+    // Create path element with arrow marker
+    let path = svg::node::element::Path::new()
+        .set("d", path_data)
+        .set("stroke", "black")
+        .set("stroke-width", 2)
+        .set("fill", "none")
+        .set("marker-end", "url(#arrowhead)");
+
+    // Add arrowhead marker definition if not already added
+    // (We'll add it once to the group)
+    let marker = Marker::new()
+        .set("id", "arrowhead")
+        .set("markerWidth", 10)
+        .set("markerHeight", 10)
+        .set("refX", 9)
+        .set("refY", 3)
+        .set("orient", "auto")
+        .set("markerUnits", "strokeWidth")
+        .add(
+            Polygon::new()
+                .set("points", "0,0 0,6 9,3")
+                .set("fill", "black")
+        );
+
+    let defs = Definitions::new().add(marker);
+    content = content.add(defs);
+    content = content.add(path);
 
     content
 }
@@ -621,10 +706,15 @@ fn render_port(mut group: svg::node::element::Group, port: &DiagramPort) -> Resu
     let char_width = font_size as f64 * 0.6; // Approximate character width
 
     // Get parent box boundaries
-    let box_x = port.parent_rect.x();
-    let box_y = port.parent_rect.y();
-    let box_right = port.parent_rect.right();
-    let box_bottom = port.parent_rect.bottom();
+    // TODO: Re-enable when parent_rect is available
+    // let box_x = port.parent_rect.x();
+    // let box_y = port.parent_rect.y();
+    // let box_right = port.parent_rect.right();
+    // let box_bottom = port.parent_rect.bottom();
+    let box_x = 0.0;
+    let box_y = 0.0;
+    let box_right = 100.0;
+    let box_bottom = 100.0;
 
     // Split label by newlines
     let lines: Vec<&str> = label_text.split('\n').collect();

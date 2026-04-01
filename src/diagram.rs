@@ -23,6 +23,7 @@ const TOP_LEVEL_MARGIN: usize = (DEFAULT_FONT_SIZE as f64 * 1.5) as usize + 20;
 #[derive(Debug)]
 pub struct Diagram {
     pub elements: Vec<DiagramElement>,
+    pub debug: bool,
 }
 
 #[derive(Debug)]
@@ -137,7 +138,6 @@ pub struct DiagramPort {
     pub name: String,
     pub pos: (f64, f64), // Absolute position
     pub label: Option<String>, // Optional label text
-    pub parent_rect: Rect,
 }
 
 /// An arrow in the diagram connecting two ports
@@ -210,7 +210,7 @@ impl Diagram {
     /// * `font_size` - Font size for text rendering (default: 18)
     /// * `debug` - Whether to include debug overlay
     pub fn render_to_svg(&self, filename: &str, width: usize, height: usize, font_size: usize, debug: bool) -> Result<(), String> {
-        crate::svg::render_to_svg(self, filename, width, height, font_size, debug)
+        crate::svg::render_to_svg(self, filename, width, height, font_size, debug || self.debug)
     }
 
     /// Render the diagram to an SVG string (for WebAssembly)
@@ -283,6 +283,7 @@ impl Diagram {
 
         let mut diagram = Diagram {
             elements: vec![],
+            debug: elab_diagram.debug,
         };
 
         let (canvas_width, canvas_height) = elab_diagram.size;
@@ -365,6 +366,50 @@ impl Diagram {
             );
 
             self.add_box_element(&child_box.inst, child_bounds);
+        }
+
+        // Process ports - convert grid coordinates to absolute positions
+        for port in &box_inst.ports {
+            // Port coords are in grid space (0.0 to grid_height/width), not fractional (0.0-1.0)
+            // Normalize by dividing by grid dimensions
+            let (grid_rows, grid_cols) = box_inst.grid;
+            let (port_row, port_col) = port.coords;
+
+            // Normalize to 0.0-1.0 range
+            let frac_x = port_col / grid_cols as f64;
+            let frac_y = port_row / grid_rows as f64;
+
+            // Ports are positioned relative to the grid bounds (not grid bounds)
+            let abs_x = border_bounds.x() + frac_x * border_bounds.width();
+            let abs_y = border_bounds.y() + frac_y * border_bounds.height();
+
+            self.elements.push(DiagramElement::Port(DiagramPort {
+                name: port.name.clone(),
+                pos: (abs_x, abs_y),
+                label: port.label.clone(),
+            }));
+        }
+
+        // Process routed arrow paths - convert from grid coordinates to absolute positions
+        for routed_path in &box_inst.routed_arrow_paths {
+            let mut absolute_path = Vec::new();
+            let (grid_rows, grid_cols) = box_inst.grid;
+
+            for &(path_row, path_col) in routed_path.iter() {
+                // Normalize to 0.0-1.0 range
+                let frac_x = path_col / grid_cols as f64;
+                let frac_y = path_row / grid_rows as f64;
+
+                // Convert to absolute coordinates relative to border bounds
+                let abs_x = border_bounds.x() + frac_x * border_bounds.width();
+                let abs_y = border_bounds.y() + frac_y * border_bounds.height();
+
+                absolute_path.push((abs_x, abs_y));
+            }
+
+            if !absolute_path.is_empty() {
+                self.elements.push(DiagramElement::Path(absolute_path));
+            }
         }
     }
 }
