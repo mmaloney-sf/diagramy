@@ -1,0 +1,33 @@
+diagram {
+    width: 1024
+    color: white
+    top: Top
+}
+
+box Top {
+    grid: 2x3
+
+    box is {
+        color: blue
+        label "Hello"
+    }
+
+    box is {
+        color: green
+        label "World"
+    }
+
+    box is {
+        grid: 2x3
+        color: red
+    }
+
+    box is {
+        grid: 2x1
+        color: yellow
+        box is {
+            grid: 2x2
+            color: yellow
+        }
+    }
+}

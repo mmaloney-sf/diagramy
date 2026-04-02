@@ -1,0 +1,45 @@
+diff --git a/src/diagram.rs b/src/diagram.rs
+index 3e2073d..9bca36e 100644
+--- a/src/diagram.rs
++++ b/src/diagram.rs
+@@ -522,8 +522,25 @@ fn flatten_boxes(
+     // Subtract padding from available space
+     let available_width = parent_width.saturating_sub(padding_left + padding_right);
+     let available_height = parent_height.saturating_sub(padding_top + padding_bottom);
+-    let cell_width = available_width / grid_cols;
+-    let cell_height = available_height / grid_rows;
++
++    // Calculate cell size for each dimension independently
++    let cell_width_if_width_constrained = available_width / grid_cols;
++    let cell_height_if_height_constrained = available_height / grid_rows;
++
++    // Use uniform scaling: take the minimum cell size to preserve aspect ratio
++    // This ensures the grid fits within the available space in both dimensions
++    let cell_size = cell_width_if_width_constrained.min(cell_height_if_height_constrained);
++    let cell_width = cell_size;
++    let cell_height = cell_size;
++
++    // Calculate actual grid dimensions with uniform cell size
++    let grid_width = cell_width * grid_cols;
++    let grid_height = cell_height * grid_rows;
++
++    // Calculate offset to center the grid in the available space
++    // TODO: This could be configurable (left/center/right, top/center/bottom alignment)
++    let offset_x = (available_width.saturating_sub(grid_width)) / 2;
++    let offset_y = (available_height.saturating_sub(grid_height)) / 2;
+ 
+     // Process all child boxes
+     for child_box in &box_def.boxes {
+@@ -531,9 +548,9 @@ fn flatten_boxes(
+         let (span_height, span_width) = child_box.dim;
+ 
+         // Calculate absolute position
+-        // Add padding to position to account for the title and side padding
+-        let abs_x = parent_x + padding_left + (grid_col * cell_width);
+-        let abs_y = parent_y + padding_top + (grid_row * cell_height);
++        // Add padding and centering offset to position
++        let abs_x = parent_x + padding_left + offset_x + (grid_col * cell_width);
++        let abs_y = parent_y + padding_top + offset_y + (grid_row * cell_height);
+ 
+         // Box spans multiple cells based on dim field
+         let box_width = cell_width * span_width;

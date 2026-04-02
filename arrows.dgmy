@@ -1,0 +1,27 @@
+diagram {
+    version: "0.1.0"
+    width: 400
+    color: white
+    title: "Arrows"
+    top: Foo
+}
+
+box Foo {
+    grid: 3x3
+    borderStyle: dashed
+
+    box bar at (2, 2) is Bar
+
+    port clock at (0.5, 0.0)
+
+    arrow clock to bar.clock
+
+//    port clockSink at (1.7, 0.5)
+//    arrow clock to clockSink
+}
+
+box Bar {
+    grid: 2x2
+    port clock at (0.5, 0.0)
+}
+

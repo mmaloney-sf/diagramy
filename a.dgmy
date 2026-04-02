@@ -1,0 +1,23 @@
+diagram {
+    debug: true
+    top: Top
+    cheatPorts: true
+}
+
+box Top {
+    grid: 2x2
+    label "System"
+    port clk
+
+    box cpu0 is {
+        label "CPU 0"
+        port clk
+    }
+    box cpu1 is {
+        label "CPU 1"
+        port clk
+    }
+
+    arrow clk to cpu0.clk
+    arrow clk to cpu1.clk
+}

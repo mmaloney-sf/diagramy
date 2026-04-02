@@ -18,6 +18,7 @@ pub mod color;
 
 #[cfg(test)]
 mod tests;
+pub mod rect;
 
 // TODO: Update imports for new AST
 // use ast::{Document, Box, Property, LayoutProperty, Port, PortProperty, Arrow};

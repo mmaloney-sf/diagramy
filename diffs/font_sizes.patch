@@ -1,0 +1,69 @@
+diff --git a/src/diagram.rs b/src/diagram.rs
+index ac062dc..f678eb3 100644
+--- a/src/diagram.rs
++++ b/src/diagram.rs
+@@ -4,9 +4,6 @@ use svg::Document as SvgDocument;
+ use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
+ use crate::elaboration;
+ 
+-// Minimum font size as a fraction of the base font size
+-const MIN_FONTSIZE: f64 = 0.7;
+-
+ // Default base font size
+ const DEFAULT_FONT_SIZE: usize = 18;
+ 
+@@ -65,6 +62,40 @@ impl DiagramBox {
+     pub fn scaling(&self) -> f64 {
+         (self.horizontal_scaling + self.vertical_scaling) / 2.0
+     }
++
++    /// Estimates the bounding box (width, height) of text at a given font size
++    ///
++    /// # Arguments
++    /// * `text` - The text to measure (can contain newlines)
++    /// * `font_size` - The font size in pixels
++    ///
++    /// # Returns
++    /// A tuple (width, height) representing the estimated bounding box in pixels
++    ///
++    /// # Notes
++    /// - Uses a character width ratio of 0.6 for Arial font (approximation)
++    /// - Width is based on the widest line
++    /// - Height is number of lines × font_size
++    pub fn estimate_text_bbox(text: &str, font_size: usize) -> (usize, usize) {
++        // Average character width is approximately 0.6 × font_size for Arial
++        const CHAR_WIDTH_RATIO: f64 = 0.6;
++
++        let lines: Vec<&str> = text.split('\n').collect();
++
++        // Find the widest line
++        let max_line_chars = lines.iter()
++            .map(|line| line.chars().count())
++            .max()
++            .unwrap_or(0);
++
++        // Calculate width based on widest line
++        let width = (max_line_chars as f64 * font_size as f64 * CHAR_WIDTH_RATIO) as usize;
++
++        // Calculate height based on number of lines
++        let height = lines.len() * font_size;
++
++        (width, height)
++    }
+ }
+ 
+ /// RGB color representation
+@@ -500,11 +531,9 @@ fn flatten_boxes(
+     // First, add the current box itself (if it has a title, color, or children)
+     // Boxes with children should always be rendered to show their border
+     if box_def.title.is_some() || box_def.color.is_some() || !box_def.boxes.is_empty() {
+-        // Linear scaling based on box width relative to canvas
++        // Font scale based on box width relative to canvas
+         let width_ratio = parent_width as f64 / canvas_width as f64;
+-        let width_ratio_clamped = width_ratio.min(1.0).max(0.0);
+-        // Scale linearly from MIN_FONTSIZE to 1.0 based on width
+-        let font_scale = MIN_FONTSIZE + (1.0 - MIN_FONTSIZE) * width_ratio_clamped;
++        let font_scale = width_ratio.min(1.0).max(0.0);
+ 
+         // Calculate scaling relative to top box
+         // Scaling is the ratio of this box's size to the top box's size

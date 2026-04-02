@@ -1,0 +1,2097 @@
+// Auto-generated from e21.fir
+// Module hierarchy diagram
+// Each module definition becomes a box definition
+// Each module instantiation becomes a box instance
+
+diagram {
+    width: 800
+    color: white
+    title: "E21 Module Hierarchy - CoreIPSubsystemVerifTestHarness"
+    cheatPorts: true
+    top: SiFive_CoreIPSubsystem
+}
+
+box AHBErrorInjector {
+    grid: 1x1
+    color: cyan
+
+    box injector_bb at (1, 1) is {
+        text: "AHBErrorInjectorBB"
+        color: yellow
+    }
+
+}
+
+box AHBExternalDeviceWrapper {
+    grid: 3x3
+    color: cyan
+
+    box arbiter at (1, 1) is {
+        text: "AHBArbiter"
+        color: yellow
+    }
+
+    box xbar at (1, 2) is {
+        text: "AHBFanout"
+        color: yellow
+    }
+
+    box interruptManager at (1, 3) is AHBInterruptManager
+
+    box _blockDuringReset at (2, 1) is {
+        text: "AHBMasterBlockDuringReset"
+        color: yellow
+    }
+
+    box pmcV2Device at (2, 2) is AHBPMCv2
+
+    box ahbSlaveToMaster at (2, 3) is {
+        text: "AHBSlaveToMaster"
+        color: yellow
+    }
+
+    box _localInterruptsXbarNodeOpt at (3, 1) is {
+        text: "InterruptsXbar"
+        color: yellow
+    }
+
+    box sync_reset at (3, 2) is SCRSyncWrapper
+
+    box _errorReportNexus at (3, 3) is SiFive_TLXbar
+
+}
+
+box AHBInterruptManager {
+    grid: 1x1
+    color: cyan
+
+    box out_back_q at (1, 1) is {
+        text: "Queue1_RegMapperInput"
+        color: yellow
+    }
+
+}
+
+box AHBPMCv2 {
+    grid: 3x3
+    color: cyan
+
+    box AsyncQueue_grp at (1, 1) is AsyncQueue
+
+    box AsyncResetSynchronizerShiftReg_w1_d3_i0_grp at (1, 2) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box AsyncResetSynchronizerShiftReg_w1_d3_i1_grp at (1, 3) is AsyncResetSynchronizerShiftReg_w1_d3_i1
+
+    box first_boot_hartid_sync_chain at (2, 1) is AsyncResetSynchronizerShiftReg_w31_d3_i0
+
+    box AsyncResetSynchronizerShiftReg_w32_d3_i0_grp at (2, 2) is AsyncResetSynchronizerShiftReg_w32_d3_i0
+
+    box ccplex_ctrl_ext_mtime_intr_chain at (2, 3) is AsyncResetSynchronizerShiftReg_w64_d3_i0
+
+    box ccplex at (3, 1) is {
+        text: "CCPlexPMCv2DomainFSM"
+        color: yellow
+    }
+
+    box tile0 at (3, 2) is {
+        text: "TilePMCv2DomainFSM"
+        color: yellow
+    }
+
+}
+
+box AHBPortRAMSlave {
+    grid: 2x3
+    color: cyan
+
+    box arb at (1, 1) is {
+        text: "AHBArbiter_1"
+        color: yellow
+    }
+
+    box ahberrorinjector at (1, 2) is AHBErrorInjector
+
+    box _xbar at (1, 3) is {
+        text: "AHBFanout_1"
+        color: yellow
+    }
+
+    box sram at (2, 1) is {
+        text: "AHBRAM"
+        color: yellow
+    }
+
+    box _errorReportNexus at (2, 2) is SiFive_TLXbar
+
+}
+
+box AsyncQueue {
+    grid: 1x2
+    color: cyan
+
+    box sink at (1, 1) is AsyncQueueSink
+
+    box source at (1, 2) is AsyncQueueSource
+
+}
+
+box AsyncQueueSink {
+    grid: 2x2
+    color: cyan
+
+    box widx_valid_chain at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box widx_widx_gray at (1, 2) is AsyncResetSynchronizerShiftReg_w3_d3_i0
+
+    box io_deq_bits_deq_bits_reg at (2, 1) is {
+        text: "ClockCrossingReg_w9"
+        color: yellow
+    }
+
+    box io_deq_q at (2, 2) is {
+        text: "Queue1_UInt9"
+        color: yellow
+    }
+
+}
+
+box AsyncQueueSource {
+    grid: 1x2
+    color: cyan
+
+    box ridx_valid_chain at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box ridx_ridx_gray at (1, 2) is AsyncResetSynchronizerShiftReg_w3_d3_i0
+
+}
+
+box AsyncResetSynchronizerShiftReg_w1_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0"
+        color: yellow
+    }
+
+}
+
+box AsyncResetSynchronizerShiftReg_w1_d3_i1 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i1"
+        color: yellow
+    }
+
+}
+
+box AsyncResetSynchronizerShiftReg_w31_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box AsyncResetSynchronizerPrimitiveShiftReg_d3_i0_grp at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0 (31x)"
+        color: yellow
+    }
+
+}
+
+box AsyncResetSynchronizerShiftReg_w32_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box AsyncResetSynchronizerPrimitiveShiftReg_d3_i0_grp at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0 (32x)"
+        color: yellow
+    }
+
+}
+
+box AsyncResetSynchronizerShiftReg_w3_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box AsyncResetSynchronizerPrimitiveShiftReg_d3_i0_grp at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0 (3x)"
+        color: yellow
+    }
+
+}
+
+box AsyncResetSynchronizerShiftReg_w64_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box AsyncResetSynchronizerPrimitiveShiftReg_d3_i0_grp at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0 (64x)"
+        color: yellow
+    }
+
+}
+
+box ClockDividerNWrapper {
+    grid: 1x1
+    color: cyan
+
+    box divider at (1, 1) is {
+        text: "ClockDividerN"
+        color: yellow
+    }
+
+}
+
+box CoreIPSubsystemVerifTestHarness {
+    grid: 8x8
+    color: cyan
+
+    box AHBPortRAMSlave_grp at (1, 1) is AHBPortRAMSlave
+
+    box cmo_isa_checker at (1, 2) is {
+        text: "CMOISAChecker"
+        color: yellow
+    }
+
+    box cmo_tester at (1, 3) is {
+        text: "CMOTester"
+        color: yellow
+    }
+
+    box cache_checker at (1, 4) is {
+        text: "CacheChecker"
+        color: yellow
+    }
+
+    box cache_checks_backdoor at (1, 5) is {
+        text: "CacheChecksBackDoor"
+        color: yellow
+    }
+
+    box ClockDividerNWrapper_grp at (1, 6) is ClockDividerNWrapper
+
+    box ClockJitter_grp at (1, 7) is {
+        text: "ClockJitter (2x)"
+        color: yellow
+    }
+
+    box system at (1, 8) is CoreIPSubsystemWithPeripherals
+
+    box cosim at (2, 1) is {
+        text: "CosimMonitor_0_0"
+        color: yellow
+    }
+
+    box delayed_reset_count_and_driver at (2, 2) is {
+        text: "CountAndDriver"
+        color: yellow
+    }
+
+    box dpitbh at (2, 3) is {
+        text: "DPITestbenchHooks"
+        color: yellow
+    }
+
+    box debugtile at (2, 4) is {
+        text: "DbgTileMonitor0"
+        color: yellow
+    }
+
+    box ahbMasterAgent at (2, 5) is DpiAhbMasterAgent
+
+    box dpiCombinedResetAgent at (2, 6) is {
+        text: "DpiCombinedResetAgent"
+        color: yellow
+    }
+
+    box jtagagent at (2, 7) is DpiDebugJtagAgent
+
+    box DpiIOAgent_grp at (2, 8) is DpiIOAgent
+
+    box LocalIntDrivers_0 at (3, 1) is {
+        text: "DpiInterruptDriver"
+        color: yellow
+    }
+
+    box dpi_sequence at (3, 2) is {
+        text: "DpiInterruptSequence"
+        color: yellow
+    }
+
+    box meiAgent at (3, 3) is DpiMEIAgent
+
+    box nmiAgent at (3, 4) is DpiNMIAgent
+
+    box DpiResetInjectorAgent_grp at (3, 5) is {
+        text: "DpiResetInjectorAgent (2x)"
+        color: yellow
+    }
+
+    box traceAgent at (3, 6) is DpiTraceAgent
+
+    box ecc_injector at (3, 7) is {
+        text: "ECCInjector"
+        color: yellow
+    }
+
+    box EICG_wrapper_grp at (3, 8) is {
+        text: "EICG_wrapper (2x)"
+        color: yellow
+    }
+
+    box elf_loader at (4, 1) is {
+        text: "ElfLoader"
+        color: yellow
+    }
+
+    box irritator at (4, 2) is {
+        text: "Irritator"
+        color: yellow
+    }
+
+    box sifive_mailbox at (4, 3) is {
+        text: "Mailbox"
+        color: yellow
+    }
+
+    box memory_accessor at (4, 4) is {
+        text: "MemoryAccessor"
+        color: yellow
+    }
+
+    box memory_backdoor at (4, 5) is {
+        text: "MemoryBackdoor"
+        color: yellow
+    }
+
+    box nmiVectorStraps at (4, 6) is {
+        text: "NMIVecStrapDriver"
+        color: yellow
+    }
+
+    box GlobalIntDriver at (4, 7) is {
+        text: "NullInterruptDriver"
+        color: yellow
+    }
+
+    box func_clock at (4, 8) is Pow2ClockDivider
+
+    box ras_coverage_module at (5, 1) is {
+        text: "RASEventCoverage"
+        color: yellow
+    }
+
+    box reset_controller at (5, 2) is {
+        text: "ResetController"
+        color: yellow
+    }
+
+    box runCoreGprResetStartSequence at (5, 3) is {
+        text: "RunCoreGprResetStartSequence"
+        color: yellow
+    }
+
+    box runIOJtagStartSequence at (5, 4) is {
+        text: "RunIOJtagStartSequence"
+        color: yellow
+    }
+
+    box RunIOStartSequence_grp at (5, 5) is {
+        text: "RunIOStartSequence (2x)"
+        color: yellow
+    }
+
+    box runDebugStartSequence at (5, 6) is {
+        text: "RunJtagDebugStartSequence"
+        color: yellow
+    }
+
+    box runJtagResetStartSequence at (5, 7) is {
+        text: "RunJtagResetStartSequence"
+        color: yellow
+    }
+
+    box runNMIStartSequence at (5, 8) is {
+        text: "RunNMIStartSequence"
+        color: yellow
+    }
+
+    box RunResetStartCombinedSequence at (6, 1) is {
+        text: "RunResetStartCombinedSequence"
+        color: yellow
+    }
+
+    box runTraceStartSequence at (6, 2) is {
+        text: "RunTraceStartSequence"
+        color: yellow
+    }
+
+    box debug_compatibility at (6, 3) is SiFive_DebugCompatibility_DebugCompatibility
+
+    box signature_dumper at (6, 4) is {
+        text: "SignatureDumper"
+        color: yellow
+    }
+
+    box SimStat at (6, 5) is {
+        text: "SimStat"
+        color: yellow
+    }
+
+    box SimpleClockMux_wrapper_grp at (6, 6) is {
+        text: "SimpleClockMux_wrapper (5x)"
+        color: yellow
+    }
+
+    box sram_coverage_module at (6, 7) is {
+        text: "SramECCCoverage"
+        color: yellow
+    }
+
+    box ahb_master_bb at (6, 8) is {
+        text: "SynopsysVipAhbLiteMaster"
+        color: yellow
+    }
+
+    box SynopsysVipAhbLitePassiveSlave_grp at (7, 1) is {
+        text: "SynopsysVipAhbLitePassiveSlave (2x)"
+        color: yellow
+    }
+
+    box tlHprotLogger at (7, 2) is {
+        text: "TLHprotLogger"
+        color: yellow
+    }
+
+    box temp_dpi_reset_driver at (7, 3) is {
+        text: "TempDPIResetDriver"
+        color: yellow
+    }
+
+    box test_finisher at (7, 4) is {
+        text: "TestFinisher"
+        color: yellow
+    }
+
+    box mbist_driver_module at (7, 5) is {
+        text: "VerifMbistDriver"
+        color: yellow
+    }
+
+    box wfichecker at (7, 6) is {
+        text: "WfiChecker_1"
+        color: yellow
+    }
+
+    box XSquasher_grp at (7, 7) is {
+        text: "XSquasher (10x)"
+        color: yellow
+    }
+
+    box c_core_reset_driver at (7, 8) is {
+        text: "c_core_reset_driver"
+        color: yellow
+    }
+
+    box ceaseResets_ceasemonitor at (8, 1) is {
+        text: "ceaseMonitor_0"
+        color: yellow
+    }
+
+    box core_monitor at (8, 2) is {
+        text: "core_monitor"
+        color: yellow
+    }
+
+    box core_reset_driver at (8, 3) is {
+        text: "core_reset_driver"
+        color: yellow
+    }
+
+    box dpi_interrupt_generator at (8, 4) is {
+        text: "dpi_interrupt_generator_bundle_tick"
+        color: yellow
+    }
+
+    box gpr_reset_driver at (8, 5) is {
+        text: "gpr_reset_driver"
+        color: yellow
+    }
+
+    box half_clock_dpiClockGate at (8, 6) is {
+        text: "system_clock_en"
+        color: yellow
+    }
+
+    box system_reset_driver at (8, 7) is {
+        text: "system_reset_driver"
+        color: yellow
+    }
+
+}
+
+box CoreIPSubsystemWithPeripherals {
+    grid: 2x2
+    color: cyan
+
+    box deviceWrapper at (1, 1) is AHBExternalDeviceWrapper
+
+    box EICG_wrapper_grp at (1, 2) is {
+        text: "EICG_wrapper (2x)"
+        color: yellow
+    }
+
+    box objectionDriver at (2, 1) is {
+        text: "ObjectionDriver"
+        color: yellow
+    }
+
+    box subsystem at (2, 2) is SiFive_CoreIPSubsystem
+
+}
+
+box DpiAhbMasterAgent {
+    grid: 1x1
+    color: cyan
+
+    box dpi at (1, 1) is {
+        text: "DpiAhbMasterAgentDPI"
+        color: yellow
+    }
+
+}
+
+box DpiDebugJtagAgent {
+    grid: 1x1
+    color: cyan
+
+    box dpi at (1, 1) is {
+        text: "DpiDebugJtagAgentDPI"
+        color: yellow
+    }
+
+}
+
+box DpiIOAgent {
+    grid: 1x1
+    color: cyan
+
+    box dpi at (1, 1) is {
+        text: "DpiIOAgentDPI"
+        color: yellow
+    }
+
+}
+
+box DpiMEIAgent {
+    grid: 1x1
+    color: cyan
+
+    box dpi at (1, 1) is {
+        text: "DpiMEIAgentDPI"
+        color: yellow
+    }
+
+}
+
+box DpiNMIAgent {
+    grid: 1x1
+    color: cyan
+
+    box dpi at (1, 1) is {
+        text: "DpiNMIAgentDPI"
+        color: yellow
+    }
+
+}
+
+box DpiTraceAgent {
+    grid: 1x1
+    color: cyan
+
+    box dpi at (1, 1) is {
+        text: "DpiTraceAgentDPI"
+        color: yellow
+    }
+
+}
+
+box Pow2ClockDivider {
+    grid: 1x1
+    color: cyan
+
+    box ClockDivider2_grp at (1, 1) is {
+        text: "ClockDivider2 (2x)"
+        color: yellow
+    }
+
+}
+
+box SCRSyncWrapper {
+    grid: 1x1
+    color: cyan
+
+    box soc_scr at (1, 1) is {
+        text: "AHBSCRDevice"
+        color: yellow
+    }
+
+}
+
+box SiFive_AHBToTL {
+    grid: 1x1
+    color: cyan
+
+    box monitor at (1, 1) is {
+        text: "SiFive_TLMonitorLite"
+        color: yellow
+    }
+
+}
+
+box SiFive_AHBToTLBridgeContents {
+    grid: 2x2
+    color: cyan
+
+    box ahb2tl at (1, 1) is SiFive_AHBToTL
+
+    box buffer at (1, 2) is SiFive_TLBuffer
+
+    box _fixer at (2, 1) is SiFive_TLFIFOFixer
+
+    box _widthWidget at (2, 2) is SiFive_TLWidthWidget
+
+}
+
+box SiFive_AsyncQueueSink {
+    grid: 2x2
+    color: cyan
+
+    box widx_widx_gray at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box io_deq_bits_deq_bits_reg at (1, 2) is {
+        text: "SiFive_ClockCrossingReg_w43"
+        color: yellow
+    }
+
+    box io_deq_q at (2, 1) is {
+        text: "SiFive_Queue1_TLBundleD_2"
+        color: yellow
+    }
+
+}
+
+box SiFive_AsyncQueueSource {
+    grid: 1x1
+    color: cyan
+
+    box ridx_ridx_gray at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+}
+
+box SiFive_AsyncResetSynchronizerShiftReg_w1_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0"
+        color: yellow
+    }
+
+}
+
+box SiFive_AuthenticationModule {
+    grid: 1x1
+    color: cyan
+
+    box chain at (1, 1) is SiFive_SynchronizerShiftReg_w1_d3
+
+}
+
+box SiFive_CLIC {
+    grid: 2x3
+    color: cyan
+
+    box gatedClock_clic_clock_gate at (1, 1) is {
+        text: "EICG_wrapper_1"
+        color: yellow
+    }
+
+    box intSink at (1, 2) is SiFive_InterruptsSyncAsyncCrossingSinkWithReset
+
+    box out_back_q at (1, 3) is {
+        text: "SiFive_Queue1_RegMapperInput"
+        color: yellow
+    }
+
+    box rtc_sync_chain at (2, 1) is SiFive_ResetSynchronizerShiftReg_w1_d3_i0
+
+    box monitor at (2, 2) is {
+        text: "SiFive_TLMonitorLite_10"
+        color: yellow
+    }
+
+}
+
+box SiFive_ClockConnector {
+    grid: 2x2
+    color: cyan
+
+    box _broadcast at (1, 1) is {
+        text: "SiFive_BundleBridgeNexus_1"
+        color: yellow
+    }
+
+    box childFixedClockNode at (1, 2) is {
+        text: "SiFive_ClockBroadcastWithResetSync"
+        color: yellow
+    }
+
+    box _clockGroupOpt at (2, 1) is {
+        text: "SiFive_ClockGroup"
+        color: yellow
+    }
+
+    box networkFixedClockNode at (2, 2) is {
+        text: "SiFive_FixedClockBroadcast"
+        color: yellow
+    }
+
+}
+
+box SiFive_ClockConnectorComponent {
+    grid: 1x1
+    color: cyan
+
+    box connector at (1, 1) is SiFive_ClockConnector
+
+}
+
+box SiFive_ClockGateWithHandshake {
+    grid: 1x2
+    color: cyan
+
+    box clock_connector_clock_gate_bundle_out_0_clock_clockConnector_clockGate_clock_gate at (1, 1) is {
+        text: "EICG_wrapper"
+        color: yellow
+    }
+
+    box clock_enable_sync_bundle_out_0_clockEnableREQn_syncTileClockREQn at (1, 2) is SiFive_AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+}
+
+box SiFive_ClockSinkDomain {
+    grid: 2x3
+    color: cyan
+
+    box _provider at (1, 1) is {
+        text: "SiFive_AHBSlaveProtectionProvider"
+        color: yellow
+    }
+
+    box bridge_for_ahb_front_port_0 at (1, 2) is SiFive_AHBToTLBridgeContents
+
+    box dynClockEnableModule at (1, 3) is SiFive_TLSqipClockEnabler
+
+    box _widthWidget at (2, 1) is SiFive_TLWidthWidget
+
+    box _errorReportNexus at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_CoreIPSubsystem {
+    grid: 6x7
+    color: cyan
+
+    box authentication at (1, 1) is SiFive_AuthenticationModule
+
+    box SiFive_BundleBridgeNexus_grp at (1, 2) is {
+        text: "SiFive_BundleBridgeNexus (3x)"
+        color: yellow
+    }
+
+    box clic at (1, 3) is SiFive_CLIC
+
+    box SiFive_ClockConnectorComponent_grp at (1, 4) is SiFive_ClockConnectorComponent
+
+    box SiFive_ClockSinkDomain_grp at (1, 5) is SiFive_ClockSinkDomain
+
+    box SiFive_CrossingWrapper_grp at (1, 6) is SiFive_CrossingWrapper
+
+    box debugDtmModule at (1, 7) is SiFive_DebugModuleDtmWrapper
+
+    box tmc0 at (2, 1) is SiFive_DomainMC
+
+    box _errorReportNexus at (2, 2) is {
+        text: "SiFive_ErrorReportReducer"
+        color: yellow
+    }
+
+    box _ghrtPortWrapper at (2, 3) is {
+        text: "SiFive_GhrtPortWrapper"
+        color: yellow
+    }
+
+    box SubsystemIbus at (2, 4) is SiFive_InterruptBusWrapper
+
+    box intSource at (2, 5) is {
+        text: "SiFive_InterruptsSyncCrossingSource"
+        color: yellow
+    }
+
+    box SiFive_InterruptsUnpacker_grp at (2, 6) is {
+        text: "SiFive_InterruptsUnpacker (4x)"
+        color: yellow
+    }
+
+    box SiFive_InterruptsXbar_grp at (2, 7) is {
+        text: "SiFive_InterruptsXbar (4x)"
+        color: yellow
+    }
+
+    box _nmiIntNexus at (3, 1) is {
+        text: "SiFive_NMIInterruptNexus"
+        color: yellow
+    }
+
+    box SiFive_NullInterruptsSource_grp at (3, 2) is {
+        text: "SiFive_NullInterruptsSource (6x)"
+        color: yellow
+    }
+
+    box _null_int_source_5 at (3, 3) is {
+        text: "SiFive_NullInterruptsWithPrioritySource"
+        color: yellow
+    }
+
+    box _debugHartIdSourceNodes at (3, 4) is {
+        text: "SiFive_PositionProducer"
+        color: yellow
+    }
+
+    box SbusJunction at (3, 5) is SiFive_SbusJunction
+
+    box SiFive_Scope_DebugModule_companion at (3, 6) is {
+        text: "SiFive_SiFive_Scope_DebugModule_companion"
+        color: yellow
+    }
+
+    box SiFive_Scope_harts_companion at (3, 7) is {
+        text: "SiFive_SiFive_Scope_harts_companion"
+        color: yellow
+    }
+
+    box tileHartIdNexus at (4, 1) is SiFive_StaticRelativePositioner
+
+    box SubsystemCbus at (4, 2) is SiFive_SubsystemCbus
+
+    box _SubsystemCbusAddressAdjuster at (4, 3) is SiFive_SubsystemCbusAddressAdjuster
+
+    box _asyncClockGroupsAdapterOpt at (4, 4) is {
+        text: "SiFive_SubsystemClockGroupAdapter"
+        color: yellow
+    }
+
+    box _SubsystemFbus at (4, 5) is SiFive_SubsystemFbus
+
+    box smc at (4, 6) is SiFive_SubsystemMC
+
+    box SubsystemPbus at (4, 7) is SiFive_SubsystemPbus
+
+    box SubsystemPrivatePbus at (5, 1) is SiFive_SubsystemPrivatePbus
+
+    box SubsystemPrivateSbus at (5, 2) is SiFive_SubsystemPrivateSbus
+
+    box SubsystemSbus at (5, 3) is SiFive_SubsystemSbus
+
+    box SiFive_TLEdgeInfoCCEmitter at (5, 4) is {
+        text: "SiFive_TLEdgeInfoCCEmitter"
+        color: yellow
+    }
+
+    box monitor_2 at (5, 5) is {
+        text: "SiFive_TLMon"
+        color: yellow
+    }
+
+    box monitor at (5, 6) is {
+        text: "SiFive_TLMon_Request_data_7"
+        color: yellow
+    }
+
+    box monitor_1 at (5, 7) is {
+        text: "SiFive_TLMon_Request_data_7_1"
+        color: yellow
+    }
+
+    box SiFive_TLXbar_grp at (6, 1) is SiFive_TLXbar
+
+    box tile_prci_domain at (6, 2) is SiFive_Tile_TilePRCIDomain
+
+    box _auto_smc_nmi_peer_scope at (6, 3) is {
+        text: "SiFive_auto_smc_nmi_peer_scope"
+        color: yellow
+    }
+
+    box _auto_tile_notifications_peer_tile0 at (6, 4) is SiFive_auto_tile_notifications_peer_tile_scope
+
+    box _auto_tile_notifications_peer_tmc0 at (6, 5) is SiFive_auto_tile_notifications_peer_tmc_scope
+
+}
+
+box SiFive_CrossingWrapper {
+    grid: 2x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer"
+        color: yellow
+    }
+
+    box SiFive_TLBuffer_grp at (1, 2) is SiFive_TLBuffer
+
+    box _fragmenter at (1, 3) is {
+        text: "SiFive_TLFragmenter_5"
+        color: yellow
+    }
+
+    box lim at (2, 1) is SiFive_TLRAM
+
+    box _xbar at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_DMIToTL {
+    grid: 1x1
+    color: cyan
+
+    box monitor at (1, 1) is SiFive_TileLinkMonitor
+
+}
+
+box SiFive_DebugCompatibility_DebugCompatibility {
+    grid: 2x2
+    color: cyan
+
+    box debug_reset_syncd_debug_reset_sync at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box gated_clock_debug_clock_gate at (1, 2) is {
+        text: "EICG_wrapper_7"
+        color: yellow
+    }
+
+    box dmactiveAck_dmactiveAck at (2, 1) is SiFive_DebugCompatibility_ResetSynchronizerShiftReg_w1_d3_i0
+
+}
+
+box SiFive_DebugCompatibility_ResetSynchronizerShiftReg_w1_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "SiFive_InferredResetSynchronizerPrimitiveShiftReg_d3_i0"
+        color: yellow
+    }
+
+}
+
+box SiFive_DebugModuleDtmWrapper {
+    grid: 2x2
+    color: cyan
+
+    box debugCustomXbar at (1, 1) is {
+        text: "SiFive_DebugCustomXbar"
+        color: yellow
+    }
+
+    box dtmOpt at (1, 2) is SiFive_DebugTransportModuleJTAG
+
+    box SiFive_ResetSynchronizerShiftReg_w1_d3_i0_grp at (2, 1) is SiFive_ResetSynchronizerShiftReg_w1_d3_i0
+
+    box dm at (2, 2) is SiFive_TLDebugModule
+
+}
+
+box SiFive_DebugTransportModuleJTAG {
+    grid: 2x3
+    color: cyan
+
+    box blocker_io_block_block_sync at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box tapIO_idcodeChain at (1, 2) is {
+        text: "SiFive_CaptureChain"
+        color: yellow
+    }
+
+    box SiFive_CaptureUpdateChain_grp at (1, 3) is {
+        text: "SiFive_CaptureUpdateChain (2x)"
+        color: yellow
+    }
+
+    box blocker at (2, 1) is {
+        text: "SiFive_DebugTransportModuleJTAG_Anon"
+        color: yellow
+    }
+
+    box tapIO_bypassChain at (2, 2) is {
+        text: "SiFive_JtagBypassChain"
+        color: yellow
+    }
+
+    box tapIO_controllerInternal at (2, 3) is SiFive_JtagTapController
+
+}
+
+box SiFive_DomainMC {
+    grid: 2x3
+    color: cyan
+
+    box AsyncResetSynchronizerShiftReg_w1_d3_i0_grp at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box SiFive_ResetCatchAndSync_d3_grp at (1, 2) is SiFive_ResetCatchAndSync_d3
+
+    box _strap_broadcast at (1, 3) is {
+        text: "SiFive_StrapBroadcast"
+        color: yellow
+    }
+
+    box monitor at (2, 1) is {
+        text: "SiFive_TLMonitorLite_11"
+        color: yellow
+    }
+
+    box _errorReportNexus at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_InterconnectCoupler {
+    grid: 1x2
+    color: cyan
+
+    box _buffer at (1, 1) is SiFive_TLBuffer
+
+    box _widthWidget at (1, 2) is SiFive_TLWidthWidget
+
+}
+
+box SiFive_InterruptBusWrapper {
+    grid: 2x2
+    color: cyan
+
+    box SiFive_InterruptsPathPrefixer_grp at (1, 1) is {
+        text: "SiFive_InterruptsPathPrefixer (2x)"
+        color: yellow
+    }
+
+    box SiFive_InterruptsXbar_grp at (1, 2) is {
+        text: "SiFive_InterruptsXbar (2x)"
+        color: yellow
+    }
+
+    box SiFive_TLXbar_grp at (2, 1) is SiFive_TLXbar
+
+}
+
+box SiFive_InterruptsSyncAsyncCrossingSinkWithReset {
+    grid: 1x1
+    color: cyan
+
+    box chain at (1, 1) is SiFive_ResetSynchronizerShiftReg_w1_d3_i0
+
+}
+
+box SiFive_JtagTapController {
+    grid: 1x2
+    color: cyan
+
+    box irChain at (1, 1) is {
+        text: "SiFive_CaptureUpdateChain_2"
+        color: yellow
+    }
+
+    box stateMachine at (1, 2) is {
+        text: "SiFive_JtagStateMachine"
+        color: yellow
+    }
+
+}
+
+box SiFive_RedundantFIFOStatusModule {
+    grid: 1x1
+    color: cyan
+
+    box logic at (1, 1) is {
+        text: "SiFive_FIFOStatusModule"
+        color: yellow
+    }
+
+}
+
+box SiFive_RedundantNextAHBBeat {
+    grid: 1x1
+    color: cyan
+
+    box beat at (1, 1) is {
+        text: "SiFive_NextAHBBeat"
+        color: yellow
+    }
+
+}
+
+box SiFive_RedundantRRArbiter {
+    grid: 1x1
+    color: cyan
+
+    box rr at (1, 1) is {
+        text: "SiFive_RRArbiter"
+        color: yellow
+    }
+
+}
+
+box SiFive_ResetCatchAndSync_d3 {
+    grid: 1x1
+    color: cyan
+
+    box io_sync_reset_chain at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+}
+
+box SiFive_ResetSynchronizerShiftReg_w1_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "SiFive_InferredResetSynchronizerPrimitiveShiftReg_d3_i0"
+        color: yellow
+    }
+
+}
+
+box SiFive_SBToTL {
+    grid: 2x2
+    color: cyan
+
+    box gatedClock_debug_sba_clock_gate at (1, 1) is {
+        text: "EICG_wrapper_2"
+        color: yellow
+    }
+
+    box d_q at (1, 2) is {
+        text: "SiFive_Queue2_TLBundleD_1"
+        color: yellow
+    }
+
+    box clockEnabler at (2, 1) is SiFive_TLSqipClockEnabler
+
+    box monitor at (2, 2) is SiFive_TileLinkMonitor
+
+}
+
+box SiFive_SbusJunction {
+    grid: 2x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_4"
+        color: yellow
+    }
+
+    box _fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box SiFive_InterconnectCoupler_grp at (1, 3) is SiFive_InterconnectCoupler
+
+    box jbar at (2, 1) is SiFive_TLJbar
+
+    box SiFive_TLXbar_grp at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_StaticRelativePositioner {
+    grid: 1x2
+    color: cyan
+
+    box perPositionAdapter at (1, 1) is {
+        text: "SiFive_PositionPrefixer"
+        color: yellow
+    }
+
+    box SiFive_StrapBroadcast_grp at (1, 2) is {
+        text: "SiFive_StrapBroadcast (2x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_SubsystemCbus {
+    grid: 3x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_10"
+        color: yellow
+    }
+
+    box fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast"
+        color: yellow
+    }
+
+    box SiFive_InterconnectCoupler_grp at (1, 3) is SiFive_InterconnectCoupler
+
+    box atomic at (2, 1) is SiFive_TLAtomicAutomata
+
+    box SiFive_TLBuffer_grp at (2, 2) is SiFive_TLBuffer
+
+    box fixer at (2, 3) is SiFive_TLFIFOFixer
+
+    box _widthWidget at (3, 1) is SiFive_TLWidthWidget
+
+    box SiFive_TLXbar_grp at (3, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_SubsystemCbusAddressAdjuster {
+    grid: 2x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_11"
+        color: yellow
+    }
+
+    box _fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box coupler_to_bus_named_SubsystemCbus at (1, 3) is SiFive_InterconnectCoupler
+
+    box buffer at (2, 1) is SiFive_TLBuffer
+
+    box _wwNode at (2, 2) is SiFive_TLWidthWidget
+
+    box SiFive_TLXbar_grp at (2, 3) is SiFive_TLXbar
+
+}
+
+box SiFive_SubsystemFbus {
+    grid: 2x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_9"
+        color: yellow
+    }
+
+    box _fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box coupler_from_port_named_ahb_front_port_0 at (1, 3) is SiFive_InterconnectCoupler
+
+    box buffer at (2, 1) is SiFive_TLBuffer
+
+    box SiFive_TLXbar_grp at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_SubsystemMC {
+    grid: 2x2
+    color: cyan
+
+    box AsyncResetSynchronizerShiftReg_w1_d3_i0_grp at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box _errorReportNexus at (1, 2) is {
+        text: "SiFive_ErrorReportReducer_12"
+        color: yellow
+    }
+
+    box monitor at (2, 1) is {
+        text: "SiFive_TLMonitorLite_8"
+        color: yellow
+    }
+
+}
+
+box SiFive_SubsystemPbus {
+    grid: 1x2
+    color: cyan
+
+    box _fixedClockNode at (1, 1) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box SiFive_TLXbar_grp at (1, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_SubsystemPrivatePbus {
+    grid: 3x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_7"
+        color: yellow
+    }
+
+    box _fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box coupler_to_port_named_ahb_periph_port_0 at (1, 3) is SiFive_InterconnectCoupler
+
+    box atomic at (2, 1) is SiFive_TLAtomicAutomata
+
+    box SiFive_TLBuffer_grp at (2, 2) is SiFive_TLBuffer
+
+    box _fixer at (2, 3) is SiFive_TLFIFOFixer
+
+    box _widthWidget at (3, 1) is SiFive_TLWidthWidget
+
+    box SiFive_TLXbar_grp at (3, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_SubsystemPrivateSbus {
+    grid: 2x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_4"
+        color: yellow
+    }
+
+    box _fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box SiFive_InterconnectCoupler_grp at (1, 3) is SiFive_InterconnectCoupler
+
+    box _buffer at (2, 1) is SiFive_TLBuffer
+
+    box _fixer at (2, 2) is SiFive_TLFIFOFixer
+
+    box SiFive_TLXbar_grp at (2, 3) is SiFive_TLXbar
+
+}
+
+box SiFive_SubsystemSbus {
+    grid: 2x3
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_5"
+        color: yellow
+    }
+
+    box _fixedClockNode at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box SiFive_InterconnectCoupler_grp at (1, 3) is SiFive_InterconnectCoupler
+
+    box _buffer at (2, 1) is SiFive_TLBuffer
+
+    box _fixer at (2, 2) is SiFive_TLFIFOFixer
+
+    box SiFive_TLXbar_grp at (2, 3) is SiFive_TLXbar
+
+}
+
+box SiFive_SynchronizerShiftReg_w1_d3 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "SiFive_NonSyncResetSynchronizerPrimitiveShiftReg_d3"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLAsyncCrossingSink {
+    grid: 1x2
+    color: cyan
+
+    box bundle_out_0_a_sink at (1, 1) is SiFive_AsyncQueueSink
+
+    box bundle_in_0_d_source at (1, 2) is SiFive_AsyncQueueSource
+
+}
+
+box SiFive_TLAsyncCrossingSource {
+    grid: 2x2
+    color: cyan
+
+    box bundle_in_0_d_sink at (1, 1) is SiFive_AsyncQueueSink
+
+    box bundle_out_0_a_source at (1, 2) is SiFive_AsyncQueueSource
+
+    box monitor at (2, 1) is {
+        text: "SiFive_TLMonitorLite_18"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLAtomicAutomata {
+    grid: 1x1
+    color: cyan
+
+    box SiFive_RedundantDynamicDownCounter_grp at (1, 1) is {
+        text: "SiFive_RedundantDynamicDownCounter (2x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLBuffer {
+    grid: 1x2
+    color: cyan
+
+    box buffer_a_q at (1, 1) is {
+        text: "SiFive_Queue2_TLBundleA"
+        color: yellow
+    }
+
+    box bundle_in_0_d_q at (1, 2) is {
+        text: "SiFive_Queue2_TLBundleD"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLBusBypass {
+    grid: 2x2
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is {
+        text: "SiFive_ErrorReportReducer_17"
+        color: yellow
+    }
+
+    box bar at (1, 2) is SiFive_TLBusBypassBar
+
+    box error at (2, 1) is SiFive_TLError
+
+    box _xbar at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_TLBusBypassBar {
+    grid: 1x1
+    color: cyan
+
+    box flight_redundant_counter at (1, 1) is {
+        text: "SiFive_RedundantUpDownCounter"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLClockEnabler {
+    grid: 1x1
+    color: cyan
+
+    box flight_redundant_counter at (1, 1) is {
+        text: "SiFive_RedundantUpDownCounter_3"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLDebugModule {
+    grid: 1x2
+    color: cyan
+
+    box dmInner at (1, 1) is SiFive_TLDebugModuleInnerAsync
+
+    box dmOuter at (1, 2) is SiFive_TLDebugModuleOuterAsync
+
+}
+
+box SiFive_TLDebugModuleInner {
+    grid: 2x2
+    color: cyan
+
+    box hartIsInResetSync_0_debug_hartReset_0 at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box sbToTLOpt at (1, 2) is SiFive_SBToTL
+
+    box SiFive_TLMonitorLite_grp at (2, 1) is {
+        text: "SiFive_TLMonitorLite (2x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLDebugModuleInnerAsync {
+    grid: 2x2
+    color: cyan
+
+    box AsyncResetSynchronizerShiftReg_w1_d3_i0_grp at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box dmactive_synced_dmInner_io_innerCtrl_sink at (1, 2) is SiFive_AsyncQueueSink
+
+    box dmiXing at (2, 1) is SiFive_TLAsyncCrossingSink
+
+    box dmInner at (2, 2) is SiFive_TLDebugModuleInner
+
+}
+
+box SiFive_TLDebugModuleOuter {
+    grid: 1x2
+    color: cyan
+
+    box dmAuthenticated_dmAuthenticated_sync at (1, 1) is SiFive_ResetSynchronizerShiftReg_w1_d3_i0
+
+    box monitor at (1, 2) is {
+        text: "SiFive_TLMonitorLite_16"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLDebugModuleOuterAsync {
+    grid: 3x3
+    color: cyan
+
+    box AsyncResetSynchronizerShiftReg_w1_d3_i0_grp at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box io_innerCtrl_source at (1, 2) is SiFive_AsyncQueueSource
+
+    box dmi2tl at (1, 3) is SiFive_DMIToTL
+
+    box asource at (2, 1) is SiFive_TLAsyncCrossingSource
+
+    box dmiBypass at (2, 2) is SiFive_TLBusBypass
+
+    box dmOuter at (2, 3) is SiFive_TLDebugModuleOuter
+
+    box dmiXbar at (3, 1) is SiFive_TLXbar
+
+}
+
+box SiFive_TLError {
+    grid: 2x2
+    color: cyan
+
+    box raw_a_q at (1, 1) is {
+        text: "SiFive_Queue1_TLBundleA_2"
+        color: yellow
+    }
+
+    box SiFive_RedundantDynamicDownCounter_grp at (1, 2) is {
+        text: "SiFive_RedundantDynamicDownCounter (2x)"
+        color: yellow
+    }
+
+    box _errorReportNexus at (2, 1) is SiFive_TLXbar
+
+    box monitor at (2, 2) is SiFive_TileLinkMonitor
+
+}
+
+box SiFive_TLFIFOFixer {
+    grid: 1x1
+    color: cyan
+
+    box fifoStatus at (1, 1) is SiFive_RedundantFIFOStatusModule
+
+}
+
+box SiFive_TLJbar {
+    grid: 1x1
+    color: cyan
+
+    box SiFive_RedundantRRArbiter_grp at (1, 1) is SiFive_RedundantRRArbiter
+
+}
+
+box SiFive_TLRAM {
+    grid: 2x3
+    color: cyan
+
+    box SiFive_BundleBridgeNexus_grp at (1, 1) is {
+        text: "SiFive_BundleBridgeNexus (4x)"
+        color: yellow
+    }
+
+    box _nexus at (1, 2) is {
+        text: "SiFive_BundleBridgeShiftRegister"
+        color: yellow
+    }
+
+    box SiFive_BundleBridgeStaticMux_grp at (1, 3) is {
+        text: "SiFive_BundleBridgeStaticMux (2x)"
+        color: yellow
+    }
+
+    box _strap_broadcast at (2, 1) is {
+        text: "SiFive_StrapBroadcast"
+        color: yellow
+    }
+
+    box _broadcast at (2, 2) is SiFive_TLXbar
+
+}
+
+box SiFive_TLSqipClockEnabler {
+    grid: 2x2
+    color: cyan
+
+    box busyWakeupSeq_localBusClockACK_qreq_n_reg_qReq_n_Sync at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box SiFive_RedundantDynamicDownCounter_grp at (1, 2) is {
+        text: "SiFive_RedundantDynamicDownCounter (2x)"
+        color: yellow
+    }
+
+    box busyWakeupSeq_flight_redundant_counter at (2, 1) is {
+        text: "SiFive_RedundantUpDownCounter"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLToAHB {
+    grid: 2x2
+    color: cyan
+
+    box bundle_in_0_d_q at (1, 1) is {
+        text: "SiFive_Queue2_TLBundleD_2"
+        color: yellow
+    }
+
+    box nextBeat at (1, 2) is SiFive_RedundantNextAHBBeat
+
+    box monitor at (2, 1) is {
+        text: "SiFive_TLMonitorLite_5"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLToAHBBridgeContents {
+    grid: 2x2
+    color: cyan
+
+    box SiFive_TLBuffer_grp at (1, 1) is SiFive_TLBuffer
+
+    box tl2ahb at (1, 2) is SiFive_TLToAHB
+
+    box _widthWidget at (2, 1) is SiFive_TLWidthWidget
+
+}
+
+box SiFive_TLWidthWidget {
+    grid: 1x1
+    color: cyan
+
+    box repeated_repeater at (1, 1) is {
+        text: "SiFive_Repeater"
+        color: yellow
+    }
+
+}
+
+box SiFive_TLXbar {
+    grid: 1x2
+    color: cyan
+
+    box SiFive_RedundantRRArbiter_grp at (1, 1) is SiFive_RedundantRRArbiter
+
+    box SiFive_TLMonitorLite_grp at (1, 2) is {
+        text: "SiFive_TLMonitorLite (3x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_TileLinkMonitor {
+    grid: 1x1
+    color: cyan
+
+    box SiFive_RedundantDynamicDownCounter_grp at (1, 1) is {
+        text: "SiFive_RedundantDynamicDownCounter (7x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_AsyncResetSynchronizerShiftReg_w1_d3_i0 {
+    grid: 1x1
+    color: cyan
+
+    box output_chain at (1, 1) is {
+        text: "AsyncResetSynchronizerPrimitiveShiftReg_d3_i0"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_BaseAddressStrapPrefixOR {
+    grid: 1x1
+    color: cyan
+
+    box _dlsBaseAddressStrapFinal at (1, 1) is {
+        text: "SiFive_Tile_BundleBridgeNexus_15"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_CSRFile {
+    grid: 1x1
+    color: cyan
+
+    box bpu at (1, 1) is {
+        text: "SiFive_Tile_SignalBreakpointUnit"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_Caboose {
+    grid: 3x3
+    color: cyan
+
+    box alu at (1, 1) is {
+        text: "SiFive_Tile_ALU"
+        color: yellow
+    }
+
+    box bpu at (1, 2) is {
+        text: "SiFive_Tile_BreakpointUnit"
+        color: yellow
+    }
+
+    box csr at (1, 3) is SiFive_Tile_CSRFile
+
+    box rf at (2, 1) is {
+        text: "SiFive_Tile_CabooseRF"
+        color: yellow
+    }
+
+    box fetch at (2, 2) is SiFive_Tile_FetchBuffer
+
+    box div at (2, 3) is {
+        text: "SiFive_Tile_MulDiv"
+        color: yellow
+    }
+
+    box SiFive_Tile_PMPChecker_grp at (3, 1) is {
+        text: "SiFive_Tile_PMPChecker (2x)"
+        color: yellow
+    }
+
+    box SiFive_Tile_TileLinkMonitor_grp at (3, 2) is {
+        text: "SiFive_Tile_TileLinkMonitor (2x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_CabooseTile {
+    grid: 4x4
+    color: cyan
+
+    box core_gated_clock_tile_core_clock_gate at (1, 1) is {
+        text: "EICG_wrapper_3"
+        color: yellow
+    }
+
+    box _nexus at (1, 2) is {
+        text: "SiFive_BundleBridgeNexus_25"
+        color: yellow
+    }
+
+    box _null_int_source at (1, 3) is {
+        text: "SiFive_NullInterruptsSource_1"
+        color: yellow
+    }
+
+    box SiFive_TLFIFOFixer_grp at (1, 4) is SiFive_TLFIFOFixer
+
+    box SiFive_TLXbar_grp at (2, 1) is SiFive_TLXbar
+
+    box SiFive_Tile_BaseAddressStrapPrefixOR_grp at (2, 2) is SiFive_Tile_BaseAddressStrapPrefixOR
+
+    box SiFive_Tile_BundleBridgeNexus_grp at (2, 3) is {
+        text: "SiFive_Tile_BundleBridgeNexus (9x)"
+        color: yellow
+    }
+
+    box core at (2, 4) is SiFive_Tile_Caboose
+
+    box _errorReportNexus at (3, 1) is {
+        text: "SiFive_Tile_ErrorReportReducer_3"
+        color: yellow
+    }
+
+    box _coldResetClockBroadcastNode at (3, 2) is {
+        text: "SiFive_Tile_FixedClockBroadcast_1"
+        color: yellow
+    }
+
+    box SiFive_Tile_InterruptsAggregator_grp at (3, 3) is {
+        text: "SiFive_Tile_InterruptsAggregator (2x)"
+        color: yellow
+    }
+
+    box SiFive_Scope_Tile_companion at (3, 4) is {
+        text: "SiFive_Tile_SiFive_Scope_Tile_companion"
+        color: yellow
+    }
+
+    box _buffer_2 at (4, 1) is {
+        text: "SiFive_Tile_TLBuffer_3"
+        color: yellow
+    }
+
+    box SiFive_Tile_TLFilter_grp at (4, 2) is {
+        text: "SiFive_Tile_TLFilter (2x)"
+        color: yellow
+    }
+
+    box SiFive_Tile_TLWidthWidget_grp at (4, 3) is {
+        text: "SiFive_Tile_TLWidthWidget (2x)"
+        color: yellow
+    }
+
+    box SiFive_Tile_TLXbar_grp at (4, 4) is {
+        text: "SiFive_Tile_TLXbar (2x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_ClockGateWithHandshake {
+    grid: 1x2
+    color: cyan
+
+    box tile_bundle_out_0_clock_tile_clock_gate at (1, 1) is {
+        text: "EICG_wrapper_4"
+        color: yellow
+    }
+
+    box clock_enable_sync_bundle_out_0_clockEnableREQn_syncTileClockREQn at (1, 2) is SiFive_Tile_AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+}
+
+box SiFive_Tile_ClockSinkDomain {
+    grid: 3x4
+    color: cyan
+
+    box nmi_crossing_bundle_out_0_rnmi_nmiCoreSync at (1, 1) is AsyncResetSynchronizerShiftReg_w1_d3_i0
+
+    box SiFive_FixedClockBroadcast_grp at (1, 2) is {
+        text: "SiFive_FixedClockBroadcast (2x)"
+        color: yellow
+    }
+
+    box _buffer_1 at (1, 3) is SiFive_TLXbar
+
+    box SiFive_Tile_BundleBridgeBlockDuringReset_grp at (1, 4) is {
+        text: "SiFive_Tile_BundleBridgeBlockDuringReset (2x)"
+        color: yellow
+    }
+
+    box tileClockGate at (2, 1) is SiFive_Tile_ClockGateWithHandshake
+
+    box _errorReportNexus at (2, 2) is {
+        text: "SiFive_Tile_ErrorReportReducer"
+        color: yellow
+    }
+
+    box SiFive_Tile_InterruptsSyncCrossingSource_grp at (2, 3) is SiFive_Tile_InterruptsSyncCrossingSource
+
+    box SiFive_Tile_InterruptsSyncSyncCrossingSink_grp at (2, 4) is {
+        text: "SiFive_Tile_InterruptsSyncSyncCrossingSink (5x)"
+        color: yellow
+    }
+
+    box intInClockXing_crossing_sink_3 at (3, 1) is {
+        text: "SiFive_Tile_InterruptsWithPrioritySyncCrossingSink"
+        color: yellow
+    }
+
+    box _buffer at (3, 2) is {
+        text: "SiFive_Tile_TLBuffer_4"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_FetchBuffer {
+    grid: 1x2
+    color: cyan
+
+    box expander at (1, 1) is {
+        text: "SiFive_Tile_RVCExpander"
+        color: yellow
+    }
+
+    box zcmtExpander at (1, 2) is {
+        text: "SiFive_Tile_ZCMTExpander"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_InterruptsSyncCrossingSource {
+    grid: 1x1
+    color: cyan
+
+    box bundle_out_0_reg at (1, 1) is {
+        text: "SiFive_Tile_AsyncResetRegVec_w1_i0"
+        color: yellow
+    }
+
+}
+
+box SiFive_Tile_TileClockDomain {
+    grid: 2x3
+    color: cyan
+
+    box _ungatedClockNode at (1, 1) is {
+        text: "SiFive_FixedClockBroadcast_3"
+        color: yellow
+    }
+
+    box SiFive_TLXbar_grp at (1, 2) is SiFive_TLXbar
+
+    box _nexus at (1, 3) is {
+        text: "SiFive_Tile_BundleBridgeNexus_18"
+        color: yellow
+    }
+
+    box _clockNode at (2, 1) is {
+        text: "SiFive_Tile_FixedClockBroadcast_2"
+        color: yellow
+    }
+
+    box tile_clock_domain_glue at (2, 2) is SiFive_Tile_TileGlueDomain
+
+    box _tile_reset_domain at (2, 3) is SiFive_Tile_TileResetDomain
+
+}
+
+box SiFive_Tile_TileGlueDomain {
+    grid: 2x2
+    color: cyan
+
+    box rawResetNode at (1, 1) is {
+        text: "SiFive_FixedClockBroadcast"
+        color: yellow
+    }
+
+    box _errorReportNexus at (1, 2) is SiFive_TLXbar
+
+    box rawResetDomain at (2, 1) is SiFive_Tile_ClockSinkDomain
+
+    box _stretchedResetDomain at (2, 2) is SiFive_Tile_TileResetDomain
+
+}
+
+box SiFive_Tile_TilePRCIDomain {
+    grid: 2x2
+    color: cyan
+
+    box SiFive_Tile_BundleBridgeNexus_grp at (1, 1) is {
+        text: "SiFive_Tile_BundleBridgeNexus (2x)"
+        color: yellow
+    }
+
+    box _errorReportNexus at (1, 2) is {
+        text: "SiFive_Tile_ErrorReportReducer"
+        color: yellow
+    }
+
+    box tile_clock_domain at (2, 1) is SiFive_Tile_TileClockDomain
+
+    box tile_uncore_domain at (2, 2) is SiFive_Tile_TileUncoreClockDomain
+
+}
+
+box SiFive_Tile_TileResetDomain {
+    grid: 1x2
+    color: cyan
+
+    box _errorReportNexus at (1, 1) is SiFive_TLXbar
+
+    box tile at (1, 2) is SiFive_Tile_CabooseTile
+
+}
+
+box SiFive_Tile_TileUncoreClockDomain {
+    grid: 3x3
+    color: cyan
+
+    box SiFive_FixedClockBroadcast_grp at (1, 1) is {
+        text: "SiFive_FixedClockBroadcast (2x)"
+        color: yellow
+    }
+
+    box intInClockXing_crossing_source_5 at (1, 2) is {
+        text: "SiFive_InterruptsSyncCrossingSource"
+        color: yellow
+    }
+
+    box SiFive_TLXbar_grp at (1, 3) is SiFive_TLXbar
+
+    box SiFive_Tile_InterruptsSyncCrossingSource_grp at (2, 1) is SiFive_Tile_InterruptsSyncCrossingSource
+
+    box SiFive_Tile_InterruptsSyncSyncCrossingSink_grp at (2, 2) is {
+        text: "SiFive_Tile_InterruptsSyncSyncCrossingSink (8x)"
+        color: yellow
+    }
+
+    box intInClockXing_crossing_source_3 at (2, 3) is {
+        text: "SiFive_Tile_InterruptsWithPrioritySyncCrossingSource"
+        color: yellow
+    }
+
+    box _buffer at (3, 1) is {
+        text: "SiFive_Tile_TLBuffer_4"
+        color: yellow
+    }
+
+    box tileMieCrossingModule at (3, 2) is {
+        text: "SiFive_Tile_TileMIECrossing"
+        color: yellow
+    }
+
+}
+
+box SiFive_auto_tile_notifications_peer_tile_scope {
+    grid: 1x1
+    color: cyan
+
+    box SiFive_InterruptsPacker_grp at (1, 1) is {
+        text: "SiFive_InterruptsPacker (2x)"
+        color: yellow
+    }
+
+}
+
+box SiFive_auto_tile_notifications_peer_tmc_scope {
+    grid: 1x1
+    color: cyan
+
+    box SiFive_InterruptsPacker_grp at (1, 1) is {
+        text: "SiFive_InterruptsPacker (2x)"
+        color: yellow
+    }
+
+}
+

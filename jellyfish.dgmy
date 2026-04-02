@@ -1,0 +1,214 @@
+diagram {
+    width: 800
+    color: white
+    title: "GP Cheetah Jellyfish Interface"
+    top: CheetahCluster
+    version: "0.1.0"
+}
+
+box OuterCluster {
+    grid: 10x30
+    color: blue
+
+    box dim 1x10 is {
+        text: "Clock Crossing"
+        color: cyan
+    }
+
+    box at (2, 1) dim 1x5 is {
+        text: "Bus Blockers"
+    }
+
+    box at (4, 1) dim 2x3 is {
+        text: "Error"
+              "Banks"
+    }
+
+    box at (4, 4) dim 2x3 is {
+        text: "Error"
+              "Summary"
+    }
+
+    box at (4, 7) dim 2x3 is {
+        text: "Error"
+              "Banks"
+    }
+
+    box at (7, 1) dim 2x5 is {
+        text: "Utility"
+              "Bus"
+    }
+
+    box at (7, 6) dim 2x5 is {
+        text: "Trace"
+              "Funnel"
+    }
+
+    box at (10, 1) dim 1x10 is {
+        text: "Jellyfish Router"
+        color: cyan
+    }
+
+    box at (1, 11) dim 2x10 is {
+        text: "Outer Cluster"
+        borderStyle: none
+    }
+
+    box at (3, 11) dim 4x8 is {
+        grid: 2x4
+        borderStyle: none
+
+        box at (1, 1) is { text: "SSTC" }
+        box at (1, 2) is { text: "IMSIC" }
+        box at (1, 3) is { text: "SSTC" }
+        box at (1, 4) is { text: "IMSIC" }
+
+        box at (2, 1) is { text: "SSTC" }
+        box at (2, 2) is { text: "IMSIC" }
+        box at (2, 3) is { text: "SSTC" }
+        box at (2, 4) is { text: "IMSIC" }
+    }
+}
+
+box chiPort {
+    grid: 4x3
+    color: purple
+
+    box dim 1x3 is {
+        text: "Clock Crossing"
+    }
+
+    box dim 1x3 is {
+        text: "clock enabler"
+    }
+
+    box dim 1x3 is {
+        text: "CHI Link Laborer"
+    }
+
+    box dim 1x3 is {
+        text: "CHI Port"
+        borderStyle: none
+    }
+}
+
+box TilePRCI {
+    grid: 5x3
+    color: white
+    borderStyle: none
+
+    box core dim 4x3 is TilePRCICore
+
+    box clockCrossing dim 1x3 is {
+        grid: 1x5
+        text: "Clock Crossing"
+    }
+}
+
+box TilePRCICore {
+    grid: 4x3
+
+    box is { text: "HRT" }
+    box is {
+        text: "Tile"
+        borderStyle: dashed
+    }
+    box is { text: "Ports" }
+    box is {
+        text: "Error Bank"
+               "& Sum"
+    }
+    box core dim 2x1 is { text: "Core" }
+    box dls is { text: "DLS" }
+    box traceFE is {
+        text: "Trace"
+               "FE"
+    }
+    box interconnect dim 1x3 is {
+        text: "Interconnect"
+    }
+}
+
+box InnerCluster {
+    grid: 3x4
+    color: red
+
+    box dim 1x4 is PRCITiles
+
+    box dim 1x4 is BusBlockersInner
+
+    box at (3, 2) dim 1x2 is {
+        grid: 4x8
+        borderStyle: none
+        box sccGroup dim 2x8 is {
+            grid: 5x12
+            box dim 3x3  is { text: "SCC" "(L2)" }
+            box dim 3x3  is { text: "SCC" "(L2)" }
+            box dim 3x3  is { text: "SCC" "(L2)" }
+            box dim 3x3  is { text: "SCC" "(L2)" }
+            box dim 2x12 is {
+                grid: 3x12
+                box dim 1x1 is {
+                    text: "SCC Group"
+                }
+                borderStyle: none
+            }
+        }
+        box interconnect dim 1x8 is {
+            text: "interconnect"
+        }
+        box dim 1x8 is {
+            text: "TL2 to CHI bridge + interleaver"
+        }
+    }
+}
+
+box BusBlockersInner {
+    grid: 1x3
+
+    box is BusBlocker
+    box is BusBlocker
+    box is BusBlocker
+}
+
+box BusBlocker {
+    grid: 2x3
+    box dim 1x3 is {
+        text: "Bus Blockers"
+    }
+    box is {
+        text: "CG"
+    }
+    box is {
+        text: "TMC"
+    }
+    box is {
+        text: "Trace"
+              "Enc"
+    }
+}
+
+box PRCITiles {
+    grid: 1x4
+    color: pink
+
+    box is TilePRCI
+    box is TilePRCI
+    box is TilePRCI
+    box is TilePRCI
+}
+
+box CheetahCluster {
+    grid: 43x50
+    color: white
+
+    box at (2, 2) dim 30x46 is InnerCluster
+
+    box at (33, 3) dim 4x10 is chiPort
+
+    box at (33, 18) dim 10x30 is OuterCluster
+
+    box at (38, 3) dim 1x10 is {
+        text: "Cheetah Cluster"
+    }
+}

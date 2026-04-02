@@ -3,7 +3,9 @@
 use svg::node::element::Group;
 use svg::Document as SvgDocument;
 use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
-use crate::diagram::{self, Diagram, DiagramArrow, DiagramBox, DiagramElement, DiagramLabel, DiagramPort};
+use crate::diagram::{self, Diagram, DiagramBox, DiagramLabel};
+// TODO: Re-enable when these types exist
+// use crate::diagram::{DiagramArrow, DiagramElement, DiagramPort};
 
 /// Render the diagram to an SVG file
 ///
@@ -73,6 +75,7 @@ fn create_svg_document(diagram: &Diagram, width: usize, height: usize, font_size
 
 /// Create a group containing all diagram content with vertical flip applied
 fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_size: usize, debug: bool) -> Result<svg::node::element::Group, String> {
+    /*
     // Create a group that will contain all content
     let mut content_group = Group::new();
 
@@ -99,9 +102,117 @@ fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_
     }
 
     Ok(content_group)
+    */
+    let mut content_group = Group::new();
+
+    // Render the top box and its children recursively
+    content_group = render_box_recursive(content_group, &diagram.top, debug)?;
+
+    Ok(content_group)
+}
+
+/// Recursively render a box and its children
+fn render_box_recursive(mut group: Group, diagram_box: &DiagramBox, debug: bool) -> Result<Group, String> {
+    // Draw the box rectangle
+    group = draw_box_rectangle(group, diagram_box, debug)?;
+
+    // Draw the box label if it has a title
+    if let Some(ref title) = diagram_box.boxdef.title {
+        let label = DiagramLabel {
+            bounds: diagram_box.bounds(),
+            text: title.clone(),
+        };
+        group = draw_label(group, &label, debug);
+    }
+
+    // Recursively render child boxes
+    for child in &diagram_box.children {
+        group = render_box_recursive(group, child, debug)?;
+    }
+
+    Ok(group)
+}
+
+fn draw_box_rectangle(mut group: Group, diagram_box: &DiagramBox, debug: bool) -> Result<Group, String> {
+    let fill_color = if let Some(ref color) = diagram_box.boxdef.color {
+        crate::map_color(color)?
+    } else {
+        "transparent"
+    };
+    let border_bounds = diagram_box.border_bounds();
+
+//    let border_radius = box_rect.width() / 100.0;
+    let rect = Rectangle::new()
+        .set("x",      border_bounds.x())
+        .set("y",      border_bounds.y())
+        .set("width",  border_bounds.width())
+        .set("height", border_bounds.height())
+//        .set("rx", border_radius)
+//        .set("ry", border_radius)
+        .set("stroke", "blue")
+        .set("stroke-width", 1.0)
+        .set("fill", fill_color);
+
+    group = group.add(rect);
+
+    // Draw debug grid if enabled
+    if debug {
+        group = draw_debug_grid(group, diagram_box)?;
+    }
+
+    Ok(group)
+}
+
+fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, String> {
+    let grid_rect = diagram_box.grid_bounds();
+    let (grid_rows, grid_cols) = diagram_box.boxdef.grid;
+    let x = grid_rect.x();
+    let y = grid_rect.y();
+    let width = grid_rect.width();
+    let height = grid_rect.height();
+
+    // Draw red bounding rectangle around the grid
+    let grid_bounds = Rectangle::new()
+        .set("x", x)
+        .set("y", y)
+        .set("width", width)
+        .set("height", height)
+        .set("fill", "none")
+        .set("stroke", "red")
+        .set("stroke-width", 2.0);
+    group = group.add(grid_bounds);
+
+    // Draw vertical grid lines
+    for col in 1..grid_cols {
+        let x_pos = x + (col as f64 * width / grid_cols as f64);
+        let line = Line::new()
+            .set("x1", x_pos)
+            .set("y1", y)
+            .set("x2", x_pos)
+            .set("y2", y + height)
+            .set("stroke", "red")
+            .set("stroke-width", 1.0);
+        group = group.add(line);
+    }
+
+    // Draw horizontal grid lines
+    for row in 1..grid_rows {
+        let y_pos = y + (row as f64 * height / grid_rows as f64);
+        let line = Line::new()
+            .set("x1", x)
+            .set("y1", y_pos)
+            .set("x2", x + width)
+            .set("y2", y_pos)
+            .set("stroke", "red")
+            .set("stroke-width", 1.0);
+        group = group.add(line);
+    }
+
+    Ok(group)
 }
 
 fn draw_box(mut content: Group, diagram_box: &DiagramBox, debug: bool) -> Group {
+    /*
     let fill_color = if let Some(ref color) = diagram_box.color {
         crate::map_color(color).unwrap()
     } else {
@@ -213,28 +324,12 @@ fn draw_box(mut content: Group, diagram_box: &DiagramBox, debug: bool) -> Group 
     }
 
     content
+*/
+    todo!()
 }
 
-fn draw_label(mut content: Group, diagram_label: &DiagramLabel, debug: bool) -> Group {
+fn draw_label(mut content: Group, diagram_label: &DiagramLabel, _debug: bool) -> Group {
     let box_rect = diagram_label.bounds;
-
-    if debug {
-        // Add dotted border rectangle
-        let border_radius = box_rect.width() / 100.0;
-        let rect = Rectangle::new()
-            .set("x",      box_rect.x())
-            .set("y",      box_rect.y())
-            .set("width",  box_rect.width())
-            .set("height", box_rect.height())
-            .set("rx", border_radius)
-            .set("ry", border_radius)
-            .set("stroke", "gray")
-            .set("stroke-width", 1.0)
-            .set("stroke-dasharray", "4,4")  // Dotted border
-            .set("fill", "transparent");
-
-        content = content.add(rect);
-    }
 
     // Render the text centered in the box
     let font_size = 14;
@@ -264,6 +359,7 @@ fn draw_label(mut content: Group, diagram_label: &DiagramLabel, debug: bool) -> 
     content
 }
 
+/*
 fn draw_port(mut content: Group, diagram_port: &DiagramPort) -> Group {
     let (x, y) = diagram_port.pos;
     let radius = 5.0; // Port circle radius
@@ -1065,4 +1161,5 @@ fn render_debug_overlay(
     parent_group = parent_group.add(debug_group);
     Ok(parent_group)
 }
+*/
 */

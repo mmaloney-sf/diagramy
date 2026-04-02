@@ -1,0 +1,30 @@
+diagram {
+    width: 600
+    top: Top
+}
+
+box Top {
+    grid: 2x2
+
+    box is {
+        grid: 2x1
+        box is {
+            text: "Foo"
+        }
+        box is {
+            text: "Bar"
+        }
+    }
+    box is {
+        text: "B"
+        color: green
+    }
+    box is {
+        text: "C"
+        color: blue
+    }
+    box is {
+        text: "D"
+        color: red
+    }
+}

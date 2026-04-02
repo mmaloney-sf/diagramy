@@ -1,0 +1,172 @@
+diagram {
+    version: "0.1.0"
+    width: 1000
+    color: white
+    title: "Cheetah Architecture"
+    top: Cheetah
+}
+
+box Cheetah {
+    grid: 4x4
+
+    // Four TilePRCI groups across the top
+    box at (1, 1) is TilePRCI
+    box at (1, 2) is TilePRCI
+    box at (1, 3) is TilePRCI
+    box at (1, 4) is TilePRCI
+
+    // Four Bus Blocker sections beneath each TilePRCI
+    box at (2, 1) is BusBlocker
+    box at (2, 2) is BusBlocker
+    box at (2, 3) is BusBlocker
+    box at (2, 4) is BusBlocker
+
+    // Bottom left section
+    box at (3, 1) dim 1x2 is BottomLeft
+
+    // Bottom right section
+    box at (3, 3) dim 1x2 is BottomRight
+}
+
+box TilePRCI {
+    grid: 8x6
+
+    // Label at top
+    label "TilePRCI" dim 1x6
+
+    // Label below that
+    label "Tile" dim 1x6
+
+    // Six boxes in the middle section
+    box is {
+        text: "HRT"
+    }
+
+    box is {
+        text: "Err Bank"
+              "& Sum"
+    }
+
+    box is {
+        text: "Core"
+    }
+
+    box is {
+        text: "Ports"
+    }
+
+    box is {
+        text: "DLS"
+    }
+
+    // Empty space for alignment
+    box is {
+        borderStyle: none
+    }
+
+    // Long box across the bottom: Interconnect
+    box dim 1x6 is {
+        text: "Interconnect"
+    }
+
+    // Clock Crossing at the very bottom
+    box dim 1x6 is {
+        text: "Clock Crossing"
+    }
+}
+
+box BusBlocker {
+    grid: 2x3
+
+    // Long box named "Bus Blockers"
+    box dim 1x3 is {
+        text: "Bus Blockers"
+    }
+
+    // Three small boxes: CG, TMC, Trace Enc
+    box is {
+        text: "CG"
+    }
+
+    box is {
+        text: "TMC"
+    }
+
+    box is {
+        text: "Trace Enc"
+    }
+}
+
+box BottomLeft {
+    grid: 3x1
+
+    // Three long boxes stacked
+    box is SCCGroup
+
+    box is {
+        text: "Interconnect"
+    }
+
+    box is {
+        text: "TL2 to CHI"
+              "bridge +"
+              "deinterleaver"
+    }
+}
+
+box SCCGroup {
+    grid: 2x4
+
+    // Four SCC (L2) boxes stacked side by side
+    box is {
+        text: "SCC"
+              "(L2)"
+    }
+
+    box is {
+        text: "SCC"
+              "(L2)"
+    }
+
+    box is {
+        text: "SCC"
+              "(L2)"
+    }
+
+    box is {
+        text: "SCC"
+              "(L2)"
+    }
+
+    // Label at the bottom
+    label "SCC group" dim 1x4
+}
+
+box BottomRight {
+    grid: 1x5
+
+    // Five boxes
+    box is {
+        text: "CAP"
+    }
+
+    box is {
+        text: "Error"
+              "Banks"
+    }
+
+    box is {
+        text: "CAFP"
+    }
+
+    box is {
+        text: "WG"
+    }
+
+    box is {
+        text: "Trace"
+              "Funnel +"
+              "HRT"
+    }
+}
+

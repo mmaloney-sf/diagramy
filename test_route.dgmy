@@ -1,0 +1,21 @@
+diagram {
+    width: 500
+}
+
+box Top {
+    grid: 2x2
+
+    box a is {
+        grid: 2x2
+        color: red
+        port p on bottom
+    }
+
+    box b at (2, 2) is {
+        grid: 2x2
+        color: green
+        port p on top
+    }
+
+    arrow a.p to b.p
+}

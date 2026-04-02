@@ -1,0 +1,26 @@
+diff --git a/GRAMMAR.txt b/GRAMMAR.txt
+index 8dae949..ccf7558 100644
+--- a/GRAMMAR.txt
++++ b/GRAMMAR.txt
+@@ -28,7 +28,7 @@
+         | Label
+ 
+     BoxInst :=
+-          "box" Ident? ("at" Coords)? ("dim" Dim)? "is" Body
++          "box" Ident? ("at" Coords)? ("dim" Dim)? ("align" Alignment)? "is" Body
+         | "box" Ident? ("at" Coords)? ("dim" Dim)? "is" Ident
+ 
+     Prop :=
+@@ -39,6 +39,12 @@
+         | PropCoords
+         | PropDim
+ 
++    Alignment :=
++          "top"? "left"
++        | "top"? "right"
++        | "bottom"? "left"
++        | "bottom"? "right"
++
+ ////////////////////////////////////////
+ // Ports and Arrows
+ ////////////////////////////////////////

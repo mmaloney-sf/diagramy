@@ -1,0 +1,24 @@
+diagram {
+    width: 400
+    color: white
+    top: Top
+}
+
+box Top {
+    grid: 2x2
+
+    box a at (1, 1) is {
+        color: blue
+
+        port input on top
+        port output on bottom
+    }
+
+    box b at (1, 2) is {
+        color: green
+
+        port data on bottom
+    }
+
+    arrow b.data to a.output
+}
