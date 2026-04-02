@@ -10,11 +10,11 @@ pub struct ElaboratedDiagram {
     pub title: Option<String>,
     pub cheat_ports: bool,
     pub debug: bool,
-    pub top: Arc<BoxInst>,
+    pub top: Arc<BoxDef>,
 }
 
 #[derive(Debug)]
-pub struct BoxInst {
+pub struct BoxDef {
     pub grid: (usize, usize),
     pub title: Option<String>,
     pub color: Option<String>,
@@ -24,7 +24,7 @@ pub struct BoxInst {
     pub debug: Option<bool>,
     pub def_name: Option<String>, // Name of the box definition (None for inline boxes)
     pub line_number: Option<usize>, // Line number where the box was defined
-    pub boxes: Vec<Box>,
+    pub boxes: Vec<BoxInst>,
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
     pub routed_arrow_paths: Vec<RoutedArrowPath>, // Routed paths in fractional coordinates
@@ -59,9 +59,9 @@ pub struct Arrow {
 }
 
 #[derive(Debug)]
-pub struct Box {
+pub struct BoxInst {
     pub id: Option<String>, // Optional identifier for the box instance
-    pub inst: Arc<BoxInst>,
+    pub def: Arc<BoxDef>,
     pub pos: (usize, usize),
     pub dim: (usize, usize), // (height, width) - number of grid cells to span
     pub alignment: ast::Alignment, // Alignment within the grid cell (defaults to Center)
@@ -192,7 +192,7 @@ impl<'ast> Elaborator<'ast> {
         grid: (usize, usize),
         occupied: &mut HashSet<(i32, i32)>,
         last_pos: &mut (i32, i32),
-    ) -> Result<Box, String> {
+    ) -> Result<BoxInst, String> {
         // Determine position (auto-position if coords is None)
         let (row, col) = if let Some(c) = &with_body.coords {
             (c.row, c.col)
@@ -241,9 +241,9 @@ impl<'ast> Elaborator<'ast> {
             line_number,
         )?;
 
-        Ok(Box {
+        Ok(BoxInst {
             id: with_body.id.clone(),
-            inst: Arc::new(nested_def),
+            def: Arc::new(nested_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (with_body.dim.height as usize, with_body.dim.width as usize),
@@ -258,7 +258,7 @@ impl<'ast> Elaborator<'ast> {
         grid: (usize, usize),
         occupied: &mut HashSet<(i32, i32)>,
         last_pos: &mut (i32, i32),
-    ) -> Result<Box, String> {
+    ) -> Result<BoxInst, String> {
         // Determine position (auto-position if coords is None)
         let (row, col) = if let Some(c) = &reference.coords {
             (c.row, c.col)
@@ -318,9 +318,9 @@ impl<'ast> Elaborator<'ast> {
             line_number,
         )?;
 
-        Ok(Box {
+        Ok(BoxInst {
             id: reference.id.clone(),
-            inst: Arc::new(nested_def),
+            def: Arc::new(nested_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (reference.dim.height as usize, reference.dim.width as usize),
@@ -335,7 +335,7 @@ impl<'ast> Elaborator<'ast> {
         grid: (usize, usize),
         occupied: &mut HashSet<(i32, i32)>,
         last_pos: &mut (i32, i32),
-    ) -> Result<Box, String> {
+    ) -> Result<BoxInst, String> {
         // Get dimensions from label, defaulting to 1x1
         let (dim_height, dim_width) = if let Some(ref dim) = label.dim {
             (dim.height, dim.width)
@@ -384,7 +384,7 @@ impl<'ast> Elaborator<'ast> {
         // Create a box definition with the text property
         // The label text becomes the title (which is rendered as text in the box)
         // Multi-line labels are joined with newlines
-        let box_def = BoxInst {
+        let box_def = BoxDef {
             grid: (1, 1),
             title: Some(label.text.join("\n")),
             color: None,
@@ -400,9 +400,9 @@ impl<'ast> Elaborator<'ast> {
             routed_arrow_paths: Vec::new(),
         };
 
-        Ok(Box {
+        Ok(BoxInst {
             id: None, // Labels don't have IDs
-            inst: Arc::new(box_def),
+            def: Arc::new(box_def),
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (dim_height as usize, dim_width as usize),
@@ -693,14 +693,14 @@ impl<'ast> Elaborator<'ast> {
         box_name: &str,
         def_name: Option<String>,
         line_number: Option<usize>,
-    ) -> Result<BoxInst, String> {
+    ) -> Result<BoxDef, String> {
         // First pass: extract properties and arrows
         let (grid, title, color, margin, border_style, bold, debug, arrows) = self.extract_box_items(body);
 
         // Process ports after we know the grid size
         let ports = self.process_ports(body, grid)?;
 
-        let mut boxes: Vec<Box> = Vec::new();
+        let mut boxes: Vec<BoxInst> = Vec::new();
 
         // Second pass: process box instances with auto-positioning
         // Track occupied grid cells for auto-positioning
@@ -750,7 +750,7 @@ impl<'ast> Elaborator<'ast> {
         let routed_arrow_paths =
             self.route_arrows(&arrows, &ports, &boxes, grid, margin, box_name);
 
-        Ok(BoxInst {
+        Ok(BoxDef {
             grid,
             title,
             color,
@@ -772,7 +772,7 @@ impl<'ast> Elaborator<'ast> {
         &mut self,
         arrows: &[Arrow],
         ports: &[Port],
-        boxes: &[Box],
+        boxes: &[BoxInst],
         grid: (usize, usize),
         parent_margin: Option<f64>,
         box_name: &str,
@@ -795,7 +795,7 @@ impl<'ast> Elaborator<'ast> {
                 let (child_height, child_width) = child_box.dim;
 
                 // Add each port from the child box with qualified name
-                for child_port in &child_box.inst.ports {
+                for child_port in &child_box.def.ports {
                     // Calculate the port's position in the parent's coordinate system
                     // Child box occupies cells from (child_row, child_col) to (child_row + child_height, child_col + child_width)
                     // Port coordinates are relative to the child box's grid
@@ -818,7 +818,7 @@ impl<'ast> Elaborator<'ast> {
                     let effective_child_height = (child_height as f64) - (2.0 * margin_in_cells);
                     let effective_child_width = (child_width as f64) - (2.0 * margin_in_cells);
 
-                    let child_grid = child_box.inst.grid;
+                    let child_grid = child_box.def.grid;
                     let (child_grid_rows, child_grid_cols) = child_grid;
 
                     // Port coordinates in child's fractional grid coordinates

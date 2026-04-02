@@ -292,7 +292,7 @@ impl Diagram {
         diagram
     }
 
-    fn add_box_element(&mut self, box_inst: &elaboration::BoxInst, bounds: Rect) {
+    fn add_box_element(&mut self, box_inst: &elaboration::BoxDef, bounds: Rect) {
         let margin = bounds.width().min(bounds.height()) as f64 * MARGIN_FACTOR;
         let padding = margin;
         // Check if this is a label (has title and border_style "none")
@@ -365,7 +365,7 @@ impl Diagram {
                 rendered_child_dim_height,
             );
 
-            self.add_box_element(&child_box.inst, child_bounds);
+            self.add_box_element(&child_box.def, child_bounds);
         }
 
         // Process ports - convert grid coordinates to absolute positions
