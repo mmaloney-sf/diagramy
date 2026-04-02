@@ -150,43 +150,70 @@ impl Diagram {
         let mut children = Vec::new();
 
         for child_box in &box_inst.boxes {
-            eprintln!("--------------------------------------------------------------------------------");
-            let (max_row, max_col) = box_inst.grid;
-            let dr = grid_bounds.height() / max_row as f64;
-            let dc = grid_bounds.width() / max_col as f64;
+            let stretch = false;
+            let child_bounds = if stretch {
+                let (max_row, max_col) = box_inst.grid;
+                let dr = grid_bounds.height() / max_row as f64;
+                let dc = grid_bounds.width() / max_col as f64;
 
-            dbg!(grid_bounds.height());
-            dbg!(max_row);
-            dbg!(grid_bounds.width());
-            dbg!(max_col);
-            dbg!(&dr, &dc);
+                let (child_pos_row, child_pos_col) = child_box.pos;
 
-            let (child_pos_row, child_pos_col) = child_box.pos;
+                let rendered_child_pos_row = (child_pos_row as f64) * dr;
+                let rendered_child_pos_col = (child_pos_col as f64) * dc;
 
-            dbg!(&child_pos_row, &child_pos_col);
-            let rendered_child_pos_row = (child_pos_row as f64) * dr;
-            let rendered_child_pos_col = (child_pos_col as f64) * dc;
-            dbg!(&rendered_child_pos_row, &rendered_child_pos_col);
+                // dim is (height, width) - number of grid cells to span
+                let (child_dim_height, child_dim_width) = child_box.dim;
+                let rendered_child_dim_height = child_dim_height as f64 * dr;
+                let rendered_child_dim_width  = child_dim_width  as f64 * dc;
 
-            // dim is (height, width) - number of grid cells to span
-            let (child_dim_height, child_dim_width) = child_box.dim;
-            let rendered_child_dim_height = child_dim_height as f64 * dr;
-            let rendered_child_dim_width  = child_dim_width  as f64 * dc;
+                let x = grid_bounds.x() + rendered_child_pos_col;
+                let y = grid_bounds.y() + rendered_child_pos_row;
 
-            let x = grid_bounds.x() + rendered_child_pos_col;
-            let y = grid_bounds.y() + rendered_child_pos_row;
+                Rect::new(
+                    x,
+                    y,
+                    rendered_child_dim_width,
+                    rendered_child_dim_height,
+                )
+            } else {
+                // Calculate the allocated space on the parent's grid
+                let (max_row, max_col) = box_inst.grid;
+                let dr = grid_bounds.height() / max_row as f64;
+                let dc = grid_bounds.width() / max_col as f64;
 
-            dbg!(&child_dim_width);
-            dbg!(&child_dim_height);
-            eprintln!("--------------------------------------------------------------------------------");
+                let (child_pos_row, child_pos_col) = child_box.pos;
+                let (child_dim_height, child_dim_width) = child_box.dim;
 
-            // Rect::new expects (x, y, width, height)
-            let child_bounds = Rect::new(
-                x,
-                y,
-                rendered_child_dim_width,
-                rendered_child_dim_height,
-            );
+                // Allocated dimensions from parent's grid
+                let allocated_width = child_dim_width as f64 * dc;
+                let allocated_height = child_dim_height as f64 * dr;
+
+                // Get the natural aspect ratio of the child box
+                let (child_grid_rows, child_grid_cols) = child_box.def.grid;
+                let child_aspect_ratio = child_grid_rows as f64 / child_grid_cols as f64;
+
+                // Calculate natural dimensions at some scale
+                let natural_width = 1.0;  // Arbitrary reference
+                let natural_height = natural_width * child_aspect_ratio;
+
+                // Find the largest scale factor s that fits in both dimensions
+                let scale_x = allocated_width / natural_width;
+                let scale_y = allocated_height / natural_height;
+                let s = scale_x.min(scale_y);
+
+                // Calculate actual child size
+                let actual_width = natural_width * s;
+                let actual_height = natural_height * s;
+
+                // Position the child centered in the allocated space
+                let allocated_x = grid_bounds.x() + (child_pos_col as f64 * dc);
+                let allocated_y = grid_bounds.y() + (child_pos_row as f64 * dr);
+
+                let x = allocated_x + (allocated_width - actual_width) / 2.0;
+                let y = allocated_y + (allocated_height - actual_height) / 2.0;
+
+                Rect::new(x, y, actual_width, actual_height)
+            };
 
             // Recursively create child DiagramBox
             let child_diagram_box = self.create_diagram_box(&child_box.def, child_bounds);
