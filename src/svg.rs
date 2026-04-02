@@ -171,6 +171,8 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
     let width = grid_rect.width();
     let height = grid_rect.height();
 
+    let stroke_width = 0.70;
+
     // Draw red bounding rectangle around the grid
     let grid_bounds = Rectangle::new()
         .set("x", x)
@@ -179,7 +181,8 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
         .set("height", height)
         .set("fill", "none")
         .set("stroke", "red")
-        .set("stroke-width", 2.0);
+        .set("stroke-width", stroke_width)
+        .set("stroke-dasharray", "2,2");
     group = group.add(grid_bounds);
 
     // Draw vertical grid lines
@@ -191,7 +194,8 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
             .set("x2", x_pos)
             .set("y2", y + height)
             .set("stroke", "red")
-            .set("stroke-width", 1.0);
+            .set("stroke-width", stroke_width)
+            .set("stroke-dasharray", "2,2");
         group = group.add(line);
     }
 
@@ -204,7 +208,8 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
             .set("x2", x + width)
             .set("y2", y_pos)
             .set("stroke", "red")
-            .set("stroke-width", 1.0);
+            .set("stroke-width", stroke_width)
+            .set("stroke-dasharray", "2,2");
         group = group.add(line);
     }
 

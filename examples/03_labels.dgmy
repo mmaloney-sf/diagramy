@@ -3,7 +3,6 @@
 // They support multi-line text and optional positioning
 
 diagram {
-    debug: true
     width: 512
     color: white
     title: "Label Example"
@@ -13,7 +12,7 @@ diagram {
 box Top {
     grid: 2x4
 
-//    label "test"
+    label "test"
     box is {
         grid: 2x2
         color: green
