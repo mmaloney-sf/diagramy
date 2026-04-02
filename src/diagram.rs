@@ -205,12 +205,33 @@ impl Diagram {
                 let actual_width = natural_width * s;
                 let actual_height = natural_height * s;
 
-                // Position the child centered in the allocated space
+                // Calculate allocated position on parent's grid
                 let allocated_x = grid_bounds.x() + (child_pos_col as f64 * dc);
                 let allocated_y = grid_bounds.y() + (child_pos_row as f64 * dr);
 
-                let x = allocated_x + (allocated_width - actual_width) / 2.0;
-                let y = allocated_y + (allocated_height - actual_height) / 2.0;
+                // Position the child based on alignment
+                let (x, y) = match child_box.alignment {
+                    ast::Alignment::Center => {
+                        (allocated_x + (allocated_width - actual_width) / 2.0,
+                         allocated_y + (allocated_height - actual_height) / 2.0)
+                    },
+                    ast::Alignment::Top => {
+                        (allocated_x + (allocated_width - actual_width) / 2.0,
+                         allocated_y)
+                    },
+                    ast::Alignment::Bottom => {
+                        (allocated_x + (allocated_width - actual_width) / 2.0,
+                         allocated_y + allocated_height - actual_height)
+                    },
+                    ast::Alignment::Left => {
+                        (allocated_x,
+                         allocated_y + (allocated_height - actual_height) / 2.0)
+                    },
+                    ast::Alignment::Right => {
+                        (allocated_x + allocated_width - actual_width,
+                         allocated_y + (allocated_height - actual_height) / 2.0)
+                    },
+                };
 
                 Rect::new(x, y, actual_width, actual_height)
             };
