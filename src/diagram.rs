@@ -11,7 +11,86 @@ use crate::ast;
 // Re-export color types for backward compatibility
 pub use crate::color::{RgbColor, contrast};
 
-const MARGIN_FACTOR: f64 = 0.05;
+/// Calculate the bounding box for a multi-line text label at a given font size
+///
+/// # Arguments
+/// * `text` - The text content (can contain newlines)
+/// * `font_size` - The font size in pixels
+///
+/// # Returns
+/// A Rect representing the bounding box with:
+/// - x, y = 0 (relative coordinates)
+/// - width = widest line width
+/// - height = total height of all lines
+pub fn calculate_text_bounds(text: &str, font_size: f64) -> Rect {
+    // Average character width is approximately 0.6 × font_size for Arial
+    const CHAR_WIDTH_RATIO: f64 = 0.6;
+
+    let lines: Vec<&str> = text.split('\n').collect();
+
+    // Find the widest line in characters
+    let max_line_chars = lines.iter()
+        .map(|line| line.chars().count())
+        .max()
+        .unwrap_or(0);
+
+    // Calculate width based on widest line
+    let width = max_line_chars as f64 * font_size * CHAR_WIDTH_RATIO;
+
+    // Calculate height based on number of lines
+    let height = lines.len() as f64 * font_size;
+
+    Rect::new(0.0, 0.0, width, height)
+}
+
+/// Calculate the font size needed to fit text within given bounds
+///
+/// # Arguments
+/// * `text` - The text content (can contain newlines)
+/// * `bounds` - The bounding box to fit the text within
+///
+/// # Returns
+/// The font size in pixels that will make the text fit within the bounds
+/// (using 90% of the bounds for padding)
+pub fn calculate_font_size_from_bounds(text: &str, bounds: Rect) -> f64 {
+    let available_width = bounds.width();
+    let available_height = bounds.height();
+
+    // Average character width is approximately 0.6 × font_size for Arial
+    const CHAR_WIDTH_RATIO: f64 = 0.6;
+
+    let lines: Vec<&str> = text.split('\n').collect();
+
+    // Find the widest line in characters
+    let max_line_chars = lines.iter()
+        .map(|line| line.chars().count())
+        .max()
+        .unwrap_or(0);
+
+    // Calculate font size constraints from width
+    // width = max_line_chars * font_size * CHAR_WIDTH_RATIO
+    // font_size = width / (max_line_chars * CHAR_WIDTH_RATIO)
+    let font_size_from_width = if max_line_chars > 0 {
+        available_width / (max_line_chars as f64 * CHAR_WIDTH_RATIO)
+    } else {
+        f64::MAX
+    };
+
+    // Calculate font size constraints from height
+    // height = num_lines * font_size
+    // font_size = height / num_lines
+    let font_size_from_height = if !lines.is_empty() {
+        available_height / lines.len() as f64
+    } else {
+        f64::MAX
+    };
+
+    // Use the smaller of the two to ensure text fits in both dimensions
+    let font_size = font_size_from_width.min(font_size_from_height);
+
+    // Return at least 1.0 to prevent invisible text
+    font_size.max(1.0)
+}
 
 /// A diagram containing positioned boxes with absolute coordinates
 #[derive(Debug)]
@@ -30,6 +109,7 @@ pub struct DiagramBox {
     //pub font_size: f64,
 
     pub children: Vec<DiagramBox>,
+    pub labels: Vec<DiagramLabel>,
 }
 
 
@@ -37,6 +117,7 @@ pub struct DiagramBox {
 pub struct DiagramLabel {
     pub bounds: Rect,
     pub text: String,
+    pub margin: f64,
 }
 
 impl DiagramBox {
@@ -49,6 +130,12 @@ impl DiagramBox {
     }
     pub fn grid_bounds(&self) -> Rect {
         self.border_bounds().margin(self.padding)
+    }
+}
+
+impl DiagramLabel {
+    pub fn border_bounds(&self) -> Rect {
+        self.bounds.margin(self.margin)
     }
 }
 
@@ -130,6 +217,7 @@ impl Diagram {
                 padding: 0.0,
                 boxdef: elab_diagram.top.clone(),
                 children: vec![],
+                labels: vec![],
             },
         };
 
@@ -138,7 +226,7 @@ impl Diagram {
     }
 
     fn create_diagram_box(&mut self, box_def: &Arc<elaboration::BoxDef>, bounds: Rect) -> DiagramBox {
-        let margin = bounds.width().min(bounds.height()) as f64 * MARGIN_FACTOR;
+        let margin = 0.05 * (bounds.width().min(bounds.height()) as f64);
         let padding = margin;
         // Check if this is a label (has title and border_style "none")
 
@@ -240,13 +328,31 @@ impl Diagram {
             children.push(child_diagram_box);
         }
 
-        // Create the DiagramBox with its children
+        // Create labels if this box has a title
+        let mut labels = Vec::new();
+        if let Some(ref title) = box_def.title {
+            // For labels (BoxKind::Label), use full bounds; for boxes, use grid bounds
+            let label_bounds = if box_def.kind == BoxKind::Label {
+                bounds
+            } else {
+                bounds.margin(margin).margin(padding) // border_bounds then grid_bounds
+            };
+
+            labels.push(DiagramLabel {
+                bounds: label_bounds,
+                text: title.clone(),
+                margin: margin,
+            });
+        }
+
+        // Create the DiagramBox with its children and labels
         let diagram_box = DiagramBox {
             bounds,
             margin,
             padding,
             boxdef: box_def.clone(),
             children,
+            labels,
         };
 
         /*

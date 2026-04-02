@@ -124,13 +124,9 @@ fn render_box_recursive(mut group: Group, diagram_box: &DiagramBox, debug: bool)
         group = draw_debug_grid(group, diagram_box)?;
     }
 
-    // Draw the box label if it has a title
-    if let Some(ref title) = diagram_box.boxdef.title {
-        let label = DiagramLabel {
-            bounds: diagram_box.bounds(),
-            text: title.clone(),
-        };
-        group = draw_label(group, &label, debug);
+    // Draw labels that were created in diagram.rs
+    for label in &diagram_box.labels {
+        group = draw_label(group, label, debug);
     }
 
     // Recursively render child boxes
@@ -336,23 +332,29 @@ fn draw_box(mut content: Group, diagram_box: &DiagramBox, debug: bool) -> Group 
     todo!()
 }
 
+/// Calculate the bounding box for a multi-line text label at a given font size
+///
+/// # Arguments
+/// * `text` - The text content (can contain newlines)
+/// * `font_size` - The font size in pixels
+///
 fn draw_label(mut content: Group, diagram_label: &DiagramLabel, _debug: bool) -> Group {
-    let box_rect = diagram_label.bounds;
+    let box_rect = diagram_label.border_bounds();
 
-    // Render the text centered in the box
-    let font_size = 14;
+    // Calculate font size to fill the available space
+    let font_size = diagram::calculate_font_size_from_bounds(&diagram_label.text, box_rect);
+
     let lines: Vec<&str> = diagram_label.text.split('\n').collect();
-
     let center_x = box_rect.x() + box_rect.width() / 2.0;
     let center_y = box_rect.y() + box_rect.height() / 2.0;
 
     // Calculate total height of all lines
-    let total_height = lines.len() as f64 * font_size as f64;
-    let start_y = center_y - (total_height / 2.0) + font_size as f64;
+    let total_height = lines.len() as f64 * font_size;
+    let start_y = center_y - (total_height / 2.0) + font_size;
 
     // Render each line centered
     for (i, line) in lines.iter().enumerate() {
-        let line_y = start_y + (i as f64 * font_size as f64);
+        let line_y = start_y + (i as f64 * font_size);
         let text = Text::new(*line)
             .set("x", center_x)
             .set("y", line_y)
