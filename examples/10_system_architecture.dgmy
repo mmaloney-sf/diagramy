@@ -13,16 +13,10 @@ box Processor {
     grid: 3x2
     color: blue
 
-    box at (1, 1) dim 1x2 is {
-        text: "Control Unit"
-    }
-
+    label "Control Unit" at (1, 1) dim 1x2
     label "ALU" at (2, 1)
     label "FPU" at (2, 2)
-
-    box at (3, 1) dim 1x2 is {
-        text: "Cache L1"
-    }
+    label "Cache L1" at (3, 1) dim 1x2
 }
 
 // Define a memory module
@@ -46,21 +40,23 @@ box Top {
         box at (1, 2) is Processor
     }
 
-    // Shared L2 Cache
+    // Shared L2 Cache (with background box)
     box at (1, 3) dim 2x1 is {
         color: cyan
-        text: "L2 Cache"
-              "Shared"
+        label
+            "L2 Cache"
+            "Shared"
     }
 
     // Memory modules
     box at (3, 1) is Memory
     box at (3, 2) is Memory
 
-    // I/O Controller
+    // I/O Controller (with background box)
     box at (3, 3) is {
         color: yellow
-        text: "I/O"
-              "Controller"
+        label
+            "I/O"
+            "Controller"
     }
 }

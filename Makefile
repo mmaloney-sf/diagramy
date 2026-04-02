@@ -10,6 +10,13 @@ test:
 clean:
 	cargo clean
 
+assets-debug: build
+	@mkdir -p assets/images
+	@for file in examples/*.dgmy; do \
+		basename=$$(basename $$file .dgmy); \
+		./target/release/dgmy --debug build $$file -o assets/images/$$basename.svg; \
+	done
+
 assets: build
 	@mkdir -p assets/images
 	@for file in examples/*.dgmy; do \

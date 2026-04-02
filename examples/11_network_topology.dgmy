@@ -25,33 +25,33 @@ box Top {
     // Internet gateway
     box at (1, 2) is {
         color: red
-        text: "Internet"
+        label "Internet"
               "Gateway"
     }
 
     // Core router
     box at (2, 2) is {
         color: orange
-        text: "Core"
+        label "Core"
               "Router"
     }
 
     // Distribution switches
     box at (3, 1) is {
         color: yellow
-        text: "Switch"
+        label "Switch"
               "A"
     }
 
     box at (3, 2) is {
         color: yellow
-        text: "Switch"
+        label "Switch"
               "B"
     }
 
     box at (3, 3) is {
         color: yellow
-        text: "Switch"
+        label "Switch"
               "C"
     }
 

@@ -15,24 +15,24 @@ box Top {
     // Box at position (1, 1) - top left
     box at (1, 1) is {
         color: red
-        text: "Box A"
+        label "Box A"
     }
 
     // Box at position (1, 2) - top right
     box at (1, 2) is {
         color: green
-        text: "Box B"
+        label "Box B"
     }
 
     // Box at position (2, 1) - bottom left
     box at (2, 1) is {
         color: blue
-        text: "Box C"
+        label "Box C"
     }
 
     // Box at position (2, 2) - bottom right
     box at (2, 2) is {
         color: yellow
-        text: "Box D"
+        label "Box D"
     }
 }

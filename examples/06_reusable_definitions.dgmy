@@ -13,16 +13,12 @@ box CPUCore {
     grid: 3x2
     color: blue
 
-    box at (1, 1) dim 1x2 is {
-        text: "ALU"
-    }
+    label "ALU" at (1, 1) dim 1x2
 
     label "L1-I" at (2, 1)
     label "L1-D" at (2, 2)
 
-    box at (3, 1) dim 1x2 is {
-        text: "Registers"
-    }
+    label "Registers" at (3, 1) dim 1x2
 }
 
 // Define a reusable memory block

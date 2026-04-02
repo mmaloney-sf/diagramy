@@ -14,7 +14,7 @@ const VALID_COLORS: &[&str] = &[
 const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top", "version", "cheatPorts", "debug"];
 
 // Valid box-level properties
-const VALID_BOX_PROPS: &[&str] = &["grid", "text", "color", "margin", "borderStyle", "bold"];
+const VALID_BOX_PROPS: &[&str] = &["grid", "text", "title", "color", "margin", "borderStyle", "bold"];
 
 // Valid border styles
 const VALID_BORDER_STYLES: &[&str] = &["solid", "none", "dotted", "dashed"];
@@ -186,6 +186,16 @@ fn validate_box_prop(prop: &Prop, filename: &str) -> Result<(), String> {
         Prop::PropCoords(p) => &p.key,
         Prop::PropDim(p) => &p.key,
     };
+
+    // Forbid 'text' property in boxes - it's only for labels
+    if key == "text" {
+        return Err(format!(
+            "{}:{}:{}: Property 'text' is not allowed in boxes. Use a label element instead.",
+            filename,
+            start.line(),
+            start.col()
+        ));
+    }
 
     // Check if property is known
     if !VALID_BOX_PROPS.contains(&key.as_str()) {

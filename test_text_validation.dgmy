@@ -1,0 +1,10 @@
+diagram {
+    width: 400
+    color: white
+    top: Top
+}
+
+box Top {
+    grid: 2x2
+    text: "This should fail"
+}
