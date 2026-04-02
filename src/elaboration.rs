@@ -28,6 +28,14 @@ pub struct BoxDef {
     pub ports: Vec<Port>,
     pub arrows: Vec<Arrow>,
     pub routed_arrow_paths: Vec<RoutedArrowPath>, // Routed paths in fractional coordinates
+    pub kind: BoxKind,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum BoxKind {
+    Box,
+    Label,
+    Group,
 }
 
 #[derive(Clone)]
@@ -398,6 +406,7 @@ impl<'ast> Elaborator<'ast> {
             ports: Vec::new(),
             arrows: Vec::new(),
             routed_arrow_paths: Vec::new(),
+            kind: BoxKind::Label,
         };
 
         Ok(BoxInst {
@@ -764,6 +773,7 @@ impl<'ast> Elaborator<'ast> {
             ports,
             arrows,
             routed_arrow_paths,
+            kind: BoxKind::Box,
         })
     }
 

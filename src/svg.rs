@@ -4,6 +4,7 @@ use svg::node::element::Group;
 use svg::Document as SvgDocument;
 use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
 use crate::diagram::{self, Diagram, DiagramBox, DiagramLabel};
+use crate::elaboration::BoxKind;
 // TODO: Re-enable when these types exist
 // use crate::diagram::{DiagramArrow, DiagramElement, DiagramPort};
 
@@ -113,8 +114,15 @@ fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_
 
 /// Recursively render a box and its children
 fn render_box_recursive(mut group: Group, diagram_box: &DiagramBox, debug: bool) -> Result<Group, String> {
-    // Draw the box rectangle
-    group = draw_box_rectangle(group, diagram_box, debug)?;
+    if diagram_box.boxdef.kind == BoxKind::Box {
+        // Draw the box rectangle
+        group = draw_box_rectangle(group, diagram_box, debug)?;
+    }
+
+    // Draw debug grid if enabled
+    if debug {
+        group = draw_debug_grid(group, diagram_box)?;
+    }
 
     // Draw the box label if it has a title
     if let Some(ref title) = diagram_box.boxdef.title {
@@ -154,11 +162,6 @@ fn draw_box_rectangle(mut group: Group, diagram_box: &DiagramBox, debug: bool) -
         .set("fill", fill_color);
 
     group = group.add(rect);
-
-    // Draw debug grid if enabled
-    if debug {
-        group = draw_debug_grid(group, diagram_box)?;
-    }
 
     Ok(group)
 }

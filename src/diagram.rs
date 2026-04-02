@@ -5,7 +5,7 @@ pub mod debug;
 use std::sync::Arc;
 
 use crate::rect::Rect;
-use crate::elaboration::{self, BoxDef};
+use crate::elaboration::{self, BoxDef, BoxKind};
 use crate::ast;
 
 // Re-export color types for backward compatibility
@@ -137,22 +137,21 @@ impl Diagram {
         diagram
     }
 
-    fn create_diagram_box(&mut self, box_inst: &Arc<elaboration::BoxDef>, bounds: Rect) -> DiagramBox {
+    fn create_diagram_box(&mut self, box_def: &Arc<elaboration::BoxDef>, bounds: Rect) -> DiagramBox {
         let margin = bounds.width().min(bounds.height()) as f64 * MARGIN_FACTOR;
         let padding = margin;
         // Check if this is a label (has title and border_style "none")
-        let is_label = box_inst.title.is_some()
-            && box_inst.border_style.as_deref() == Some("none");
 
         // Calculate child bounds and create child DiagramBoxes
         let border_bounds = bounds.margin(margin);
         let grid_bounds = border_bounds.margin(padding);
         let mut children = Vec::new();
 
-        for child_box in &box_inst.boxes {
-            let stretch = false;
+        for child_box in &box_def.boxes {
+            let is_label = child_box.def.kind == BoxKind::Label;
+            let stretch = is_label;
             let child_bounds = if stretch {
-                let (max_row, max_col) = box_inst.grid;
+                let (max_row, max_col) = box_def.grid;
                 let dr = grid_bounds.height() / max_row as f64;
                 let dc = grid_bounds.width() / max_col as f64;
 
@@ -177,7 +176,7 @@ impl Diagram {
                 )
             } else {
                 // Calculate the allocated space on the parent's grid
-                let (max_row, max_col) = box_inst.grid;
+                let (max_row, max_col) = box_def.grid;
                 let dr = grid_bounds.height() / max_row as f64;
                 let dc = grid_bounds.width() / max_col as f64;
 
@@ -246,7 +245,7 @@ impl Diagram {
             bounds,
             margin,
             padding,
-            boxdef: box_inst.clone(),
+            boxdef: box_def.clone(),
             children,
         };
 

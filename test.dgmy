@@ -1,0 +1,17 @@
+diagram {
+    width: 400
+    debug: true
+    top: Top
+}
+
+box Top {
+    grid: 3x2
+    color: red
+
+    box align top is {
+        grid: 2x3
+        color: green
+        label "Hello" dim 1x2
+        label "World" dim 1x3
+    }
+}
