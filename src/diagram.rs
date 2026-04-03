@@ -11,17 +11,6 @@ use crate::ast::{self, BoxInst};
 // Re-export color types for backward compatibility
 pub use crate::color::{RgbColor, contrast};
 
-/// Calculate the bounding box for a multi-line text label at a given font size
-///
-/// # Arguments
-/// * `text` - The text content (can contain newlines)
-/// * `font_size` - The font size in pixels
-///
-/// # Returns
-/// A Rect representing the bounding box with:
-/// - x, y = 0 (relative coordinates)
-/// - width = widest line width
-/// - height = total height of all lines
 pub fn calculate_text_bounds(text: &str, font_size: f64) -> Rect {
     // Average character width is approximately 0.6 × font_size for Arial
     const CHAR_WIDTH_RATIO: f64 = 0.6;
@@ -43,15 +32,6 @@ pub fn calculate_text_bounds(text: &str, font_size: f64) -> Rect {
     Rect::new(0.0, 0.0, width, height)
 }
 
-/// Calculate the font size needed to fit text within given bounds
-///
-/// # Arguments
-/// * `text` - The text content (can contain newlines)
-/// * `bounds` - The bounding box to fit the text within
-///
-/// # Returns
-/// The font size in pixels that will make the text fit within the bounds
-/// (using 90% of the bounds for padding)
 pub fn calculate_font_size_from_bounds(text: &str, bounds: Rect) -> f64 {
     let available_width = bounds.width();
     let available_height = bounds.height();
@@ -67,9 +47,6 @@ pub fn calculate_font_size_from_bounds(text: &str, bounds: Rect) -> f64 {
         .max()
         .unwrap_or(0);
 
-    // Calculate font size constraints from width
-    // width = max_line_chars * font_size * CHAR_WIDTH_RATIO
-    // font_size = width / (max_line_chars * CHAR_WIDTH_RATIO)
     let font_size_from_width = if max_line_chars > 0 {
         available_width / (max_line_chars as f64 * CHAR_WIDTH_RATIO)
     } else {
@@ -149,44 +126,11 @@ impl DiagramLabel {
 }
 
 impl Diagram {
-    /// Render the diagram to an SVG file
-    ///
-    /// # Arguments
-    /// * `filename` - Path to the output SVG file
-    /// * `width` - Width of the SVG canvas
-    /// * `height` - Height of the SVG canvas
-    /// * `font_size` - Font size for text rendering (default: 18)
-    /// * `debug` - Whether to include debug overlay
     pub fn render_to_svg(&self, filename: &str, width: usize, height: usize, font_size: usize, debug: bool) -> Result<(), String> {
         crate::svg::render_to_svg(self, filename, width, height, font_size, debug || self.debug)
     }
-
-    /// Render the diagram to an SVG string (for WebAssembly)
-    ///
-    /// # Arguments
-    /// * `width` - Width of the SVG canvas
-    /// * `height` - Height of the SVG canvas
-    /// * `font_size` - Font size for text rendering (default: 18)
-    /// * `debug` - Whether to include debug overlay
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen"))]
-    pub fn render_to_svg_string(&self, width: usize, height: usize, font_size: usize, debug: bool) -> Result<String, String> {
-        crate::svg::render_to_svg_string(self, width, height, font_size, debug)
-    }
 }
 
-/// Estimates the bounding box (width, height) of text at a given font size
-///
-/// # Arguments
-/// * `text` - The text to measure (can contain newlines)
-/// * `font_size` - The font size in pixels
-///
-/// # Returns
-/// A tuple (width, height) representing the estimated bounding box in pixels
-///
-/// # Notes
-/// - Uses a character width ratio of 0.6 for Arial font (approximation)
-/// - Width is based on the widest line
-/// - Height is number of lines × font_size
 pub fn estimate_text_bbox(text: &str, font_size: usize) -> (usize, usize) {
     // Average character width is approximately 0.6 × font_size for Arial
     const CHAR_WIDTH_RATIO: f64 = 0.6;
