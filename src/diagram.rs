@@ -101,7 +101,7 @@ pub struct DiagramLabel {
 #[derive(Debug, Clone)]
 pub struct DiagramPort {
     pub name: String,
-    pub pos_outer: (f64, f64),
+    pub pos_outer: Option<(f64, f64)>,
     pub pos_inner: (f64, f64),
     pub label: Option<String>,
 }
@@ -324,10 +324,17 @@ impl Diagram {
             let inner_abs_x = grid_bounds.x() + frac_x * grid_bounds.width();
             let inner_abs_y = grid_bounds.y() + frac_y * grid_bounds.height();
 
+            // If port used "at" clause, set pos_outer to None
+            let pos_outer = if port.used_at_clause {
+                None
+            } else {
+                Some((abs_x, abs_y))
+            };
+
             ports.push(DiagramPort {
                 name: port.name.clone(),
                 label: port.label.clone(),
-                pos_outer: (abs_x, abs_y),
+                pos_outer,
                 pos_inner: (inner_abs_x, inner_abs_y),
             });
         }

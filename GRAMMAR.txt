@@ -57,7 +57,7 @@
 ////////////////////////////////////////
 
     Port :=
-        "port" Ident ("at" CoordsFrac)? ("on" Side)? ("align" Alignment)? ("is" Body)?
+        "port" Ident ("at" Coords)? ("on" Side)? ("is" Body)?
 
     Arrow :=
         "arrow" Path "to" Path ("is" Body)?
@@ -87,8 +87,7 @@
 // Extra
 ////////////////////////////////////////
 
-    Coords     := "(" Num "," Num ")"
-    CoordsFrac := "(" Frac "," Frac ")"
+    Coords := "(" Num "," Num ")"
 
     Path := Ident ("." Ident")*
 

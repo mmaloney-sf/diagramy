@@ -58,6 +58,7 @@ pub struct Port {
     pub name: String,
     pub coords: (f64, f64), // Fractional coordinates
     pub label: Option<String>, // Optional label text
+    pub used_at_clause: bool, // True if positioned with "at", false if positioned with "on"
 }
 
 #[derive(Debug, Clone)]
@@ -453,9 +454,9 @@ impl<'ast> Elaborator<'ast> {
 
         for item in &body.items {
             if let ast::BoxItem::Port(port) = item {
-                let coords = if let Some(ref coords_frac) = port.coords {
-                    // Explicit "at" positioning
-                    (coords_frac.row, coords_frac.col)
+                let (coords, used_at_clause) = if let Some(ref coords_frac) = port.coords {
+                    // Explicit "at" positioning - shift half a grid cell up and to the left
+                    ((coords_frac.row - 0.5, coords_frac.col - 0.5), true)
                 } else {
                     // Use "on" clause (or default to "right")
                     let side = match &port.on {
@@ -465,7 +466,7 @@ impl<'ast> Elaborator<'ast> {
                         Some(ast::Side::Left) => "left",
                         None => "right",
                     };
-                    self.find_port_position_on_side(side, grid, &mut used_positions, port)?
+                    (self.find_port_position_on_side(side, grid, &mut used_positions, port)?, false)
                 };
 
                 // Extract label from port body if present
@@ -479,6 +480,7 @@ impl<'ast> Elaborator<'ast> {
                     name: port.name.clone(),
                     coords,
                     label,
+                    used_at_clause,
                 });
             }
         }

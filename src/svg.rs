@@ -70,21 +70,20 @@ fn create_content_group(
 }
 
 fn draw_port(mut content: Group, diagram_port: &DiagramPort) -> Group {
-    let (x, y) = diagram_port.pos_outer;
     let (inner_x, inner_y) = diagram_port.pos_inner;
-    let radius = 0.5; // Port circle radius
+    let radius = 1.5; // Port circle radius
 
-    // Draw port as a circle
-    let circle = svg::node::element::Circle::new()
-        .set("cx", x)
-        .set("cy", y)
-        .set("r", radius)
-        .set("fill", "red")
-        .set("stroke", "darkred")
-        .set("stroke-width", 1.5);
+    if let Some((x, y)) = diagram_port.pos_outer {
+        let circle = svg::node::element::Circle::new()
+            .set("cx", x)
+            .set("cy", y)
+            .set("r", radius)
+            .set("fill", "red")
+            .set("stroke", "darkred")
+            .set("stroke-width", 1.5);
 
-    content = content.add(circle);
-    // Draw port as a circle
+        content = content.add(circle);
+    }
 
     let inner_circle = svg::node::element::Circle::new()
         .set("cx", inner_x)
@@ -100,8 +99,8 @@ fn draw_port(mut content: Group, diagram_port: &DiagramPort) -> Group {
     if let Some(ref label) = diagram_port.label {
         let label_offset = 8.0; // Distance from port center
         let text = Text::new(label.as_str())
-            .set("x", x + label_offset)
-            .set("y", y - label_offset)
+            .set("x", inner_x + label_offset)
+            .set("y", inner_y - label_offset)
             .set("font-size", 10)
             .set("font-family", "Arial, sans-serif")
             .set("fill", "black");
