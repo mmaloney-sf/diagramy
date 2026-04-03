@@ -318,9 +318,17 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
         if let BoxItem::BoxInst(box_inst) = item {
             let span = box_inst.span();
             let start = span.start();
-            let (coords_opt, dim) = match box_inst {
+            let (coords_opt, dim_opt) = match box_inst {
                 crate::ast::BoxInst::WithBody(with_body) => (&with_body.coords, &with_body.dim),
                 crate::ast::BoxInst::Reference(reference) => (&reference.coords, &reference.dim),
+            };
+
+            // If dim is not specified, default to 1x1 for validation purposes
+            // (elaboration will set it to the child's grid, but we don't have that here)
+            let dim = if let Some(d) = dim_opt {
+                (d.height, d.width)
+            } else {
+                (1, 1)
             };
 
             // Determine actual position (explicit or auto-positioned)
@@ -328,7 +336,7 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
                 (c.row, c.col)
             } else {
                 // Auto-positioned box - find next free position
-                match find_next_free_position(&occupied_cells, (grid_size.height, grid_size.width), (dim.height, dim.width), last_pos) {
+                match find_next_free_position(&occupied_cells, (grid_size.height, grid_size.width), dim, last_pos) {
                     Some(pos) => {
                         last_pos = pos;
                         pos
@@ -336,7 +344,7 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
                     None => {
                         return Err(format!(
                             "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
-                            filename, start.line(), start.col(), dim.height, dim.width, grid_size.height, grid_size.width
+                            filename, start.line(), start.col(), dim.0, dim.1, grid_size.height, grid_size.width
                         ));
                     }
                 }
@@ -359,20 +367,20 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
 
             // Check if box with dim fits within grid bounds (1-based indexing)
             // For 1-based indexing, a box at (1, 1) with dim 1x2 occupies cells (1, 1) and (1, 2)
-            let end_row = row + dim.height - 1;
-            let end_col = col + dim.width - 1;
+            let end_row = row + dim.0 - 1;
+            let end_col = col + dim.1 - 1;
 
             if end_row > grid_size.height {
                 return Err(format!(
                     "{}:{}:{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End row {} exceeds grid height {}",
-                    filename, start.line(), start.col(), row, col, dim.height, dim.width, end_row, grid_size.height
+                    filename, start.line(), start.col(), row, col, dim.0, dim.1, end_row, grid_size.height
                 ));
             }
 
             if end_col > grid_size.width {
                 return Err(format!(
                     "{}:{}:{}: Box at ({}, {}) with dim {}x{} extends beyond grid bounds. End col {} exceeds grid width {}",
-                    filename, start.line(), start.col(), row, col, dim.height, dim.width, end_col, grid_size.width
+                    filename, start.line(), start.col(), row, col, dim.0, dim.1, end_col, grid_size.width
                 ));
             }
 
@@ -383,7 +391,7 @@ fn validate_box_positions(body: &BoxBody, filename: &str) -> Result<(), String> 
                     if occupied_cells.contains(&cell) {
                         return Err(format!(
                             "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                            filename, start.line(), start.col(), row, col, dim.height, dim.width, r, c
+                            filename, start.line(), start.col(), row, col, dim.0, dim.1, r, c
                         ));
                     }
                     occupied_cells.insert(cell);
@@ -832,9 +840,16 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
     for item in &body.items {
         if let BoxItem::BoxInst(box_inst) = item {
             // Get position and dimensions of the child box
-            let (coords_opt, dimensions) = match box_inst {
+            let (coords_opt, dimensions_opt) = match box_inst {
                 BoxInst::WithBody(with_body) => (with_body.coords.as_ref(), &with_body.dim),
                 BoxInst::Reference(reference) => (reference.coords.as_ref(), &reference.dim),
+            };
+
+            // Default to 1x1 if not specified (elaboration will use child's grid)
+            let dimensions = if let Some(d) = dimensions_opt {
+                (d.height, d.width)
+            } else {
+                (1, 1)
             };
 
             // Determine actual position (explicit or auto-positioned)
@@ -842,7 +857,7 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
                 (coords.row, coords.col)
             } else {
                 // Auto-positioned box - find next free position
-                match find_next_free_position(&occupied, grid, (dimensions.height, dimensions.width), last_pos) {
+                match find_next_free_position(&occupied, grid, dimensions, last_pos) {
                     Some(pos) => pos,
                     None => {
                         // No free space - return error
@@ -850,7 +865,7 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
                         let start = span.start();
                         return Err(format!(
                             "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
-                            filename, start.line(), start.col(), dimensions.height, dimensions.width, grid.0, grid.1
+                            filename, start.line(), start.col(), dimensions.0, dimensions.1, grid.0, grid.1
                         ));
                     }
                 }
@@ -860,8 +875,8 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
             last_pos = (child_row, child_col);
 
             // Mark occupied cells
-            for r in child_row..(child_row + dimensions.height) {
-                for c in child_col..(child_col + dimensions.width) {
+            for r in child_row..(child_row + dimensions.0) {
+                for c in child_col..(child_col + dimensions.1) {
                     occupied.insert((r, c));
                 }
             }
@@ -870,8 +885,8 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
             // Child box position is 1-based, convert to 0-based
             let child_row_start = (child_row - 1) as f64;
             let child_col_start = (child_col - 1) as f64;
-            let child_row_end = child_row_start + dimensions.height as f64;
-            let child_col_end = child_col_start + dimensions.width as f64;
+            let child_row_end = child_row_start + dimensions.0 as f64;
+            let child_col_end = child_col_start + dimensions.1 as f64;
 
             // Scale to match port coordinate system (0.0 to grid dimensions)
             let child_y_start = child_row_start * (grid_height as f64 / grid_height as f64);

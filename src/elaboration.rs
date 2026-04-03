@@ -202,6 +202,22 @@ impl<'ast> Elaborator<'ast> {
         occupied: &mut HashSet<(i32, i32)>,
         last_pos: &mut (i32, i32),
     ) -> Result<BoxInst, String> {
+        // First, process the body to get the grid so we can determine default dim
+        let line_number = Some(with_body.span.start().line());
+        let nested_def = self.convert_ast_box_body(
+            &with_body.body,
+            &format!("{}.inline", box_name),
+            None, // No def_name for inline boxes
+            line_number,
+        )?;
+
+        // If dim is not specified, default to the child's grid
+        let dim = if let Some(ref d) = with_body.dim {
+            (d.height, d.width)
+        } else {
+            (nested_def.grid.0 as i32, nested_def.grid.1 as i32)
+        };
+
         // Determine position (auto-position if coords is None)
         let (row, col) = if let Some(c) = &with_body.coords {
             (c.row, c.col)
@@ -209,7 +225,7 @@ impl<'ast> Elaborator<'ast> {
             match self.find_next_free_position(
                 occupied,
                 grid,
-                (with_body.dim.height, with_body.dim.width),
+                dim,
                 *last_pos,
             ) {
                 Some(pos) => pos,
@@ -217,7 +233,7 @@ impl<'ast> Elaborator<'ast> {
                     let start = with_body.span.start();
                     return Err(format!(
                         "{}:{}:{}: Cannot auto-position box with dim {}x{}. No free space available in {}x{} grid",
-                        self.filename, start.line(), start.col(), with_body.dim.height, with_body.dim.width, grid.0, grid.1
+                        self.filename, start.line(), start.col(), dim.0, dim.1, grid.0, grid.1
                     ));
                 }
             }
@@ -227,28 +243,18 @@ impl<'ast> Elaborator<'ast> {
         *last_pos = (row, col);
 
         // Check for overlaps and mark occupied cells (including cells occupied by dim)
-        for r in row..(row + with_body.dim.height) {
-            for c in col..(col + with_body.dim.width) {
+        for r in row..(row + dim.0) {
+            for c in col..(col + dim.1) {
                 if occupied.contains(&(r, c)) {
                     let start = with_body.span.start();
                     return Err(format!(
                         "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                        self.filename, start.line(), start.col(), row, col, with_body.dim.height, with_body.dim.width, r, c
+                        self.filename, start.line(), start.col(), row, col, dim.0, dim.1, r, c
                     ));
                 }
                 occupied.insert((r, c));
             }
         }
-
-        // Recursively convert the nested box body
-        // Inline boxes have no def_name, but we track their line number
-        let line_number = Some(with_body.span.start().line());
-        let nested_def = self.convert_ast_box_body(
-            &with_body.body,
-            &format!("{}.inline", box_name),
-            None, // No def_name for inline boxes
-            line_number,
-        )?;
 
         let debug = nested_def.debug.unwrap_or(false);
         let def = Arc::new(nested_def);
@@ -258,7 +264,7 @@ impl<'ast> Elaborator<'ast> {
             def,
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
-            dim: (with_body.dim.height as usize, with_body.dim.width as usize),
+            dim: (dim.0 as usize, dim.1 as usize),
             alignment: with_body.alignment.clone().unwrap_or(ast::Alignment::Center),
             debug,
         })
@@ -272,45 +278,7 @@ impl<'ast> Elaborator<'ast> {
         occupied: &mut HashSet<(i32, i32)>,
         last_pos: &mut (i32, i32),
     ) -> Result<BoxInst, String> {
-        // Determine position (auto-position if coords is None)
-        let (row, col) = if let Some(c) = &reference.coords {
-            (c.row, c.col)
-        } else {
-            match self.find_next_free_position(
-                occupied,
-                grid,
-                (reference.dim.height, reference.dim.width),
-                *last_pos,
-            ) {
-                Some(pos) => pos,
-                None => {
-                    let start = reference.span.start();
-                    return Err(format!(
-                        "{}:{}:{}: Cannot auto-position box '{}' with dim {}x{}. No free space available in {}x{} grid",
-                        self.filename, start.line(), start.col(), reference.def_name, reference.dim.height, reference.dim.width, grid.0, grid.1
-                    ));
-                }
-            }
-        };
-
-        // Update last position
-        *last_pos = (row, col);
-
-        // Check for overlaps and mark occupied cells (including cells occupied by dim)
-        for r in row..(row + reference.dim.height) {
-            for c in col..(col + reference.dim.width) {
-                if occupied.contains(&(r, c)) {
-                    let start = reference.span.start();
-                    return Err(format!(
-                        "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
-                        self.filename, start.line(), start.col(), row, col, reference.dim.height, reference.dim.width, r, c
-                    ));
-                }
-                occupied.insert((r, c));
-            }
-        }
-
-        // Look up the referenced box definition
+        // Look up the referenced box definition first to get its grid
         let referenced_def = self.box_def_map.get(&reference.def_name).ok_or_else(|| {
             let start = reference.span.start();
             format!(
@@ -331,6 +299,51 @@ impl<'ast> Elaborator<'ast> {
             line_number,
         )?;
 
+        // If dim is not specified, default to the referenced box's grid
+        let dim = if let Some(ref d) = reference.dim {
+            (d.height, d.width)
+        } else {
+            (nested_def.grid.0 as i32, nested_def.grid.1 as i32)
+        };
+
+        // Determine position (auto-position if coords is None)
+        let (row, col) = if let Some(c) = &reference.coords {
+            (c.row, c.col)
+        } else {
+            match self.find_next_free_position(
+                occupied,
+                grid,
+                dim,
+                *last_pos,
+            ) {
+                Some(pos) => pos,
+                None => {
+                    let start = reference.span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Cannot auto-position box '{}' with dim {}x{}. No free space available in {}x{} grid",
+                        self.filename, start.line(), start.col(), reference.def_name, dim.0, dim.1, grid.0, grid.1
+                    ));
+                }
+            }
+        };
+
+        // Update last position
+        *last_pos = (row, col);
+
+        // Check for overlaps and mark occupied cells (including cells occupied by dim)
+        for r in row..(row + dim.0) {
+            for c in col..(col + dim.1) {
+                if occupied.contains(&(r, c)) {
+                    let start = reference.span.start();
+                    return Err(format!(
+                        "{}:{}:{}: Box at ({}, {}) with dim {}x{} overlaps with another box at cell ({}, {})",
+                        self.filename, start.line(), start.col(), row, col, dim.0, dim.1, r, c
+                    ));
+                }
+                occupied.insert((r, c));
+            }
+        }
+
         let debug = nested_def.debug.unwrap_or(false);
         let def = Arc::new(nested_def);
 
@@ -339,7 +352,7 @@ impl<'ast> Elaborator<'ast> {
             def,
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
-            dim: (reference.dim.height as usize, reference.dim.width as usize),
+            dim: (dim.0 as usize, dim.1 as usize),
             alignment: reference.alignment.clone().unwrap_or(ast::Alignment::Center),
             debug,
         })

@@ -148,6 +148,7 @@ fn draw_box_rectangle(mut group: Group, diagram_box: &DiagramBox, debug: bool) -
         "transparent"
     };
     let border_bounds = diagram_box.border_bounds();
+    let stroke_width = 0.5;
 
 //    let border_radius = box_rect.width() / 100.0;
     let rect = Rectangle::new()
@@ -158,7 +159,7 @@ fn draw_box_rectangle(mut group: Group, diagram_box: &DiagramBox, debug: bool) -
 //        .set("rx", border_radius)
 //        .set("ry", border_radius)
         .set("stroke", "gray")
-        .set("stroke-width", 0.5)
+        .set("stroke-width", stroke_width)
         .set("fill", fill_color);
 
     group = group.add(rect);
@@ -175,6 +176,7 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
     let height = grid_rect.height();
 
     let stroke_width = 0.70;
+    let stroke_dasharray = "1,3";
 
     // Draw red bounding rectangle around the grid
     let grid_bounds = Rectangle::new()
@@ -185,7 +187,7 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
         .set("fill", "none")
         .set("stroke", "red")
         .set("stroke-width", stroke_width)
-        .set("stroke-dasharray", "2,2");
+        .set("stroke-dasharray", stroke_dasharray);
     group = group.add(grid_bounds);
 
     // Draw vertical grid lines
@@ -198,7 +200,7 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
             .set("y2", y + height)
             .set("stroke", "red")
             .set("stroke-width", stroke_width)
-            .set("stroke-dasharray", "2,2");
+            .set("stroke-dasharray", stroke_dasharray);
         group = group.add(line);
     }
 
@@ -212,7 +214,7 @@ fn draw_debug_grid(mut group: Group, diagram_box: &DiagramBox) -> Result<Group, 
             .set("y2", y_pos)
             .set("stroke", "red")
             .set("stroke-width", stroke_width)
-            .set("stroke-dasharray", "2,2");
+            .set("stroke-dasharray", stroke_dasharray);
         group = group.add(line);
     }
 

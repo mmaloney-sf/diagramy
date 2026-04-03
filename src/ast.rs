@@ -125,7 +125,7 @@ pub enum BoxInst {
 pub struct WithBody {
     pub id: Option<String>,
     pub coords: Option<Coords>,
-    pub dim: Dim,
+    pub dim: Option<Dim>,
     pub alignment: Option<Alignment>,
     pub body: BoxBody,
     pub span: Span,
@@ -135,7 +135,7 @@ pub struct WithBody {
 pub struct Reference {
     pub id: Option<String>,
     pub coords: Option<Coords>,
-    pub dim: Dim,
+    pub dim: Option<Dim>,
     pub alignment: Option<Alignment>,
     pub def_name: String,
     pub location: (usize, usize), // (line, column) - deprecated, use span instead

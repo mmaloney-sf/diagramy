@@ -68,20 +68,8 @@ impl Rect {
         Rect::new(new_x, new_y, new_width, new_height)
     }
 
-    pub fn scale_at_center2(&self, s: f64, t: f64) -> Rect {
-        // Calculate current center
-        let center_x = self.pos.0 + self.size.0 / 2.0;
-        let center_y = self.pos.1 + self.size.1 / 2.0;
-
-        // Calculate new size
-        let new_width = self.size.0 * s;
-        let new_height = self.size.1 * t;
-
-        // Calculate new position to maintain the center
-        let new_x = center_x - new_width / 2.0;
-        let new_y = center_y - new_height / 2.0;
-
-        Rect::new(new_x, new_y, new_width, new_height)
+    pub fn area(&self) -> f64 {
+        self.width() * self.height()
     }
 
     pub fn margin(&self, margin: f64) -> Rect {
