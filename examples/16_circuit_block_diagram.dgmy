@@ -67,7 +67,7 @@ box Processor {
         grid: 3x1
         color: teal
 
-        port clock at (1, 1)
+        port clock on top
         box cache_l1 at (1, 1) is {
             label "L1 Cache"
             color: cyan

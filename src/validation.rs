@@ -881,28 +881,22 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
                 }
             }
 
-            // Convert grid coordinates to fractional coordinates
-            // Child box position is 1-based, convert to 0-based
-            let child_row_start = (child_row - 1) as f64;
-            let child_col_start = (child_col - 1) as f64;
-            let child_row_end = child_row_start + dimensions.0 as f64;
-            let child_col_end = child_col_start + dimensions.1 as f64;
-
-            // Scale to match port coordinate system (0.0 to grid dimensions)
-            let child_y_start = child_row_start * (grid_height as f64 / grid_height as f64);
-            let child_x_start = child_col_start * (grid_width as f64 / grid_width as f64);
-            let child_y_end = child_row_end * (grid_height as f64 / grid_height as f64);
-            let child_x_end = child_col_end * (grid_width as f64 / grid_width as f64);
-
-            // Check if port is inside this child box (excluding boundaries/margins)
-            // Only check if port has explicit "at" coordinates
+            // Check if port overlaps with this child box
+            // Only check ports with explicit "at" coordinates (ports with "on" are on borders, can't overlap)
             if let Some(ref coords) = port.coords {
-                if (coords.row as f64) > child_y_start && (coords.row as f64) < child_y_end &&
-                   (coords.col as f64) > child_x_start && (coords.col as f64) < child_x_end {
+                // Port coords are 1-based integers
+                // Child box occupies cells from child_row to (child_row + dimensions.0 - 1)
+                //                         and child_col to (child_col + dimensions.1 - 1)
+                let child_row_end = child_row + dimensions.0 - 1;
+                let child_col_end = child_col + dimensions.1 - 1;
+
+                // Check if port position falls within the child box area (inclusive)
+                if coords.row >= child_row && coords.row <= child_row_end &&
+                   coords.col >= child_col && coords.col <= child_col_end {
                     let port_span = coords.span;
                     let start = port_span.start();
                     return Err(format!(
-                        "{}:{}:{}: Port '{}' at ({}, {}) is inside a child box at ({}, {})",
+                        "{}:{}:{}: Port '{}' at ({}, {}) overlaps with child box at ({}, {}) with dim {}x{}",
                         filename,
                         start.line(),
                         start.col(),
@@ -910,7 +904,9 @@ fn validate_port_not_in_child_boxes(port: &Port, body: &BoxBody, filename: &str)
                         coords.row,
                         coords.col,
                         child_row,
-                        child_col
+                        child_col,
+                        dimensions.0,
+                        dimensions.1
                     ));
                 }
             }
