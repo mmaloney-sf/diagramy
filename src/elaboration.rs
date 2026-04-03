@@ -950,7 +950,7 @@ impl<'ast> Elaborator<'ast> {
                     }
                 }
 
-                if let Some(path) = router.route_with_exclusions(start, end, &excluded_box_indices) {
+                if let Some(path) = router.route(start, end, &excluded_box_indices) {
                     // Convert i32 points back to f64 for storage
                     let f64_points: Vec<(f64, f64)> = path
                         .points

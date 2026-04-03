@@ -1,11 +1,12 @@
 // Debug SVG generation for arrow routing
 
-use crate::routing::{debug, ArrowRouter};
+//use crate::routing::{debug, ArrowRouter};
+//
+//use super::types::{ArrowPath, BoundingBox, Point};
+//use svg::node::element::{Circle, Definitions, Line, Marker, Polygon, Rectangle, Text};
+//use svg::Document as SvgDocument;
 
-use super::types::{ArrowPath, BoundingBox, Point};
-use svg::node::element::{Circle, Definitions, Line, Marker, Polygon, Rectangle, Text};
-use svg::Document as SvgDocument;
-
+/*
 impl ArrowRouter {
     /// Generate a debug SVG showing the routing problem and solution (if found)
     pub fn generate_routing_debug_svg(
@@ -35,8 +36,10 @@ impl ArrowRouter {
         }
     }
 }
+*/
 
 
+/*
 /// Generate a debug SVG showing the routing problem and solution (if found)
 pub fn generate_routing_debug_svg(
     start: Point,
@@ -373,3 +376,4 @@ pub fn generate_routing_debug_svg(
         eprintln!("Routing debug SVG saved to: {}", filename);
     }
 }
+*/
