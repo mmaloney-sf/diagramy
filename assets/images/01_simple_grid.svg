@@ -2,19 +2,19 @@
 <g transform="translate(0, 0)">
 <rect fill="transparent" height="360" stroke="blue" stroke-width="1" width="360" x="20" y="20"/>
 <rect fill="#E8DEDD" height="144" stroke="blue" stroke-width="1" width="144" x="48" y="48"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="120" y="127">
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="120" y="139.2">
 Box A
 </text>
 <rect fill="#DEE8E3" height="144" stroke="blue" stroke-width="1" width="144" x="208" y="48"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="280" y="127">
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="280" y="139.2">
 Box B
 </text>
 <rect fill="#DEE8ED" height="144" stroke="blue" stroke-width="1" width="144" x="48" y="208"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="120" y="287">
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="120" y="299.2">
 Box C
 </text>
 <rect fill="#F5F5DC" height="144" stroke="blue" stroke-width="1" width="144" x="208" y="208"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" x="280" y="287">
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="280" y="299.2">
 Box D
 </text>
 </g>

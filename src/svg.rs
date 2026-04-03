@@ -120,7 +120,7 @@ fn render_box_recursive(mut group: Group, diagram_box: &DiagramBox, debug: bool)
     }
 
     // Draw debug grid if enabled
-    if debug {
+    if debug || diagram_box.boxdef.debug.unwrap_or(false) {
         group = draw_debug_grid(group, diagram_box)?;
     }
 

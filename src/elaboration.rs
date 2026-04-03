@@ -73,6 +73,7 @@ pub struct BoxInst {
     pub pos: (usize, usize),
     pub dim: (usize, usize), // (height, width) - number of grid cells to span
     pub alignment: ast::Alignment, // Alignment within the grid cell (defaults to Center)
+    pub debug: bool,
 }
 
 #[derive(Debug)]
@@ -249,13 +250,17 @@ impl<'ast> Elaborator<'ast> {
             line_number,
         )?;
 
+        let debug = nested_def.debug.unwrap_or(false);
+        let def = Arc::new(nested_def);
+
         Ok(BoxInst {
             id: with_body.id.clone(),
-            def: Arc::new(nested_def),
+            def,
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (with_body.dim.height as usize, with_body.dim.width as usize),
             alignment: with_body.alignment.clone().unwrap_or(ast::Alignment::Center),
+            debug,
         })
     }
 
@@ -326,13 +331,17 @@ impl<'ast> Elaborator<'ast> {
             line_number,
         )?;
 
+        let debug = nested_def.debug.unwrap_or(false);
+        let def = Arc::new(nested_def);
+
         Ok(BoxInst {
             id: reference.id.clone(),
-            def: Arc::new(nested_def),
+            def,
             // Convert from 1-based to 0-based indexing
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (reference.dim.height as usize, reference.dim.width as usize),
             alignment: reference.alignment.clone().unwrap_or(ast::Alignment::Center),
+            debug,
         })
     }
 
@@ -416,6 +425,7 @@ impl<'ast> Elaborator<'ast> {
             pos: ((row - 1) as usize, (col - 1) as usize),
             dim: (dim_height as usize, dim_width as usize),
             alignment: label.alignment.clone().unwrap_or(ast::Alignment::Center),
+            debug: false, // Labels default to no debug
         })
     }
 

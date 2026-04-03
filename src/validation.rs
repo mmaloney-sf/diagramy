@@ -14,7 +14,7 @@ const VALID_COLORS: &[&str] = &[
 const VALID_DIAGRAM_PROPS: &[&str] = &["width", "color", "title", "top", "version", "cheatPorts", "debug"];
 
 // Valid box-level properties
-const VALID_BOX_PROPS: &[&str] = &["grid", "text", "title", "color", "margin", "borderStyle", "bold"];
+const VALID_BOX_PROPS: &[&str] = &["grid", "text", "title", "color", "margin", "borderStyle", "bold", "debug"];
 
 // Valid border styles
 const VALID_BORDER_STYLES: &[&str] = &["solid", "none", "dotted", "dashed"];

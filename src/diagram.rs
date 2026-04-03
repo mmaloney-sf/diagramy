@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use crate::rect::Rect;
 use crate::elaboration::{self, BoxDef, BoxKind};
-use crate::ast;
+use crate::ast::{self, BoxInst};
 
 // Re-export color types for backward compatibility
 pub use crate::color::{RgbColor, contrast};
