@@ -15,26 +15,26 @@ diagram {
 box Processor {
     grid: 4x4
 
-    port clock at (0.5, 0.0)
+    port clock on top
 
     arrow clock to core.clock
     arrow clock to io_interface.clock
     arrow clock to memory.clock
 
     // Input/Output Interface (top-left)
-    box io_interface at (1, 1) is {
+    box io_interface at (1, 1) dim 1x1 is {
         grid: 2x2
         color: cyan
 
-        port clock at (0.5, 0.0)
+        port clock on top
 
         box adc at (1, 1) is {
-            text: "ADC"
+            label "ADC"
             color: lime
         }
 
         box dac at (2, 1) is {
-            text: "DAC"
+            label "DAC"
             color: lime
         }
     }
@@ -44,73 +44,74 @@ box Processor {
         grid: 3x2
         color: yellow
 
-        port clock at (0.5, 0.0)
+        port clock at (1, 2)
 
         box alu at (1, 1) is {
-            text: "ALU"
+            label "ALU"
             color: orange
         }
 
         box fpu at (2, 1) is {
-            text: "FPU"
+            label "FPU"
             color: orange
         }
 
         box control at (3, 1) dim 1x2 is {
-            text: "Control\nUnit"
+            label "Control\nUnit"
             color: pink
         }
     }
 
     // Memory Subsystem (top-right)
-    box memory at (1, 3) dim 2x1 is {
+    box memory at (1, 3) dim 1x1 is {
         grid: 3x1
         color: teal
 
-        port clock at (0.5, 0.0)
+        port clock at (1, 1)
         box cache_l1 at (1, 1) is {
-            text: "L1 Cache"
+            label "L1 Cache"
             color: cyan
         }
 
         box cache_l2 at (2, 1) is {
-            text: "L2 Cache"
+            label "L2 Cache"
             color: cyan
         }
 
         box ram at (3, 1) is {
-            text: "RAM"
+            label "RAM"
             color: blue
         }
     }
 
     // DMA Controller (bottom-left)
-    box dma at (3, 1) is {
+    box dma at (3, 1) dim 1x1 is {
+        grid: 2x2
         color: purple
 
-        port dma_data at (0.0, 0.5)
-        port dma_ctrl at (1.0, 0.5)
+        port dma_data at (2, 1)
+        port dma_ctrl on top
 
         arrow dma_data to dma_ctrl
     }
 
     // Clock and Power Management (bottom-center)
-    box clock_power at (3, 2) is {
+    box clock_power at (3, 2) dim 1x1 is {
         grid: 3x3
         color: yellow
 
         box pll at (1, 1) is {
-            text: "PLL"
+            label "PLL"
             color: orange
         }
 
         box pmu at (2, 2) is {
-            text: "PMU"
+            label "PMU"
             color: orange
         }
 
-        port irq_in at (0.0, 1.5)
-        port irq_out at (3.0, 1.5)
+        port irq_in on top
+        port irq_out on top
 
         arrow irq_in to irq_out
     }

@@ -14,20 +14,20 @@ box Top {
     // Single-line text
     box at (1, 1) is {
         color: red
-        text: "Single Line"
+        label "Single Line"
     }
 
     // Two-line text
     box at (1, 2) is {
         color: green
-        text: "First Line"
+        label "First Line"
               "Second Line"
     }
 
     // Three-line text
     box at (2, 1) is {
         color: blue
-        text: "Line 1"
+        label "Line 1"
               "Line 2"
               "Line 3"
     }
@@ -35,7 +35,7 @@ box Top {
     // Multi-line text with longer content
     box at (2, 2) is {
         color: yellow
-        text: "Memory"
+        label "Memory"
               "Controller"
               "Unit"
               "v2.0"

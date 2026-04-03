@@ -12,16 +12,18 @@ clean:
 
 assets-debug: build
 	@mkdir -p assets/images
-	@for file in examples/*.dgmy; do \
+	@set -e; \
+	for file in examples/*.dgmy; do \
 		basename=$$(basename $$file .dgmy); \
-		./target/release/dgmy --debug build $$file -o assets/images/$$basename.svg; \
+		./target/release/dgmy --debug build $$file -o assets/images/$$basename.svg || exit 1; \
 	done
 
 assets: build
 	@mkdir -p assets/images
-	@for file in examples/*.dgmy; do \
+	@set -e; \
+	for file in examples/*.dgmy; do \
 		basename=$$(basename $$file .dgmy); \
-		./target/release/dgmy $$file -o assets/images/$$basename.svg; \
+		./target/release/dgmy $$file -o assets/images/$$basename.svg || exit 1; \
 	done
 
 web:

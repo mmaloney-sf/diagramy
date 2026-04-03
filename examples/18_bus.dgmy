@@ -8,8 +8,8 @@ box Top {
     grid: 3x3
     color: blue
 
-    box alu at (2, 1) is Alu
-    box mem at (2, 3) is Memory
+    box alu at (2, 1) dim 1x1 is Alu
+    box mem at (2, 3) dim 1x1 is Memory
 
     arrow alu.addr_out to mem.addr_in
     arrow alu.data_out to mem.data_in

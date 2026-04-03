@@ -999,16 +999,18 @@ fn check_box_inst_hover(
     }
 
     // Check if hovering over dim
-    let dim_span = dim.span;
-    let dim_start = dim_span.start();
-    let dim_end = dim_span.end();
-    if is_position_in_span(line, col, dim_start.line(), dim_start.col(), dim_end.line(), dim_end.col()) {
-        return Some("Dimensions specify the size as HEIGHTxWIDTH.\nExample: 2x3 means 2 rows and 3 columns.\nThis defines the bounding box into which the child box will be scaled.".to_string());
-    }
+    if let Some(d) = dim {
+        let dim_span = d.span;
+        let dim_start = dim_span.start();
+        let dim_end = dim_span.end();
+        if is_position_in_span(line, col, dim_start.line(), dim_start.col(), dim_end.line(), dim_end.col()) {
+            return Some("Dimensions specify the size as HEIGHTxWIDTH.\nExample: 2x3 means 2 rows and 3 columns.\nThis defines the bounding box into which the child box will be scaled.".to_string());
+        }
 
-    // Check if hovering over "dim" keyword (should be just before the dim value)
-    if line == dim_start.line() && col >= dim_start.col().saturating_sub(5) && col < dim_start.col() {
-        return Some("The `dim` keyword specifies the dimensions of the box being placed.\nIt defines the bounding box (in grid cells) into which the child box will be scaled.".to_string());
+        // Check if hovering over "dim" keyword (should be just before the dim value)
+        if line == dim_start.line() && col >= dim_start.col().saturating_sub(5) && col < dim_start.col() {
+            return Some("The `dim` keyword specifies the dimensions of the box being placed.\nIt defines the bounding box (in grid cells) into which the child box will be scaled.".to_string());
+        }
     }
 
     // Check if hovering over "is" keyword

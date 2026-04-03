@@ -36,8 +36,8 @@ box Top {
         grid: 1x2
         borderStyle: dashed
 
-        box at (1, 1) is Processor
-        box at (1, 2) is Processor
+        box at (1, 1) dim 1x1 is Processor
+        box at (1, 2) dim 1x1 is Processor
     }
 
     // Shared L2 Cache (with background box)
@@ -49,8 +49,8 @@ box Top {
     }
 
     // Memory modules
-    box at (3, 1) is Memory
-    box at (3, 2) is Memory
+    box at (3, 1) dim 1x1 is Memory
+    box at (3, 2) dim 1x1 is Memory
 
     // I/O Controller (with background box)
     box at (3, 3) is {

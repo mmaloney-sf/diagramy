@@ -26,14 +26,14 @@ box Top {
     // Large header box spanning the width
     box at (1, 1) dim 1x6 is {
         color: blue
-        text: "System Header"
+        label "System Header"
         borderStyle: solid
     }
 
     // Explicitly positioned large box
     box at (2, 1) dim 2x2 is {
         color: red
-        text: "Large"
+        label "Large"
               "Component"
               "(2x2)"
     }
@@ -41,12 +41,12 @@ box Top {
     // Small boxes
     box at (2, 3) is {
         color: green
-        text: "Small"
+        label "Small"
     }
 
     box at (2, 4) is {
         color: yellow
-        text: "Small"
+        label "Small"
     }
 
     // Module instance
@@ -54,28 +54,28 @@ box Top {
 
     // Label with no border
     box at (4, 1) dim 1x2 is {
-        text: "Footer Label"
+        label "Footer Label"
         borderStyle: none
     }
 
     // More boxes
     box at (3, 3) is {
         color: purple
-        text: "Box"
+        label "Box"
     }
 
     box at (3, 4) is {
         color: orange
-        text: "Box"
+        label "Box"
     }
 
     box at (4, 3) is {
         color: pink
-        text: "Box"
+        label "Box"
     }
 
     box at (4, 4) is {
         color: cyan
-        text: "Box"
+        label "Box"
     }
 }

@@ -1,20 +1,20 @@
 <svg height="400" viewBox="0 0 400 400" width="400" xmlns="http://www.w3.org/2000/svg">
 <g transform="translate(0, 0)">
-<rect fill="transparent" height="360" stroke="blue" stroke-width="1" width="360" x="20" y="20"/>
-<rect fill="#E8DEDD" height="144" stroke="blue" stroke-width="1" width="144" x="48" y="48"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="120" y="139.2">
+<rect fill="transparent" height="372" stroke="gray" stroke-width="0.5" width="372" x="14.000000000000002" y="14.000000000000002"/>
+<rect fill="#E8DEDD" height="147.92" stroke="gray" stroke-width="0.5" width="147.92" x="40.040000000000006" y="40.040000000000006"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="35.5008" text-anchor="middle" x="114" y="131.7504">
 Box A
 </text>
-<rect fill="#DEE8E3" height="144" stroke="blue" stroke-width="1" width="144" x="208" y="48"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="280" y="139.2">
+<rect fill="#DEE8E3" height="147.92" stroke="gray" stroke-width="0.5" width="147.92" x="212.04" y="40.040000000000006"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="35.5008" text-anchor="middle" x="286" y="131.7504">
 Box B
 </text>
-<rect fill="#DEE8ED" height="144" stroke="blue" stroke-width="1" width="144" x="48" y="208"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="120" y="299.2">
+<rect fill="#DEE8ED" height="147.92" stroke="gray" stroke-width="0.5" width="147.92" x="40.040000000000006" y="212.04"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="35.5008" text-anchor="middle" x="114" y="303.7504">
 Box C
 </text>
-<rect fill="#F5F5DC" height="144" stroke="blue" stroke-width="1" width="144" x="208" y="208"/>
-<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="38.4" text-anchor="middle" x="280" y="299.2">
+<rect fill="#F5F5DC" height="147.92" stroke="gray" stroke-width="0.5" width="147.92" x="212.04" y="212.04"/>
+<text dominant-baseline="auto" fill="black" font-family="Arial, sans-serif" font-size="35.5008" text-anchor="middle" x="286" y="303.7504">
 Box D
 </text>
 </g>

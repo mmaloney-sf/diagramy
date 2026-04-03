@@ -62,7 +62,7 @@ Prop: Prop = {
 };
 
 Port: Port = {
-    <ll:@L> "port" <name:Ident> <coords:("at" <CoordsFrac>)?> <on:("on" <Side>)?> <alignment:("align" <Alignment>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
+    <ll:@L> "port" <name:Ident> <coords:("at" <Coords>)?> <on:("on" <Side>)?> <alignment:("align" <Alignment>)?> <body:("is" <BoxBody>)?> <rr:@R> => {
         Port { name, coords, on, alignment, body, span: Span::from_offsets(source, ll, rr) }
     },
 };

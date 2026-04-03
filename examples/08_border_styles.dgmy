@@ -14,42 +14,42 @@ box Top {
     // Default border (solid)
     box at (1, 1) is {
         color: white
-        text: "Default"
+        label "Default"
               "(solid)"
     }
 
     // Explicit solid border
     box at (1, 2) is {
         color: white
-        text: "Solid"
+        label "Solid"
         borderStyle: solid
     }
 
     // Dotted border
     box at (1, 3) is {
         color: white
-        text: "Dotted"
+        label "Dotted"
         borderStyle: dotted
     }
 
     // Dashed border
     box at (2, 1) is {
         color: white
-        text: "Dashed"
+        label "Dashed"
         borderStyle: dashed
     }
 
     // No border (invisible box, useful for labels)
     box at (2, 2) is {
         color: white
-        text: "No Border"
+        label "No Border"
         borderStyle: none
     }
 
     // Combining border styles with colors
     box at (2, 3) is {
         color: cyan
-        text: "Cyan"
+        label "Cyan"
               "Dotted"
         borderStyle: dotted
     }

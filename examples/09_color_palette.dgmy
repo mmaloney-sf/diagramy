@@ -13,51 +13,51 @@ box Top {
 
     box at (1, 1) is {
         color: red
-        text: "Red"
+        label "Red"
     }
 
     box at (1, 2) is {
         color: green
-        text: "Green"
+        label "Green"
     }
 
     box at (1, 3) is {
         color: blue
-        text: "Blue"
+        label "Blue"
     }
 
     box at (1, 4) is {
         color: yellow
-        text: "Yellow"
+        label "Yellow"
     }
 
     box at (1, 5) is {
         color: purple
-        text: "Purple"
+        label "Purple"
     }
 
     box at (2, 1) is {
         color: cyan
-        text: "Cyan"
+        label "Cyan"
     }
 
     box at (2, 2) is {
         color: orange
-        text: "Orange"
+        label "Orange"
     }
 
     box at (2, 3) is {
         color: pink
-        text: "Pink"
+        label "Pink"
     }
 
     box at (2, 4) is {
         color: white
-        text: "White"
+        label "White"
     }
 
     box at (2, 5) is {
         color: grey
-        text: "Grey"
+        label "Grey"
     }
 }

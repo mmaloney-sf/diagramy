@@ -454,9 +454,9 @@ impl<'ast> Elaborator<'ast> {
 
         for item in &body.items {
             if let ast::BoxItem::Port(port) = item {
-                let (coords, used_at_clause) = if let Some(ref coords_frac) = port.coords {
-                    // Explicit "at" positioning - shift half a grid cell up and to the left
-                    ((coords_frac.row - 0.5, coords_frac.col - 0.5), true)
+                let (coords, used_at_clause) = if let Some(ref coords_int) = port.coords {
+                    // Explicit "at" positioning with integer coords - convert to float and shift half a grid cell up and to the left
+                    ((coords_int.row as f64 - 0.5, coords_int.col as f64 - 0.5), true)
                 } else {
                     // Use "on" clause (or default to "right")
                     let side = match &port.on {

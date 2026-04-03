@@ -224,7 +224,7 @@ impl Prop {
 #[derive(Debug, Clone)]
 pub struct Port {
     pub name: String,
-    pub coords: Option<CoordsFrac>,  // Optional "at" clause
+    pub coords: Option<Coords>,  // Optional "at" clause
     pub on: Option<Side>,             // Optional "on" clause (top, bottom, left, right)
     pub alignment: Option<Alignment>, // Optional "align" clause
     pub body: Option<BoxBody>,        // Optional body (can contain labels, props, etc.)

@@ -12,61 +12,61 @@ box Top {
     grid: 2x2
 
     // A parent box containing nested children
-    box at (1, 1) is {
+    box at (1, 1) dim 1x1 is {
         color: red
         grid: 2x2
 
         // Child boxes within Parent A
         box at (1, 1) is {
             color: pink
-            text: "Child A1"
+            label "Child A1"
         }
 
         box at (1, 2) is {
             color: pink
-            text: "Child A2"
+            label "Child A2"
         }
 
         box at (2, 1) is {
             color: pink
-            text: "Child A3"
+            label "Child A3"
         }
 
         box at (2, 2) is {
             color: pink
-            text: "Child A4"
+            label "Child A4"
         }
     }
 
     // Another parent box with different nesting
-    box at (1, 2) is {
+    box at (2, 1) dim 1x1 is {
         color: blue
         grid: 3x1
 
         box at (1, 1) is {
             color: cyan
-            text: "Child B1"
+            label "Child B1"
         }
 
         box at (2, 1) is {
             color: cyan
-            text: "Child B2"
+            label "Child B2"
         }
 
         box at (3, 1) is {
             color: cyan
-            text: "Child B3"
+            label "Child B3"
         }
     }
 
     // Simple boxes without nesting
-    box at (2, 1) is {
+    box at (1, 2) is {
         color: green
-        text: "Simple C"
+        label "Simple C"
     }
 
     box at (2, 2) is {
         color: yellow
-        text: "Simple D"
+        label "Simple D"
     }
 }

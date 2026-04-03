@@ -14,18 +14,18 @@ box Microservice {
     color: blue
 
     box at (1, 1) dim 1x2 is {
-        text: "API Gateway"
+        label "API Gateway"
     }
 
     box at (2, 1) is {
-        text: "Business"
+        label "Business"
               "Logic"
     }
 
     label "Cache" at (2, 2)
 
     box at (3, 1) dim 1x2 is {
-        text: "Database"
+        label "Database"
     }
 }
 
@@ -37,7 +37,7 @@ box LoadBalancer {
     label "LB" at (1, 1)
 
     box at (2, 1) is {
-        text: "Health"
+        label "Health"
               "Check"
     }
 }
@@ -48,36 +48,36 @@ box Top {
     // Client layer
     box at (1, 1) dim 1x4 is {
         color: green
-        text: "Client Applications"
+        label "Client Applications"
         borderStyle: dashed
     }
 
     // Load balancer layer
-    box at (2, 1) is LoadBalancer
-    box at (2, 2) is LoadBalancer
-    box at (2, 3) is LoadBalancer
-    box at (2, 4) is LoadBalancer
+    box at (2, 1) dim 1x1 is LoadBalancer
+    box at (2, 2) dim 1x1 is LoadBalancer
+    box at (2, 3) dim 1x1 is LoadBalancer
+    box at (2, 4) dim 1x1 is LoadBalancer
 
     // Microservices layer
-    box at (3, 1) is Microservice
-    box at (3, 2) is Microservice
-    box at (3, 3) is Microservice
-    box at (3, 4) is Microservice
+    box at (3, 1) dim 1x1 is Microservice
+    box at (3, 2) dim 1x1 is Microservice
+    box at (3, 3) dim 1x1 is Microservice
+    box at (3, 4) dim 1x1 is Microservice
 
     // Message queue
     box at (4, 1) dim 1x4 is {
         color: purple
-        text: "Message Queue / Event Bus"
+        label "Message Queue / Event Bus"
     }
 
     // Monitoring and logging
     box at (5, 1) dim 1x2 is {
         color: yellow
-        text: "Monitoring"
+        label "Monitoring"
     }
 
     box at (5, 3) dim 1x2 is {
         color: cyan
-        text: "Logging"
+        label "Logging"
     }
 }

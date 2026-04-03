@@ -14,14 +14,14 @@ box Top {
     // A box spanning 2 rows and 3 columns
     box at (1, 1) dim 2x3 is {
         color: red
-        text: "Wide Box"
+        label "Wide Box"
               "(2x3)"
     }
 
     // A tall box spanning 3 rows and 1 column
     box at (1, 4) dim 3x1 is {
         color: green
-        text: "Tall"
+        label "Tall"
               "Box"
               "(3x1)"
     }
@@ -29,23 +29,23 @@ box Top {
     // A square box spanning 2x2
     box at (3, 1) dim 2x2 is {
         color: blue
-        text: "Square"
+        label "Square"
               "(2x2)"
     }
 
     // Regular 1x1 boxes fill the remaining space
     box at (3, 3) is {
         color: yellow
-        text: "1x1"
+        label "1x1"
     }
 
     box at (4, 3) is {
         color: cyan
-        text: "1x1"
+        label "1x1"
     }
 
     box at (4, 4) is {
         color: orange
-        text: "1x1"
+        label "1x1"
     }
 }
