@@ -110,6 +110,7 @@ pub struct DiagramBox {
 
     pub children: Vec<DiagramBox>,
     pub labels: Vec<DiagramLabel>,
+    pub ports: Vec<DiagramPort>,
 }
 
 
@@ -118,6 +119,14 @@ pub struct DiagramLabel {
     pub bounds: Rect,
     pub text: String,
     pub margin: f64,
+}
+
+#[derive(Debug, Clone)]
+pub struct DiagramPort {
+    pub name: String,
+    pub pos_outer: (f64, f64),
+    pub pos_inner: (f64, f64),
+    pub label: Option<String>,
 }
 
 impl DiagramBox {
@@ -218,6 +227,7 @@ impl Diagram {
                 boxdef: elab_diagram.top.clone(),
                 children: vec![],
                 labels: vec![],
+                ports: vec![],
             },
         };
 
@@ -349,7 +359,36 @@ impl Diagram {
             });
         }
 
-        // Create the DiagramBox with its children and labels
+        // Process ports - convert grid coordinates to absolute positions
+        let mut ports = Vec::new();
+        let border_bounds = bounds.margin(margin);
+        let (grid_rows, grid_cols) = box_def.grid;
+
+        for port in &box_def.ports {
+            // Port coords are in grid space (0.0 to grid_height/width), not fractional (0.0-1.0)
+            // Normalize by dividing by grid dimensions
+            let (port_row, port_col) = port.coords;
+
+            // Normalize to 0.0-1.0 range
+            let frac_x = port_col / grid_cols as f64;
+            let frac_y = port_row / grid_rows as f64;
+
+            // Ports are positioned relative to the border bounds (not grid bounds)
+            let abs_x = border_bounds.x() + frac_x * border_bounds.width();
+            let abs_y = border_bounds.y() + frac_y * border_bounds.height();
+
+            let inner_abs_x = grid_bounds.x() + frac_x * grid_bounds.width();
+            let inner_abs_y = grid_bounds.y() + frac_y * grid_bounds.height();
+
+            ports.push(DiagramPort {
+                name: port.name.clone(),
+                label: port.label.clone(),
+                pos_outer: (abs_x, abs_y),
+                pos_inner: (inner_abs_x, inner_abs_y),
+            });
+        }
+
+        // Create the DiagramBox with its children, labels, and ports
         let diagram_box = DiagramBox {
             bounds,
             margin,
@@ -357,31 +396,8 @@ impl Diagram {
             boxdef: box_def.clone(),
             children,
             labels,
+            ports,
         };
-
-        /*
-        // Process ports - convert grid coordinates to absolute positions
-        for port in &box_inst.ports {
-            // Port coords are in grid space (0.0 to grid_height/width), not fractional (0.0-1.0)
-            // Normalize by dividing by grid dimensions
-            let (grid_rows, grid_cols) = box_inst.grid;
-            let (port_row, port_col) = port.coords;
-
-            // Normalize to 0.0-1.0 range
-            let frac_x = port_col / grid_cols as f64;
-            let frac_y = port_row / grid_rows as f64;
-
-            // Ports are positioned relative to the grid bounds (not grid bounds)
-            let abs_x = border_bounds.x() + frac_x * border_bounds.width();
-            let abs_y = border_bounds.y() + frac_y * border_bounds.height();
-
-            self.elements.push(DiagramElement::Port(DiagramPort {
-                name: port.name.clone(),
-                pos: (abs_x, abs_y),
-                label: port.label.clone(),
-            }));
-        }
-        */
 
         diagram_box
     }

@@ -3,10 +3,10 @@
 use svg::node::element::Group;
 use svg::Document as SvgDocument;
 use svg::node::element::{Rectangle, Text, Circle, Line, Marker, Polygon, Definitions};
-use crate::diagram::{self, Diagram, DiagramBox, DiagramLabel};
+use crate::diagram::{self, Diagram, DiagramBox, DiagramLabel, DiagramPort};
 use crate::elaboration::BoxKind;
 // TODO: Re-enable when these types exist
-// use crate::diagram::{DiagramArrow, DiagramElement, DiagramPort};
+// use crate::diagram::{DiagramArrow, DiagramElement};
 
 /// Render the diagram to an SVG file
 ///
@@ -112,6 +112,48 @@ fn create_content_group(diagram: &Diagram, _width: usize, _height: usize, _font_
     Ok(content_group)
 }
 
+fn draw_port(mut content: Group, diagram_port: &DiagramPort) -> Group {
+    let (x, y) = diagram_port.pos_outer;
+    let (inner_x, inner_y) = diagram_port.pos_inner;
+    let radius = 0.5; // Port circle radius
+
+    // Draw port as a circle
+    let circle = svg::node::element::Circle::new()
+        .set("cx", x)
+        .set("cy", y)
+        .set("r", radius)
+        .set("fill", "red")
+        .set("stroke", "darkred")
+        .set("stroke-width", 1.5);
+
+    content = content.add(circle);
+    // Draw port as a circle
+
+    let inner_circle = svg::node::element::Circle::new()
+        .set("cx", inner_x)
+        .set("cy", inner_y)
+        .set("r", radius)
+        .set("fill", "red")
+        .set("stroke", "darkred")
+        .set("stroke-width", 1.5);
+
+    content = content.add(inner_circle);
+
+    // Add label if present
+    if let Some(ref label) = diagram_port.label {
+        let label_offset = 8.0; // Distance from port center
+        let text = Text::new(label.as_str())
+            .set("x", x + label_offset)
+            .set("y", y - label_offset)
+            .set("font-size", 10)
+            .set("font-family", "Arial, sans-serif")
+            .set("fill", "black");
+        content = content.add(text);
+    }
+
+    content
+}
+
 /// Recursively render a box and its children
 fn render_box_recursive(mut group: Group, diagram_box: &DiagramBox, debug: bool) -> Result<Group, String> {
     if diagram_box.boxdef.kind == BoxKind::Box {
@@ -127,6 +169,11 @@ fn render_box_recursive(mut group: Group, diagram_box: &DiagramBox, debug: bool)
     // Draw labels that were created in diagram.rs
     for label in &diagram_box.labels {
         group = draw_label(group, label, debug);
+    }
+
+    // Draw ports that were created in diagram.rs
+    for port in &diagram_box.ports {
+        group = draw_port(group, port);
     }
 
     // Recursively render child boxes
@@ -370,36 +417,6 @@ fn draw_label(mut content: Group, diagram_label: &DiagramLabel, _debug: bool) ->
 }
 
 /*
-fn draw_port(mut content: Group, diagram_port: &DiagramPort) -> Group {
-    let (x, y) = diagram_port.pos;
-    let radius = 5.0; // Port circle radius
-
-    // Draw port as a circle
-    let circle = svg::node::element::Circle::new()
-        .set("cx", x)
-        .set("cy", y)
-        .set("r", radius)
-        .set("fill", "red")
-        .set("stroke", "darkred")
-        .set("stroke-width", 1.5);
-
-    content = content.add(circle);
-
-    // Add label if present
-    if let Some(ref label) = diagram_port.label {
-        let label_offset = 8.0; // Distance from port center
-        let text = Text::new(label.as_str())
-            .set("x", x + label_offset)
-            .set("y", y - label_offset)
-            .set("font-size", 10)
-            .set("font-family", "Arial, sans-serif")
-            .set("fill", "black");
-        content = content.add(text);
-    }
-
-    content
-}
-
 fn draw_path(mut content: Group, points: &[(f64, f64)]) -> Group {
     if points.is_empty() {
         return content;
