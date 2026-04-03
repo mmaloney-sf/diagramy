@@ -226,7 +226,12 @@ impl Diagram {
     }
 
     fn create_diagram_box(&mut self, box_def: &Arc<elaboration::BoxDef>, bounds: Rect) -> DiagramBox {
-        let margin = 0.05 * (bounds.width().min(bounds.height()) as f64);
+        let (max_row, max_col) = box_def.grid;
+        let margin_factor = 0.07;
+        let margin_vert = margin_factor * bounds.height() / max_row as f64;
+        let margin_hori = margin_factor * bounds.width()  / max_col as f64;
+        let margin = margin_vert.min(margin_hori);
+
         let padding = margin;
         // Check if this is a label (has title and border_style "none")
 
@@ -239,7 +244,6 @@ impl Diagram {
             let is_label = child_box.def.kind == BoxKind::Label;
             let stretch = is_label;
             let child_bounds = if stretch {
-                let (max_row, max_col) = box_def.grid;
                 let dr = grid_bounds.height() / max_row as f64;
                 let dc = grid_bounds.width() / max_col as f64;
 
@@ -341,7 +345,7 @@ impl Diagram {
             labels.push(DiagramLabel {
                 bounds: label_bounds,
                 text: title.clone(),
-                margin: margin,
+                margin,
             });
         }
 

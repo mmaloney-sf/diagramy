@@ -153,8 +153,8 @@ fn draw_box_rectangle(mut group: Group, diagram_box: &DiagramBox, debug: bool) -
         .set("height", border_bounds.height())
 //        .set("rx", border_radius)
 //        .set("ry", border_radius)
-        .set("stroke", "blue")
-        .set("stroke-width", 1.0)
+        .set("stroke", "gray")
+        .set("stroke-width", 0.5)
         .set("fill", fill_color);
 
     group = group.add(rect);
